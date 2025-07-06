@@ -1,35 +1,27 @@
-package config
+package configs
 
 import (
-	"log"
-	"os"
-
 	"github.com/joho/godotenv"
+	"os"
 )
 
-// Config содержит переменные окружения
 type Config struct {
 	Port  string
 	DBUrl string
 }
 
-// LoadConfig читает переменные из .env и возвращает структуру Config
-func LoadConfig() *Config {
-	// Загружаем .env, если он существует
-	_ = godotenv.Load()
+func LoadConfig() Config {
+	_ = godotenv.Load() // не паникуем, если .env нет
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080" // значение по умолчанию
+	return Config{
+		Port:  getEnv("PORT", "8080"),
+		DBUrl: getEnv("DB_URL", "postgres://user:pass@localhost:5432/reviewlink"),
 	}
+}
 
-	dbUrl := os.Getenv("DB_URL")
-	if dbUrl == "" {
-		log.Fatal("DB_URL is not set in environment")
+func getEnv(key, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
 	}
-
-	return &Config{
-		Port:  port,
-		DBUrl: dbUrl,
-	}
+	return fallback
 }
