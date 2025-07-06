@@ -1,0 +1,14 @@
+# IDE
+.idea/
+
+# Build artifacts
+*.exe
+*.out
+*.test
+reviewlink
+
+# Env
+.env
+
+# Logs
+*.log
