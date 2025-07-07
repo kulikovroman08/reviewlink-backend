@@ -1,9 +1,10 @@
 package main
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/configs"
-	"log"
 )
 
 func main() {
