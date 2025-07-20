@@ -4,10 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/kulikovroman08/reviewlink-backend/pkg/errwrapp"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/kulikovroman08/reviewlink-backend/pkg/errwrapp"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"

@@ -2,12 +2,13 @@ package app
 
 import (
 	"database/sql"
+	"log"
+
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/configs"
 	"github.com/kulikovroman08/reviewlink-backend/internal/auth"
 	"github.com/kulikovroman08/reviewlink-backend/internal/router"
 	_ "github.com/lib/pq"
-	"log"
 )
 
 func InitApp(cfg *configs.Config) *gin.Engine {
