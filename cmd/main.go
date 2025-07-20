@@ -1,17 +1,16 @@
 package main
 
 import (
-	"github.com/kulikovroman08/reviewlink-backend/internal/router"
 	"log"
 
 	"github.com/kulikovroman08/reviewlink-backend/configs"
-	_ "github.com/kulikovroman08/reviewlink-backend/internal/router"
+	"github.com/kulikovroman08/reviewlink-backend/internal/app"
 )
 
 func main() {
 	cfg := configs.LoadConfig()
 
-	r := router.SetupRouter()
+	r := app.InitApp(&cfg)
 
 	log.Println("Server running on :" + cfg.Port)
 
