@@ -5,14 +5,18 @@ import (
 	"github.com/kulikovroman08/reviewlink-backend/internal/auth"
 )
 
-func SetupRouter() *gin.Engine {
+func SetupRouter(userRepo auth.UserRepository) *gin.Engine {
 	r := gin.Default()
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
+
+	authHandler := auth.NewHandler(userRepo)
+
 	// Auth endpoint
-	r.POST("/signup", auth.Signup)
+	r.POST("/signup", authHandler.Signup)
+	r.POST("/login", authHandler.Login)
 
 	return r
 }

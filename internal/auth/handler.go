@@ -3,6 +3,8 @@ package auth
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"github.com/kulikovroman08/reviewlink-backend/pkg/errwrapp"
 	"net/http"
 	"os"
 	"time"
@@ -19,6 +21,20 @@ type Handler struct {
 
 func NewHandler(userRepo UserRepository) *Handler {
 	return &Handler{UserRepo: userRepo}
+}
+
+func GenerateJWT(user *User) (string, error) {
+	claims := jwt.MapClaims{
+		"sub":  user.ID,
+		"role": user.Role,
+		"exp":  time.Now().Add(time.Minute * 30).Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		return "", errwrapp.WithCaller(fmt.Errorf("could not sign token: %w", err))
+	}
+	return tokenString, nil
 }
 
 func (h *Handler) Signup(c *gin.Context) {
@@ -58,15 +74,43 @@ func (h *Handler) Signup(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":  newUser.ID,
-		"role": newUser.Role,
-		"exp":  time.Now().Add(time.Hour * 72).Unix(),
-	})
-	tokenString, err := token.SignedString([]byte(os.Getenv("supersecret")))
+	token, err := GenerateJWT(newUser)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
 		return
 	}
-	c.JSON(http.StatusOK, AuthResponse{Token: tokenString})
+	c.JSON(http.StatusOK, AuthResponse{Token: token})
+}
+
+func (h *Handler) Login(c *gin.Context) {
+	var req LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		fmt.Println("bind error:", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+		return
+	}
+
+	user, err := h.UserRepo.FindByEmail(c.Request.Context(), req.Email)
+	if err != nil || user == nil || user.IsDeleted {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid email or password"})
+		return
+	}
+
+	if user.IsDeleted {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid email or password"})
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid email or password"})
+		return
+	}
+
+	token, err := GenerateJWT(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, AuthResponse{Token: token})
 }

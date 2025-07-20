@@ -10,3 +10,8 @@ type SignupRequest struct {
 type AuthResponse struct {
 	Token string `json:"token"`
 }
+
+type LoginRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+}
