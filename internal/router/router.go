@@ -18,5 +18,12 @@ func SetupRouter(userRepo auth.UserRepository) *gin.Engine {
 	r.POST("/signup", authHandler.Signup)
 	r.POST("/login", authHandler.Login)
 
+	authorized := r.Group("/")
+	authorized.Use(auth.AuthMiddleware())
+	{
+		authorized.GET("/profiel", authHandler.GetProfiel)
+		authorized.POST("/reviews", authHandler.CreateReview)
+	}
+
 	return r
 }

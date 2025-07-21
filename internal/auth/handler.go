@@ -115,3 +115,46 @@ func (h *Handler) Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, AuthResponse{Token: token})
 }
+
+func (h *Handler) GetProfiel(c *gin.Context) {
+	userID, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	user, err := h.UserRepo.FindByID(c.Request.Context(), userID.(string))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "failed to get user"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"id":     userID,
+		"name":   user.Name,
+		"email":  user.Email,
+		"role":   user.Role,
+		"points": user.Points,
+	})
+}
+func (h *Handler) CreateReview(c *gin.Context) {
+	userID, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	var req struct {
+		Text   string `json:"text"`
+		Rating int    `json:"rating"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "review received",
+		"user_id": userID,
+		"text":    req.Text,
+		"rating":  req.Rating,
+	})
+}

@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
@@ -63,9 +64,8 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 		&u.CreatedAt,
 		&u.IsDeleted,
 	)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
-
 	}
 	if err != nil {
 		return nil, errwrapp.WithCaller(fmt.Errorf("scan FindByEmail: %w", err))
@@ -106,4 +106,48 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *User) err
 		return errwrapp.WithCaller(fmt.Errorf("exec CreateUser: %w", err))
 	}
 	return nil
+}
+
+func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*User, error) {
+	query, args, err := sq.
+		Select(
+			userIDColumn,
+			userNameColumn,
+			userEmailColumn,
+			userPasswordHashColumn,
+			userRoleColumn,
+			userPointsColumn,
+			userCreatedAtColumn,
+			userIsDeletedColumn,
+		).
+		From(userTable).
+		Where(sq.And{
+			sq.Eq{userIDColumn: id},
+			sq.Eq{userIsDeletedColumn: false},
+		}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, errwrapp.WithCaller(fmt.Errorf("build FindByID query: %w", err))
+	}
+
+	var u User
+	err = r.db.QueryRowContext(ctx, query, args...).Scan(
+		&u.ID,
+		&u.Name,
+		&u.Email,
+		&u.PasswordHash,
+		&u.Role,
+		&u.Points,
+		&u.CreatedAt,
+		&u.IsDeleted,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, errwrapp.WithCaller(fmt.Errorf("scan FindByID: %w", err))
+	}
+
+	return &u, nil
 }
