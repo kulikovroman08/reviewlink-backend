@@ -2,11 +2,12 @@ package auth
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/kulikovroman08/reviewlink-backend/pkg/errwrapp"
-	"os"
-	"strings"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
