@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/kulikovroman08/reviewlink-backend/internal/auth"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/kulikovroman08/reviewlink-backend/pkg/errwrapp"
 )
 
 type PostgresUserRepository struct {
@@ -51,7 +51,7 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
-		return nil, errwrapp.WithCaller(fmt.Errorf("build FindByEmail query: %w", err))
+		return nil, fmt.Errorf("build FindByEmail query: %w", err)
 	}
 
 	var u auth.User
@@ -69,7 +69,7 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 		return nil, nil
 	}
 	if err != nil {
-		return nil, errwrapp.WithCaller(fmt.Errorf("scan FindByEmail: %w", err))
+		return nil, fmt.Errorf("scan FindByEmail: %w", err)
 	}
 	return &u, nil
 }
@@ -100,11 +100,11 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *auth.User
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
-		return errwrapp.WithCaller(fmt.Errorf("build CreateUser query: %w", err))
+		return fmt.Errorf("build CreateUser query: %w", err)
 	}
 	_, err = r.db.ExecContext(ctx, query, args...)
 	if err != nil {
-		return errwrapp.WithCaller(fmt.Errorf("exec CreateUser: %w", err))
+		return fmt.Errorf("exec CreateUser: %w", err)
 	}
 	return nil
 }
@@ -129,7 +129,7 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*auth
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
-		return nil, errwrapp.WithCaller(fmt.Errorf("build FindByID query: %w", err))
+		return nil, fmt.Errorf("build FindByID query: %w", err)
 	}
 
 	var u auth.User
@@ -147,7 +147,7 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*auth
 		return nil, nil
 	}
 	if err != nil {
-		return nil, errwrapp.WithCaller(fmt.Errorf("scan FindByID: %w", err))
+		return nil, fmt.Errorf("scan FindByID: %w", err)
 	}
 
 	return &u, nil

@@ -2,8 +2,9 @@ package app
 
 import (
 	"database/sql"
-	"github.com/kulikovroman08/reviewlink-backend/internal/auth/repository"
 	"log"
+
+	"github.com/kulikovroman08/reviewlink-backend/internal/auth/repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/configs"
