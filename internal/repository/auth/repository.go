@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+
 	"github.com/kulikovroman08/reviewlink-backend/internal/service/auth"
 )
 

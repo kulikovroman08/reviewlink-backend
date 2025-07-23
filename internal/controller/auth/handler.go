@@ -4,13 +4,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	auth3 "github.com/kulikovroman08/reviewlink-backend/internal/repository/auth"
-	auth2 "github.com/kulikovroman08/reviewlink-backend/internal/service/auth"
-	jwt2 "github.com/kulikovroman08/reviewlink-backend/pkg/jwt"
 	"log/slog"
 	"net/http"
 	"os"
 	"time"
+
+	auth3 "github.com/kulikovroman08/reviewlink-backend/internal/repository/auth"
+	auth2 "github.com/kulikovroman08/reviewlink-backend/internal/service/auth"
+	jwt2 "github.com/kulikovroman08/reviewlink-backend/pkg/jwt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"

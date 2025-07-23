@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/kulikovroman08/reviewlink-backend/internal/service/auth"
 
 	sq "github.com/Masterminds/squirrel"

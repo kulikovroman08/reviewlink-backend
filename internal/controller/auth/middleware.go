@@ -2,10 +2,11 @@ package auth
 
 import (
 	"fmt"
-	jwt2 "github.com/kulikovroman08/reviewlink-backend/pkg/jwt"
 	"log/slog"
 	"os"
 	"strings"
+
+	jwt2 "github.com/kulikovroman08/reviewlink-backend/pkg/jwt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
