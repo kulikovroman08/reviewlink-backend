@@ -1,16 +1,16 @@
-package handler
+package auth
 
 import (
 	"database/sql"
 	"errors"
 	"fmt"
+	auth3 "github.com/kulikovroman08/reviewlink-backend/internal/repository/auth"
+	auth2 "github.com/kulikovroman08/reviewlink-backend/internal/service/auth"
+	jwt2 "github.com/kulikovroman08/reviewlink-backend/pkg/jwt"
 	"log/slog"
 	"net/http"
 	"os"
 	"time"
-
-	"github.com/kulikovroman08/reviewlink-backend/internal/auth"
-	"github.com/kulikovroman08/reviewlink-backend/internal/auth/repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -19,15 +19,15 @@ import (
 )
 
 type Handler struct {
-	UserRepo repository.UserRepository
+	UserRepo auth3.UserRepository
 }
 
-func NewHandler(userRepo repository.UserRepository) *Handler {
+func NewHandler(userRepo auth3.UserRepository) *Handler {
 	return &Handler{UserRepo: userRepo}
 }
 
-func GenerateJWT(user *auth.User) (string, error) {
-	claims := auth.Claims{
+func GenerateJWT(user *auth2.User) (string, error) {
+	claims := jwt2.Claims{
 		UserID: user.ID,
 		Role:   user.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -69,7 +69,7 @@ func (h *Handler) Signup(c *gin.Context) {
 		return
 	}
 
-	newUser := &auth.User{
+	newUser := &auth2.User{
 		ID:           uuid.New().String(),
 		Name:         req.Name,
 		Email:        req.Email,

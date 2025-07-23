@@ -1,12 +1,11 @@
-package repository
+package auth
 
 import (
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-
-	"github.com/kulikovroman08/reviewlink-backend/internal/auth"
+	"github.com/kulikovroman08/reviewlink-backend/internal/service/auth"
 
 	sq "github.com/Masterminds/squirrel"
 )

@@ -1,9 +1,8 @@
-package repository
+package auth
 
 import (
 	"context"
-
-	"github.com/kulikovroman08/reviewlink-backend/internal/auth"
+	"github.com/kulikovroman08/reviewlink-backend/internal/service/auth"
 )
 
 type UserRepository interface {

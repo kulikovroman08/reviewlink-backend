@@ -1,12 +1,11 @@
-package handler
+package auth
 
 import (
 	"fmt"
+	jwt2 "github.com/kulikovroman08/reviewlink-backend/pkg/jwt"
 	"log/slog"
 	"os"
 	"strings"
-
-	"github.com/kulikovroman08/reviewlink-backend/internal/auth"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -38,15 +37,15 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-func parseToken(tokenStr string) (*auth.Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenStr, &auth.Claims{}, func(token *jwt.Token) (interface{}, error) {
+func parseToken(tokenStr string) (*jwt2.Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &jwt2.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 	if err != nil || !token.Valid {
 		return nil, fmt.Errorf("invalid or expired token: %w", err)
 	}
 
-	claims, ok := token.Claims.(*auth.Claims)
+	claims, ok := token.Claims.(*jwt2.Claims)
 	if !ok {
 		return nil, fmt.Errorf("invalid claims")
 	}
