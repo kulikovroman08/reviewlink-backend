@@ -1,13 +1,14 @@
-package auth
+package handler
 
 import (
 	"fmt"
+	"github.com/kulikovroman08/reviewlink-backend/internal/auth"
+	"log/slog"
 	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/kulikovroman08/reviewlink-backend/pkg/errwrapp"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -23,6 +24,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		claims, err := parseToken(tokenStr)
 		if err != nil {
+			slog.Error("token parsing failed", "error", err)
 			c.JSON(401, gin.H{"error": "Invalid or expired token"})
 			c.Abort()
 			return
@@ -35,17 +37,17 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-func parseToken(tokenStr string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+func parseToken(tokenStr string) (*auth.Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &auth.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 	if err != nil || !token.Valid {
-		return nil, errwrapp.WithCaller(fmt.Errorf("invalid or expired token: %w", err))
+		return nil, fmt.Errorf("invalid or expired token: %w", err)
 	}
 
-	claims, ok := token.Claims.(*Claims)
+	claims, ok := token.Claims.(*auth.Claims)
 	if !ok {
-		return nil, errwrapp.WithCaller(fmt.Errorf("invalid claims"))
+		return nil, fmt.Errorf("invalid claims")
 	}
 	return claims, nil
 }

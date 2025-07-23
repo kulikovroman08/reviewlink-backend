@@ -1,10 +1,11 @@
-package auth
+package repository
 
 import (
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/kulikovroman08/reviewlink-backend/internal/auth"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/kulikovroman08/reviewlink-backend/pkg/errwrapp"
@@ -30,7 +31,7 @@ const (
 	userIsDeletedColumn    = "is_deleted"
 )
 
-func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) (*User, error) {
+func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) (*auth.User, error) {
 	query, args, err := sq.
 		Select(
 			userIDColumn,
@@ -53,7 +54,7 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 		return nil, errwrapp.WithCaller(fmt.Errorf("build FindByEmail query: %w", err))
 	}
 
-	var u User
+	var u auth.User
 	err = r.db.QueryRowContext(ctx, query, args...).Scan(
 		&u.ID,
 		&u.Name,
@@ -73,7 +74,7 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 	return &u, nil
 }
 
-func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *User) error {
+func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *auth.User) error {
 	query, args, err := sq.
 		Insert(userTable).
 		Columns(
@@ -108,7 +109,7 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *User) err
 	return nil
 }
 
-func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*User, error) {
+func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*auth.User, error) {
 	query, args, err := sq.
 		Select(
 			userIDColumn,
@@ -131,7 +132,7 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*User
 		return nil, errwrapp.WithCaller(fmt.Errorf("build FindByID query: %w", err))
 	}
 
-	var u User
+	var u auth.User
 	err = r.db.QueryRowContext(ctx, query, args...).Scan(
 		&u.ID,
 		&u.Name,

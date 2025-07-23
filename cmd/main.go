@@ -10,11 +10,11 @@ import (
 func main() {
 	cfg := configs.LoadConfig()
 
-	r := app.InitApp(&cfg)
+	reviewLinkApp := app.InitApp(&cfg)
 
-	log.Println("Server running on :" + cfg.Port)
+	log.Println("Server running on :" + cfg.HTTPPort)
 
-	if err := r.Run(":" + cfg.Port); err != nil {
+	if err := reviewLinkApp.Run(":" + cfg.HTTPPort); err != nil {
 		log.Fatalf("failed to run server: %v", err)
 	}
 }

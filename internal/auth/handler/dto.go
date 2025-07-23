@@ -1,4 +1,4 @@
-package auth
+package handler
 
 // Структура входного запроса
 type SignupRequest struct {

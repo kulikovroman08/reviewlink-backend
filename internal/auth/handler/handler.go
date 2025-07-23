@@ -1,14 +1,15 @@
-package auth
+package handler
 
 import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/kulikovroman08/reviewlink-backend/internal/auth"
+	"github.com/kulikovroman08/reviewlink-backend/internal/auth/repository"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
-
-	"github.com/kulikovroman08/reviewlink-backend/pkg/errwrapp"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -17,23 +18,27 @@ import (
 )
 
 type Handler struct {
-	UserRepo UserRepository
+	UserRepo repository.UserRepository
 }
 
-func NewHandler(userRepo UserRepository) *Handler {
+func NewHandler(userRepo repository.UserRepository) *Handler {
 	return &Handler{UserRepo: userRepo}
 }
 
-func GenerateJWT(user *User) (string, error) {
-	claims := jwt.MapClaims{
-		"sub":  user.ID,
-		"role": user.Role,
-		"exp":  time.Now().Add(time.Minute * 30).Unix(),
+func GenerateJWT(user *auth.User) (string, error) {
+	claims := auth.Claims{
+		UserID: user.ID,
+		Role:   user.Role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(3 * 24 * time.Hour)),
+		},
 	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
-		return "", errwrapp.WithCaller(fmt.Errorf("could not sign token: %w", err))
+		return "", fmt.Errorf("could not sign token: %w", err)
 	}
 	return tokenString, nil
 }
@@ -47,6 +52,7 @@ func (h *Handler) Signup(c *gin.Context) {
 	}
 	existingUser, err := h.UserRepo.FindByEmail(c.Request.Context(), req.Email)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		slog.Error("failed to check user existence", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
@@ -57,11 +63,12 @@ func (h *Handler) Signup(c *gin.Context) {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
+		slog.Error("password hashing failed", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to hash password"})
 		return
 	}
 
-	newUser := &User{
+	newUser := &auth.User{
 		ID:           uuid.New().String(),
 		Name:         req.Name,
 		Email:        req.Email,
@@ -72,6 +79,7 @@ func (h *Handler) Signup(c *gin.Context) {
 		IsDeleted:    false,
 	}
 	if err := h.UserRepo.CreateUser(c.Request.Context(), newUser); err != nil {
+		slog.Error("failed to create user", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
 	}
 
@@ -86,7 +94,7 @@ func (h *Handler) Signup(c *gin.Context) {
 func (h *Handler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		fmt.Println("bind error:", err)
+		slog.Error("login bind error", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return
 	}
@@ -125,6 +133,7 @@ func (h *Handler) GetProfiel(c *gin.Context) {
 
 	user, err := h.UserRepo.FindByID(c.Request.Context(), userID.(string))
 	if err != nil {
+		slog.Error("failed to find user by ID", "user_id", userID, "error", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "failed to get user"})
 		return
 	}
