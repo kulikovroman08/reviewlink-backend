@@ -1,4 +1,4 @@
-package auth
+package dto
 
 // Структура входного запроса
 type SignupRequest struct {

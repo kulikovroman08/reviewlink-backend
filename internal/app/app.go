@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller"
-	"github.com/kulikovroman08/reviewlink-backend/internal/repository/auth"
+	"github.com/kulikovroman08/reviewlink-backend/internal/repository/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/configs"
@@ -18,7 +18,7 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 
-	userRepo := auth.NewPostgresUserRepository(db)
+	userRepo := user.NewPostgresUserRepository(db)
 
 	return controller.SetupRouter(userRepo)
 }

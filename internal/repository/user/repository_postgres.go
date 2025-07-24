@@ -1,4 +1,4 @@
-package auth
+package user
 
 import (
 	"context"
@@ -6,18 +6,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kulikovroman08/reviewlink-backend/internal/service/auth"
+	"github.com/kulikovroman08/reviewlink-backend/internal/service/user"
 
 	sq "github.com/Masterminds/squirrel"
 )
-
-type PostgresUserRepository struct {
-	db *sql.DB
-}
-
-func NewPostgresUserRepository(db *sql.DB) *PostgresUserRepository {
-	return &PostgresUserRepository{db: db}
-}
 
 const (
 	userTable              = "users"
@@ -31,7 +23,15 @@ const (
 	userIsDeletedColumn    = "is_deleted"
 )
 
-func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) (*auth.User, error) {
+type PostgresUserRepository struct {
+	db *sql.DB
+}
+
+func NewPostgresUserRepository(db *sql.DB) *PostgresUserRepository {
+	return &PostgresUserRepository{db: db}
+}
+
+func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) (*user.User, error) {
 	query, args, err := sq.
 		Select(
 			userIDColumn,
@@ -54,7 +54,7 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 		return nil, fmt.Errorf("build FindByEmail query: %w", err)
 	}
 
-	var u auth.User
+	var u user.User
 	err = r.db.QueryRowContext(ctx, query, args...).Scan(
 		&u.ID,
 		&u.Name,
@@ -74,7 +74,7 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 	return &u, nil
 }
 
-func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *auth.User) error {
+func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *user.User) error {
 	query, args, err := sq.
 		Insert(userTable).
 		Columns(
@@ -109,7 +109,7 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *auth.User
 	return nil
 }
 
-func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*auth.User, error) {
+func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*user.User, error) {
 	query, args, err := sq.
 		Select(
 			userIDColumn,
@@ -132,7 +132,7 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*auth
 		return nil, fmt.Errorf("build FindByID query: %w", err)
 	}
 
-	var u auth.User
+	var u user.User
 	err = r.db.QueryRowContext(ctx, query, args...).Scan(
 		&u.ID,
 		&u.Name,

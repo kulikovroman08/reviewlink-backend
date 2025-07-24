@@ -2,27 +2,28 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/kulikovroman08/reviewlink-backend/internal/controller/auth"
-	auth2 "github.com/kulikovroman08/reviewlink-backend/internal/repository/auth"
+	"github.com/kulikovroman08/reviewlink-backend/internal/controller/user"
+	repo "github.com/kulikovroman08/reviewlink-backend/internal/repository/user"
+	"github.com/kulikovroman08/reviewlink-backend/pkg/middleware"
 )
 
-func SetupRouter(userRepo auth2.UserRepository) *gin.Engine {
+func SetupRouter(userRepo repo.UserRepository) *gin.Engine {
 	r := gin.Default()
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	authHandler := auth.NewHandler(userRepo)
+	authHandler := user.NewHandler(userRepo)
 
 	// Auth endpoint
 	r.POST("/signup", authHandler.Signup)
 	r.POST("/login", authHandler.Login)
 
 	authorized := r.Group("/")
-	authorized.Use(auth.AuthMiddleware())
+	authorized.Use(middleware.AuthMiddleware())
 	{
-		authorized.GET("/profiel", authHandler.GetProfiel)
+		authorized.GET("/profile", authHandler.GetProfile)
 		authorized.POST("/reviews", authHandler.CreateReview)
 	}
 

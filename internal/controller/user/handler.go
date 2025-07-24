@@ -1,4 +1,4 @@
-package auth
+package user
 
 import (
 	"database/sql"
@@ -9,26 +9,26 @@ import (
 	"os"
 	"time"
 
-	auth3 "github.com/kulikovroman08/reviewlink-backend/internal/repository/auth"
-	auth2 "github.com/kulikovroman08/reviewlink-backend/internal/service/auth"
-	jwt2 "github.com/kulikovroman08/reviewlink-backend/pkg/jwt"
+	"github.com/kulikovroman08/reviewlink-backend/internal/dto"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	repo "github.com/kulikovroman08/reviewlink-backend/internal/repository/user"
+	svc "github.com/kulikovroman08/reviewlink-backend/internal/service/user"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Handler struct {
-	UserRepo auth3.UserRepository
+	UserRepo repo.UserRepository
 }
 
-func NewHandler(userRepo auth3.UserRepository) *Handler {
+func NewHandler(userRepo repo.UserRepository) *Handler {
 	return &Handler{UserRepo: userRepo}
 }
 
-func GenerateJWT(user *auth2.User) (string, error) {
-	claims := jwt2.Claims{
+func GenerateJWT(user *svc.User) (string, error) {
+	claims := svc.Claims{
 		UserID: user.ID,
 		Role:   user.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -46,7 +46,7 @@ func GenerateJWT(user *auth2.User) (string, error) {
 }
 
 func (h *Handler) Signup(c *gin.Context) {
-	var req SignupRequest
+	var req dto.SignupRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
@@ -70,7 +70,7 @@ func (h *Handler) Signup(c *gin.Context) {
 		return
 	}
 
-	newUser := &auth2.User{
+	newUser := &svc.User{
 		ID:           uuid.New().String(),
 		Name:         req.Name,
 		Email:        req.Email,
@@ -90,11 +90,11 @@ func (h *Handler) Signup(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
 		return
 	}
-	c.JSON(http.StatusOK, AuthResponse{Token: token})
+	c.JSON(http.StatusOK, dto.AuthResponse{Token: token})
 }
 
 func (h *Handler) Login(c *gin.Context) {
-	var req LoginRequest
+	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		slog.Error("login bind error", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
@@ -123,10 +123,10 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, AuthResponse{Token: token})
+	c.JSON(http.StatusOK, dto.AuthResponse{Token: token})
 }
 
-func (h *Handler) GetProfiel(c *gin.Context) {
+func (h *Handler) GetProfile(c *gin.Context) {
 	userID, exists := c.Get("claims")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
