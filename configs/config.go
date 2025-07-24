@@ -7,16 +7,16 @@ import (
 )
 
 type Config struct {
-	Port  string
-	DBUrl string
+	HTTPPort string
+	DBUrl    string
 }
 
 func LoadConfig() Config {
 	_ = godotenv.Load() // не паникуем, если .env нет
 
 	return Config{
-		Port:  getEnv("PORT", "8080"),
-		DBUrl: getEnv("DB_URL", "postgres://user:pass@localhost:5432/reviewlink"),
+		HTTPPort: getEnv("PORT", "8080"),
+		DBUrl:    getEnv("DB_URL", "postgres://user:pass@localhost:5432/reviewlink"),
 	}
 }
 
