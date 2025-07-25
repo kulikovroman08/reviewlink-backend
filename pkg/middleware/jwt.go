@@ -2,11 +2,10 @@ package middleware
 
 import (
 	"fmt"
+	"github.com/kulikovroman08/reviewlink-backend/internal/service/user/model/claims"
 	"log/slog"
 	"os"
 	"strings"
-
-	"github.com/kulikovroman08/reviewlink-backend/internal/service/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -38,15 +37,15 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-func parseToken(tokenStr string) (*user.Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenStr, &user.Claims{}, func(token *jwt.Token) (interface{}, error) {
+func parseToken(tokenStr string) (*claims.Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &claims.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 	if err != nil || !token.Valid {
 		return nil, fmt.Errorf("invalid or expired token: %w", err)
 	}
 
-	claims, ok := token.Claims.(*user.Claims)
+	claims, ok := token.Claims.(*claims.Claims)
 	if !ok {
 		return nil, fmt.Errorf("invalid claims")
 	}

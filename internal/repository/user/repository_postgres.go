@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-
-	"github.com/kulikovroman08/reviewlink-backend/internal/service/user"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/kulikovroman08/reviewlink-backend/internal/service/user/model"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -24,14 +25,14 @@ const (
 )
 
 type PostgresUserRepository struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
-func NewPostgresUserRepository(db *sql.DB) *PostgresUserRepository {
+func NewPostgresUserRepository(db *pgxpool.Pool) *PostgresUserRepository {
 	return &PostgresUserRepository{db: db}
 }
 
-func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) (*user.User, error) {
+func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) (*model.User, error) {
 	query, args, err := sq.
 		Select(
 			userIDColumn,
@@ -54,8 +55,8 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 		return nil, fmt.Errorf("build FindByEmail query: %w", err)
 	}
 
-	var u user.User
-	err = r.db.QueryRowContext(ctx, query, args...).Scan(
+	var u model.User
+	err = r.db.QueryRow(ctx, query, args...).Scan(
 		&u.ID,
 		&u.Name,
 		&u.Email,
@@ -65,7 +66,7 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 		&u.CreatedAt,
 		&u.IsDeleted,
 	)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -74,7 +75,7 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 	return &u, nil
 }
 
-func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *user.User) error {
+func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *model.User) error {
 	query, args, err := sq.
 		Insert(userTable).
 		Columns(
@@ -102,14 +103,14 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *user.User
 	if err != nil {
 		return fmt.Errorf("build CreateUser query: %w", err)
 	}
-	_, err = r.db.ExecContext(ctx, query, args...)
+	_, err = r.db.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("exec CreateUser: %w", err)
 	}
 	return nil
 }
 
-func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*user.User, error) {
+func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*model.User, error) {
 	query, args, err := sq.
 		Select(
 			userIDColumn,
@@ -132,8 +133,8 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*user
 		return nil, fmt.Errorf("build FindByID query: %w", err)
 	}
 
-	var u user.User
-	err = r.db.QueryRowContext(ctx, query, args...).Scan(
+	var u model.User
+	err = r.db.QueryRow(ctx, query, args...).Scan(
 		&u.ID,
 		&u.Name,
 		&u.Email,

@@ -1,7 +1,8 @@
 package app
 
 import (
-	"database/sql"
+	"context"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller"
@@ -13,12 +14,12 @@ import (
 )
 
 func InitApp(cfg *configs.Config) *gin.Engine {
-	db, err := sql.Open("postgres", cfg.DBUrl)
+	dbpool, err := pgxpool.New(context.Background(), cfg.DBUrl)
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 
-	userRepo := user.NewPostgresUserRepository(db)
+	userRepo := user.NewPostgresUserRepository(dbpool)
 
 	return controller.SetupRouter(userRepo)
 }
