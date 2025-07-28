@@ -18,11 +18,12 @@ func SetupRouter(app *Application) *gin.Engine {
 	r.POST("/signup", userHandler.Signup)
 	r.POST("/login", userHandler.Login)
 
-	authorized := r.Group("/")
+	authorized := r.Group("/users")
 	authorized.Use(middleware.AuthMiddleware())
 	{
-		authorized.GET("/profile", userHandler.GetProfile)
-		// authorized.POST("/reviews", reviewHandler.CreateReview) — подключишь позже
+		authorized.GET("/profile", userHandler.GetMe)
+		authorized.PUT("/me", userHandler.UpdateMe)
+		authorized.DELETE("/me", userHandler.DeleteMe)
 	}
 
 	return r
