@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/service/user/model"
 )
@@ -9,5 +10,7 @@ import (
 type UserService interface {
 	Signup(ctx context.Context, name, email, password string) (string, error)
 	Login(ctx context.Context, email, password string) (string, error)
-	GetProfile(ctx context.Context, userID string) (*model.User, error)
+	GetMe(ctx context.Context, userID string) (*model.User, error)
+	UpdateMe(ctx context.Context, req dto.UpdateUserRequest) (*model.User, error)
+	DeleteMe(ctx context.Context, userID string) error
 }

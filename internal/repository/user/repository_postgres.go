@@ -154,3 +154,43 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*mode
 
 	return &u, nil
 }
+
+func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *model.User) error {
+	query, args, err := sq.
+		Update(userTable).
+		Set(userNameColumn, user.Name).
+		Set(userEmailColumn, user.Email).
+		Set(userPasswordHashColumn, user.PasswordHash).
+		Where(sq.Eq{userIDColumn: user.ID}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("build UpdateUser query: %w", err)
+	}
+
+	_, err = r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("exec UpdateUser: %w", err)
+	}
+
+	return nil
+}
+
+func (r *PostgresUserRepository) SoftDeleteUser(ctx context.Context, id string) error {
+	query, args, err := sq.
+		Update(userTable).
+		Set(userIsDeletedColumn, true).
+		Where(sq.Eq{userIDColumn: id}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("build SoftDeleteUser query: %w", err)
+	}
+
+	_, err = r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("exec SoftDeleteUser: %w", err)
+	}
+
+	return nil
+}
