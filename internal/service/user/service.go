@@ -21,6 +21,10 @@ func NewService(repo UserRepository) *Service {
 	return &Service{repo: repo}
 }
 
+func (s *Service) GetProfile(ctx context.Context, userID string) (*model.User, error) {
+	return s.repo.FindByID(ctx, userID)
+}
+
 func (s *Service) Signup(ctx context.Context, name, email, password string) (string, error) {
 	existing, err := s.repo.FindByEmail(ctx, email)
 	if err != nil {

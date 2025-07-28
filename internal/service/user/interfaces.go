@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+
 	"github.com/kulikovroman08/reviewlink-backend/internal/service/user/model"
 )
 

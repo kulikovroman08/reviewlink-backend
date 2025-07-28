@@ -1,10 +1,11 @@
 package user
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 	"github.com/kulikovroman08/reviewlink-backend/internal/service"
-	"net/http"
 )
 
 type Handler struct {

@@ -2,10 +2,11 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/kulikovroman08/reviewlink-backend/internal/service/user/model/claims"
 	"log/slog"
 	"os"
 	"strings"
+
+	"github.com/kulikovroman08/reviewlink-backend/internal/service/user/model/claims"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
