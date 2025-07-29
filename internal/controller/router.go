@@ -21,7 +21,7 @@ func SetupRouter(app *Application) *gin.Engine {
 	authorized := r.Group("/users")
 	authorized.Use(middleware.AuthMiddleware())
 	{
-		authorized.GET("/profile", userHandler.GetMe)
+		authorized.GET("/me", userHandler.GetMe)
 		authorized.PUT("/me", userHandler.UpdateMe)
 		authorized.DELETE("/me", userHandler.DeleteMe)
 	}

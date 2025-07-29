@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 
-	"github.com/kulikovroman08/reviewlink-backend/internal/service/user/model"
+	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
+	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 )
 
 type UserService interface {
