@@ -3,14 +3,14 @@ package user
 import (
 	"context"
 	"fmt"
-	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/kulikovroman08/reviewlink-backend/internal/service/user/model"
-	"github.com/kulikovroman08/reviewlink-backend/internal/service/user/model/claims"
+	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
+	"github.com/kulikovroman08/reviewlink-backend/internal/model"
+	"github.com/kulikovroman08/reviewlink-backend/internal/model/claims"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -69,7 +69,7 @@ func (s *Service) Login(ctx context.Context, email, password string) (string, er
 		return "", fmt.Errorf("user is deleted")
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		return "", fmt.Errorf("invalid password")
+		return "", fmt.Errorf("invalid credentials")
 	}
 	return s.generateJWT(user)
 }
@@ -78,6 +78,9 @@ func (s *Service) UpdateMe(ctx context.Context, req dto.UpdateUserRequest) (*mod
 	user, err := s.repo.FindByID(ctx, req.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("find user: %w", err)
+	}
+	if user == nil {
+		return nil, fmt.Errorf("user not found")
 	}
 	if user.IsDeleted {
 		return nil, fmt.Errorf("user is deleted")
@@ -118,9 +121,11 @@ func (s *Service) DeleteMe(ctx context.Context, userID string) error {
 	if err != nil {
 		return fmt.Errorf("find user: %w", err)
 	}
-
+	if user == nil {
+		return fmt.Errorf("user not found")
+	}
 	if user.IsDeleted {
-		return fmt.Errorf("user already deleted")
+		return fmt.Errorf("user is deleted")
 	}
 
 	if err := s.repo.SoftDeleteUser(ctx, userID); err != nil {

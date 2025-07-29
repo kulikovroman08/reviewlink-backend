@@ -4,10 +4,11 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/jackc/pgx/v5"
+
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 	"github.com/kulikovroman08/reviewlink-backend/internal/service"
-	err_svc "github.com/kulikovroman08/reviewlink-backend/internal/service/user"
 )
 
 type Handler struct {
@@ -26,7 +27,11 @@ func (h *Handler) Signup(c *gin.Context) {
 	}
 	token, err := h.UserService.Signup(c.Request.Context(), req.Name, req.Email, req.Password)
 	if err != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		if err.Error() == "email already used" {
+			c.JSON(http.StatusConflict, gin.H{"error": "email already in use"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 		return
 	}
 	c.JSON(http.StatusOK, dto.AuthResponse{Token: token})
@@ -40,30 +45,46 @@ func (h *Handler) Login(c *gin.Context) {
 	}
 	token, err := h.UserService.Login(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
+		case err.Error() == "user is deleted":
+			c.JSON(http.StatusConflict, gin.H{"error": "user is deleted"})
+		case err.Error() == "invalid credentials":
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "login failed"})
+		}
 		return
 	}
 	c.JSON(http.StatusOK, dto.AuthResponse{Token: token})
 }
 
 func (h *Handler) GetMe(c *gin.Context) {
-	userID, exists := c.Get("claims")
-	if !exists {
+	userID := c.GetString("user_id")
+	if userID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
-	user, err := h.UserService.GetMe(c.Request.Context(), userID.(string))
+
+	user, err := h.UserService.GetMe(c.Request.Context(), userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"id":     userID,
-		"name":   user.Name,
-		"email":  user.Email,
-		"role":   user.Role,
-		"points": user.Points,
-	})
+
+	resp := dto.UserResponse{
+		ID:     user.ID,
+		Name:   user.Name,
+		Email:  user.Email,
+		Role:   user.Role,
+		Points: user.Points,
+	}
+	c.JSON(http.StatusOK, resp)
 }
 
 func (h *Handler) UpdateMe(c *gin.Context) {
@@ -78,11 +99,16 @@ func (h *Handler) UpdateMe(c *gin.Context) {
 
 	updatedUser, err := h.UserService.UpdateMe(c.Request.Context(), req)
 	if err != nil {
-		if errors.Is(err, err_svc.ErrEmailAlreadyUsed) {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		case err.Error() == "email already used":
 			c.JSON(http.StatusConflict, gin.H{"error": "email already in use"})
-			return
+		case err.Error() == "user is deleted":
+			c.JSON(http.StatusConflict, gin.H{"error": "user is deleted"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update user"})
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update user"})
 		return
 	}
 
@@ -93,7 +119,14 @@ func (h *Handler) DeleteMe(c *gin.Context) {
 	userID := c.GetString("user_id")
 
 	if err := h.UserService.DeleteMe(c.Request.Context(), userID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete user"})
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		case err.Error() == "user is deleted":
+			c.JSON(http.StatusConflict, gin.H{"error": "user is already deleted"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete user"})
+		}
 		return
 	}
 
