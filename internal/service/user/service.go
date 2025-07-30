@@ -2,9 +2,12 @@ package user
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -23,15 +26,26 @@ func NewService(repo UserRepository) *Service {
 }
 
 func (s *Service) GetMe(ctx context.Context, userID string) (*model.User, error) {
-	return s.repo.FindByID(ctx, userID)
+	user, err := s.repo.FindByID(ctx, userID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("user not found: %w", err)
+		}
+		return nil, fmt.Errorf("get user: %w", err)
+	}
+	if user.IsDeleted {
+		return nil, fmt.Errorf("user not found")
+	}
+	return user, nil
 }
 
 func (s *Service) Signup(ctx context.Context, name, email, password string) (string, error) {
 	existing, err := s.repo.FindByEmail(ctx, email)
 	if err != nil {
-		return "", fmt.Errorf("check existing user: %w", err)
-	}
-	if existing != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return "", fmt.Errorf("check existing user: %w", err)
+		}
+	} else if existing != nil {
 		return "", fmt.Errorf("email already used")
 	}
 
@@ -60,10 +74,10 @@ func (s *Service) Signup(ctx context.Context, name, email, password string) (str
 func (s *Service) Login(ctx context.Context, email, password string) (string, error) {
 	user, err := s.repo.FindByEmail(ctx, email)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", fmt.Errorf("user not found: %w", err)
+		}
 		return "", fmt.Errorf("check existing user: %w", err)
-	}
-	if user == nil {
-		return "", fmt.Errorf("user not found")
 	}
 	if user.IsDeleted {
 		return "", fmt.Errorf("user is deleted")
@@ -77,21 +91,24 @@ func (s *Service) Login(ctx context.Context, email, password string) (string, er
 func (s *Service) UpdateMe(ctx context.Context, req dto.UpdateUserRequest) (*model.User, error) {
 	user, err := s.repo.FindByID(ctx, req.UserID)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("user not found: %w", err)
+		}
 		return nil, fmt.Errorf("find user: %w", err)
-	}
-	if user == nil {
-		return nil, fmt.Errorf("user not found")
 	}
 	if user.IsDeleted {
 		return nil, fmt.Errorf("user is deleted")
 	}
 
 	if s.shouldUpdateEmail(req.Email, user.Email) {
+		var existing *model.User
 		existing, err := s.repo.FindByEmail(ctx, *req.Email)
 		if err != nil {
-			return nil, fmt.Errorf("check email: %w", err)
-		}
-		if existing != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+			} else {
+				return nil, fmt.Errorf("check email: %w", err)
+			}
+		} else if existing.ID != user.ID {
 			return nil, fmt.Errorf("email already used")
 		}
 		user.Email = *req.Email
@@ -119,17 +136,20 @@ func (s *Service) UpdateMe(ctx context.Context, req dto.UpdateUserRequest) (*mod
 func (s *Service) DeleteMe(ctx context.Context, userID string) error {
 	user, err := s.repo.FindByID(ctx, userID)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("user not found: %w", err)
+		}
 		return fmt.Errorf("find user: %w", err)
-	}
-	if user == nil {
-		return fmt.Errorf("user not found")
 	}
 	if user.IsDeleted {
 		return fmt.Errorf("user is deleted")
 	}
 
 	if err := s.repo.SoftDeleteUser(ctx, userID); err != nil {
-		return fmt.Errorf("soft delete: %w", err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("user not found: %w", err)
+		}
+		return fmt.Errorf("soft delete user: %w", err)
 	}
 
 	return nil

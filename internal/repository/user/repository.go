@@ -48,7 +48,7 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 		From(userTable).
 		Where(sq.And{
 			sq.Eq{userEmailColumn: email},
-			sq.Eq{userIsDeletedColumn: false},
+			//sq.Eq{userIsDeletedColumn: false},
 		}).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
@@ -68,7 +68,7 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 		&u.IsDeleted,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, nil // означает, что пользователь не найден это не ошибка, а валидное состояние
+		return nil, pgx.ErrNoRows
 	}
 	if err != nil {
 		return nil, fmt.Errorf("scan FindByEmail: %w", err)
@@ -126,7 +126,7 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*mode
 		From(userTable).
 		Where(sq.And{
 			sq.Eq{userIDColumn: id},
-			sq.Eq{userIsDeletedColumn: false},
+			//sq.Eq{userIsDeletedColumn: false},
 		}).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
@@ -146,7 +146,7 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*mode
 		&u.IsDeleted,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, nil // означает, что пользователь не найден это не ошибка, а валидное состояние
+		return nil, pgx.ErrNoRows
 	}
 	if err != nil {
 		return nil, fmt.Errorf("scan FindByID: %w", err)
