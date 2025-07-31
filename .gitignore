@@ -5,6 +5,7 @@
 *.exe
 *.out
 *.test
+*.http
 reviewlink
 
 # Env
