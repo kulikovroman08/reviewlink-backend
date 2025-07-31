@@ -14,3 +14,7 @@ type UserService interface {
 	UpdateMe(ctx context.Context, req dto.UpdateUserRequest) (*model.User, error)
 	DeleteMe(ctx context.Context, userID string) error
 }
+
+type PlaceService interface {
+	CreatePlace(ctx context.Context, req dto.CreatePlaceRequest) (dto.CreatePlaceResponse, error)
+}
