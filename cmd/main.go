@@ -3,22 +3,18 @@ package main
 import (
 	"log"
 
-	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/configs"
+	"github.com/kulikovroman08/reviewlink-backend/internal/app"
 )
 
 func main() {
 	cfg := configs.LoadConfig()
 
-	r := gin.Default()
+	reviewLinkApp := app.InitApp(&cfg)
 
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
-	})
+	log.Println("Server running on :" + cfg.HTTPPort)
 
-	log.Println("Server running on :" + cfg.Port)
-
-	if err := r.Run(":" + cfg.Port); err != nil {
+	if err := reviewLinkApp.Run(":" + cfg.HTTPPort); err != nil {
 		log.Fatalf("failed to run server: %v", err)
 	}
 }
