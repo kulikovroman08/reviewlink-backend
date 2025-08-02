@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/kulikovroman08/reviewlink-backend/internal/controller/place"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/user"
 	"github.com/kulikovroman08/reviewlink-backend/pkg/middleware"
 )
@@ -14,6 +15,7 @@ func SetupRouter(app *Application) *gin.Engine {
 	})
 
 	userHandler := user.NewHandler(app.UserService)
+	placeHandler := place.NewHandler(app.PlaceService)
 
 	r.POST("/signup", userHandler.Signup)
 	r.POST("/login", userHandler.Login)
@@ -24,6 +26,7 @@ func SetupRouter(app *Application) *gin.Engine {
 		authorized.GET("/me", userHandler.GetMe)
 		authorized.PUT("/me", userHandler.UpdateMe)
 		authorized.DELETE("/me", userHandler.DeleteMe)
+		authorized.POST("/places", placeHandler.CreatePlace)
 	}
 
 	return r

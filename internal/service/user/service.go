@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"time"
 
@@ -82,7 +83,9 @@ func (s *Service) Login(ctx context.Context, email, password string) (string, er
 	if user.IsDeleted {
 		return "", fmt.Errorf("user is deleted")
 	}
+	slog.Info("checking login", "email", email, "hash", user.PasswordHash, "password", password)
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		slog.Error("bcrypt error", "err", err)
 		return "", fmt.Errorf("invalid credentials")
 	}
 	return s.generateJWT(user)
