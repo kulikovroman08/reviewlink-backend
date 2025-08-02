@@ -23,16 +23,19 @@ func (h *Handler) Signup(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return
 	}
+
 	token, err := h.UserService.Signup(c.Request.Context(), req.Name, req.Email, req.Password)
 	if err != nil {
 		switch {
 		case strings.Contains(err.Error(), "email already used"):
 			c.JSON(http.StatusConflict, gin.H{"error": "email already in use"})
+
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to signup"})
 		}
 		return
 	}
+
 	c.JSON(http.StatusOK, dto.AuthResponse{Token: token})
 }
 
@@ -42,20 +45,20 @@ func (h *Handler) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return
 	}
+
 	token, err := h.UserService.Login(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
 		switch {
-		case strings.Contains(err.Error(), "user not found"):
+		case matchesErr(err, "user not found"):
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
-		case strings.Contains(err.Error(), "user is deleted"):
-			c.JSON(http.StatusConflict, gin.H{"error": "user is deleted"})
-		case strings.Contains(err.Error(), "invalid credentials"):
+		case matchesErr(err, "invalid credentials"):
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "login failed"})
 		}
 		return
 	}
+
 	c.JSON(http.StatusOK, dto.AuthResponse{Token: token})
 }
 
@@ -69,7 +72,7 @@ func (h *Handler) GetMe(c *gin.Context) {
 	user, err := h.UserService.GetMe(c.Request.Context(), userID)
 	if err != nil {
 		switch {
-		case strings.Contains(err.Error(), "user not found"):
+		case matchesErr(err, "user not found"):
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
@@ -84,6 +87,7 @@ func (h *Handler) GetMe(c *gin.Context) {
 		Role:   user.Role,
 		Points: user.Points,
 	}
+
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -114,12 +118,10 @@ func (h *Handler) UpdateMe(c *gin.Context) {
 	updatedUser, err := h.UserService.UpdateMe(c.Request.Context(), req)
 	if err != nil {
 		switch {
-		case strings.Contains(err.Error(), "user not found"):
+		case matchesErr(err, "user not found"):
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-		case strings.Contains(err.Error(), "email already used"):
+		case matchesErr(err, "email already used"):
 			c.JSON(http.StatusConflict, gin.H{"error": "email already in use"})
-		case strings.Contains(err.Error(), "user is deleted"):
-			c.JSON(http.StatusConflict, gin.H{"error": "user is deleted"})
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update user"})
 		}
@@ -134,10 +136,8 @@ func (h *Handler) DeleteMe(c *gin.Context) {
 
 	if err := h.UserService.DeleteMe(c.Request.Context(), userID); err != nil {
 		switch {
-		case strings.Contains(err.Error(), "user not found"):
+		case matchesErr(err, "user not found"):
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-		case strings.Contains(err.Error(), "user is deleted"):
-			c.JSON(http.StatusConflict, gin.H{"error": "user is already deleted"})
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete user"})
 		}
@@ -145,4 +145,8 @@ func (h *Handler) DeleteMe(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "user deleted"})
+}
+
+func matchesErr(err error, substr string) bool {
+	return strings.Contains(err.Error(), substr)
 }
