@@ -8,14 +8,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
-	"github.com/kulikovroman08/reviewlink-backend/internal/repository/place"
 )
 
 type Service struct {
-	repo place.PlaceRepository
+	repo PlaceRepository
 }
 
-func NewService(repo place.PlaceRepository) *Service {
+func NewService(repo PlaceRepository) *Service {
 	return &Service{repo: repo}
 }
 
