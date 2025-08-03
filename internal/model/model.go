@@ -24,3 +24,21 @@ type Place struct {
 	CreatedAt time.Time
 	IsDeleted bool
 }
+
+type ReviewToken struct {
+	ID        uuid.UUID
+	PlaceID   uuid.UUID
+	Token     string
+	IsUsed    bool
+	UsedAt    *time.Time
+	ExpiresAt time.Time
+}
+
+type Review struct {
+	ID      uuid.UUID
+	UserID  uuid.UUID
+	PlaceID uuid.UUID
+	TokenID uuid.UUID
+	Content string
+	Rating  int
+}
