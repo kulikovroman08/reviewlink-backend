@@ -2,13 +2,13 @@ package user
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 
+	"github.com/kulikovroman08/reviewlink-backend/internal/model"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/kulikovroman08/reviewlink-backend/internal/service/user/model"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -68,7 +68,7 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 		&u.IsDeleted,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, nil
+		return nil, pgx.ErrNoRows
 	}
 	if err != nil {
 		return nil, fmt.Errorf("scan FindByEmail: %w", err)
@@ -145,12 +145,56 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*mode
 		&u.CreatedAt,
 		&u.IsDeleted,
 	)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, pgx.ErrNoRows
 	}
 	if err != nil {
 		return nil, fmt.Errorf("scan FindByID: %w", err)
 	}
 
 	return &u, nil
+}
+
+func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *model.User) error {
+	query, args, err := sq.
+		Update(userTable).
+		Set(userNameColumn, user.Name).
+		Set(userEmailColumn, user.Email).
+		Set(userPasswordHashColumn, user.PasswordHash).
+		Where(sq.Eq{userIDColumn: user.ID}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("build UpdateUser query: %w", err)
+	}
+
+	cmdTag, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("exec UpdateUser: %w", err)
+	}
+	if cmdTag.RowsAffected() == 0 {
+		return fmt.Errorf("user not found: %w", pgx.ErrNoRows)
+	}
+	return nil
+}
+
+func (r *PostgresUserRepository) SoftDeleteUser(ctx context.Context, id string) error {
+	query, args, err := sq.
+		Update(userTable).
+		Set(userIsDeletedColumn, true).
+		Where(sq.Eq{userIDColumn: id}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("build SoftDeleteUser query: %w", err)
+	}
+
+	cmdTag, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("exec SoftDeleteUser: %w", err)
+	}
+	if cmdTag.RowsAffected() == 0 {
+		return fmt.Errorf("user not found: %w", pgx.ErrNoRows)
+	}
+	return nil
 }
