@@ -49,11 +49,14 @@ func (r *PostgresPlaceRepository) CreatePlace(ctx context.Context, p model.Place
 			p.IsDeleted,
 		).
 		ToSql()
+
 	if err != nil {
 		return fmt.Errorf("build CreatePlace query: %w", err)
 	}
+
 	if _, err := r.db.Exec(ctx, query, args...); err != nil {
 		return fmt.Errorf("exec CreatePlace: %w", err)
 	}
+
 	return nil
 }
