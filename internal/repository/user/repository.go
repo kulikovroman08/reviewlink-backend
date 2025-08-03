@@ -55,11 +55,13 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*mode
 			sq.Eq{userIsDeletedColumn: false},
 		}).
 		ToSql()
+
 	if err != nil {
 		return nil, fmt.Errorf("build FindByID query: %w", err)
 	}
 
 	var u model.User
+
 	err = r.db.QueryRow(ctx, query, args...).Scan(
 		&u.ID,
 		&u.Name,
@@ -98,11 +100,13 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 			sq.Eq{userIsDeletedColumn: false},
 		}).
 		ToSql()
+
 	if err != nil {
 		return nil, fmt.Errorf("build FindByEmail query: %w", err)
 	}
 
 	var u model.User
+
 	err = r.db.QueryRow(ctx, query, args...).Scan(
 		&u.ID,
 		&u.Name,
@@ -119,6 +123,7 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 	if err != nil {
 		return nil, fmt.Errorf("scan FindByEmail: %w", err)
 	}
+
 	return &u, nil
 }
 
@@ -137,10 +142,13 @@ func (r *PostgresUserRepository) FindAnyByEmail(ctx context.Context, email strin
 		From(userTable).
 		Where(sq.Eq{userEmailColumn: email}).
 		ToSql()
+
 	if err != nil {
 		return nil, fmt.Errorf("build FindAnyByEmail query: %w", err)
 	}
+
 	var u model.User
+
 	err = r.db.QueryRow(ctx, query, args...).Scan(
 		&u.ID,
 		&u.Name,
@@ -157,6 +165,7 @@ func (r *PostgresUserRepository) FindAnyByEmail(ctx context.Context, email strin
 	if err != nil {
 		return nil, fmt.Errorf("scan FindAnyByEmail: %w", err)
 	}
+
 	return &u, nil
 }
 
@@ -184,13 +193,16 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *model.Use
 			user.IsDeleted,
 		).
 		ToSql()
+
 	if err != nil {
 		return fmt.Errorf("build CreateUser query: %w", err)
 	}
+
 	_, err = r.db.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("exec CreateUser: %w", err)
 	}
+
 	return nil
 }
 
@@ -203,6 +215,7 @@ func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *model.Use
 		Set(userIsDeletedColumn, user.IsDeleted).
 		Where(sq.Eq{userIDColumn: user.ID}).
 		ToSql()
+
 	if err != nil {
 		return fmt.Errorf("build UpdateUser query: %w", err)
 	}
@@ -211,6 +224,7 @@ func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *model.Use
 	if err != nil {
 		return fmt.Errorf("exec UpdateUser: %w", err)
 	}
+
 	return nil
 }
 
@@ -220,13 +234,16 @@ func (r *PostgresUserRepository) SoftDeleteUser(ctx context.Context, id string) 
 		Set(userIsDeletedColumn, true).
 		Where(sq.Eq{userIDColumn: id}).
 		ToSql()
+
 	if err != nil {
 		return fmt.Errorf("build SoftDeleteUser query: %w", err)
 	}
 
 	_, err = r.db.Exec(ctx, query, args...)
+
 	if err != nil {
 		return fmt.Errorf("exec SoftDeleteUser: %w", err)
 	}
+
 	return nil
 }

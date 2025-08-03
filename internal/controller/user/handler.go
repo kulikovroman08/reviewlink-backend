@@ -19,6 +19,7 @@ func NewHandler(service service.UserService) *Handler {
 
 func (h *Handler) Signup(c *gin.Context) {
 	var req dto.SignupRequest
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return
@@ -41,6 +42,7 @@ func (h *Handler) Signup(c *gin.Context) {
 
 func (h *Handler) Login(c *gin.Context) {
 	var req dto.LoginRequest
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return
@@ -51,8 +53,10 @@ func (h *Handler) Login(c *gin.Context) {
 		switch {
 		case matchesErr(err, "user not found"):
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
+
 		case matchesErr(err, "invalid credentials"):
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "login failed"})
 		}
@@ -74,6 +78,7 @@ func (h *Handler) GetMe(c *gin.Context) {
 		switch {
 		case matchesErr(err, "user not found"):
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
 		}
@@ -99,6 +104,7 @@ func (h *Handler) UpdateMe(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return
 	}
+
 	req.UserID = userID
 
 	hasUpdate := false
@@ -115,13 +121,16 @@ func (h *Handler) UpdateMe(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "at least one field must be provided"})
 		return
 	}
+
 	updatedUser, err := h.UserService.UpdateMe(c.Request.Context(), req)
 	if err != nil {
 		switch {
 		case matchesErr(err, "user not found"):
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+
 		case matchesErr(err, "email already used"):
 			c.JSON(http.StatusConflict, gin.H{"error": "email already in use"})
+
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update user"})
 		}
@@ -138,6 +147,7 @@ func (h *Handler) DeleteMe(c *gin.Context) {
 		switch {
 		case matchesErr(err, "user not found"):
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete user"})
 		}

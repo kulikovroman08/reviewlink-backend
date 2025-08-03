@@ -50,5 +50,6 @@ func parseToken(tokenStr string) (*claims.Claims, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid claims")
 	}
+
 	return claims, nil
 }

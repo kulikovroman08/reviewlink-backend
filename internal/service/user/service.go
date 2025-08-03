@@ -62,9 +62,11 @@ func (s *Service) Signup(ctx context.Context, name, email, password string) (str
 			CreatedAt:    time.Now(),
 			IsDeleted:    false,
 		}
+
 		if err := s.repo.CreateUser(ctx, user); err != nil {
 			return "", fmt.Errorf("create user: %w", err)
 		}
+
 		return s.generateJWT(user)
 	}
 
@@ -110,15 +112,18 @@ func (s *Service) UpdateMe(ctx context.Context, req dto.UpdateUserRequest) (*mod
 
 	if s.shouldUpdateEmail(req.Email, user.Email) {
 		var existing *model.User
+
 		existing, err := s.repo.FindByEmail(ctx, *req.Email)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
+
 			} else {
 				return nil, fmt.Errorf("check email: %w", err)
 			}
 		} else if existing.ID != user.ID {
 			return nil, fmt.Errorf("email already used")
 		}
+
 		user.Email = *req.Email
 	}
 
