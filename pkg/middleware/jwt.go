@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/kulikovroman08/reviewlink-backend/internal/service/user/model/claims"
+	"github.com/kulikovroman08/reviewlink-backend/internal/model/claims"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -31,7 +31,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("claims", claims.UserID)
+		c.Set("user_id", claims.UserID)
 		c.Set("role", claims.Role)
 
 		c.Next()
@@ -50,5 +50,6 @@ func parseToken(tokenStr string) (*claims.Claims, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid claims")
 	}
+
 	return claims, nil
 }
