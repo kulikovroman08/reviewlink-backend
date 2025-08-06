@@ -25,7 +25,7 @@ func NewService(repo UserRepository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) GetMe(ctx context.Context, userID string) (*model.User, error) {
+func (s *Service) GetUser(ctx context.Context, userID string) (*model.User, error) {
 	user, err := s.repo.FindByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -100,7 +100,7 @@ func (s *Service) Login(ctx context.Context, email, password string) (string, er
 	return s.generateJWT(user)
 }
 
-func (s *Service) UpdateMe(ctx context.Context, req dto.UpdateUserRequest) (*model.User, error) {
+func (s *Service) UpdateUser(ctx context.Context, req dto.UpdateUserRequest) (*model.User, error) {
 	user, err := s.repo.FindByID(ctx, req.UserID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -146,7 +146,7 @@ func (s *Service) UpdateMe(ctx context.Context, req dto.UpdateUserRequest) (*mod
 	return user, nil
 }
 
-func (s *Service) DeleteMe(ctx context.Context, userID string) error {
+func (s *Service) DeleteUser(ctx context.Context, userID string) error {
 	_, err := s.repo.FindByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

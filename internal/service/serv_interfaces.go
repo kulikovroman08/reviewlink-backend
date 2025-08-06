@@ -10,7 +10,7 @@ import (
 type UserService interface {
 	Signup(ctx context.Context, name, email, password string) (string, error)
 	Login(ctx context.Context, email, password string) (string, error)
-	GetMe(ctx context.Context, userID string) (*model.User, error)
-	UpdateMe(ctx context.Context, req dto.UpdateUserRequest) (*model.User, error)
-	DeleteMe(ctx context.Context, userID string) error
+	GetUser(ctx context.Context, userID string) (*model.User, error)
+	UpdateUser(ctx context.Context, req dto.UpdateUserRequest) (*model.User, error)
+	DeleteUser(ctx context.Context, userID string) error
 }

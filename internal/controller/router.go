@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/kulikovroman08/reviewlink-backend/internal/controller/user"
 	"github.com/kulikovroman08/reviewlink-backend/pkg/middleware"
 )
 
@@ -13,17 +12,15 @@ func SetupRouter(app *Application) *gin.Engine {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	userHandler := user.NewHandler(app.UserService)
-
-	r.POST("/signup", userHandler.Signup)
-	r.POST("/login", userHandler.Login)
+	r.POST("/signup", app.Signup)
+	r.POST("/login", app.Login)
 
 	authorized := r.Group("/users")
 	authorized.Use(middleware.AuthMiddleware())
 	{
-		authorized.GET("/me", userHandler.GetMe)
-		authorized.PUT("/me", userHandler.UpdateMe)
-		authorized.DELETE("/me", userHandler.DeleteMe)
+		authorized.GET("", app.GetUser)
+		authorized.PUT("", app.UpdateUser)
+		authorized.DELETE("", app.DeleteUser)
 	}
 
 	return r

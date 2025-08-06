@@ -1,4 +1,4 @@
-package user
+package controller
 
 import (
 	"net/http"
@@ -6,18 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
-	"github.com/kulikovroman08/reviewlink-backend/internal/service"
 )
 
-type Handler struct {
-	UserService service.UserService
-}
-
-func NewHandler(service service.UserService) *Handler {
-	return &Handler{UserService: service}
-}
-
-func (h *Handler) Signup(c *gin.Context) {
+func (h *Application) Signup(c *gin.Context) {
 	var req dto.SignupRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -40,7 +31,7 @@ func (h *Handler) Signup(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.AuthResponse{Token: token})
 }
 
-func (h *Handler) Login(c *gin.Context) {
+func (h *Application) Login(c *gin.Context) {
 	var req dto.LoginRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -66,14 +57,14 @@ func (h *Handler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.AuthResponse{Token: token})
 }
 
-func (h *Handler) GetMe(c *gin.Context) {
+func (h *Application) GetUser(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	user, err := h.UserService.GetMe(c.Request.Context(), userID)
+	user, err := h.UserService.GetUser(c.Request.Context(), userID)
 	if err != nil {
 		switch {
 		case matchesErr(err, "user not found"):
@@ -96,7 +87,7 @@ func (h *Handler) GetMe(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *Handler) UpdateMe(c *gin.Context) {
+func (h *Application) UpdateUser(c *gin.Context) {
 	userID := c.GetString("user_id")
 
 	var req dto.UpdateUserRequest
@@ -122,7 +113,7 @@ func (h *Handler) UpdateMe(c *gin.Context) {
 		return
 	}
 
-	updatedUser, err := h.UserService.UpdateMe(c.Request.Context(), req)
+	updatedUser, err := h.UserService.UpdateUser(c.Request.Context(), req)
 	if err != nil {
 		switch {
 		case matchesErr(err, "user not found"):
@@ -140,10 +131,10 @@ func (h *Handler) UpdateMe(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedUser)
 }
 
-func (h *Handler) DeleteMe(c *gin.Context) {
+func (h *Application) DeleteUser(c *gin.Context) {
 	userID := c.GetString("user_id")
 
-	if err := h.UserService.DeleteMe(c.Request.Context(), userID); err != nil {
+	if err := h.UserService.DeleteUser(c.Request.Context(), userID); err != nil {
 		switch {
 		case matchesErr(err, "user not found"):
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
