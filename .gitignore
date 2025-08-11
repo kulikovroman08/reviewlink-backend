@@ -5,6 +5,7 @@
 *.exe
 *.out
 *.test
+*.http
 reviewlink
 
 # Env
@@ -12,3 +13,4 @@ reviewlink
 
 # Logs
 *.log
+hashgen/
