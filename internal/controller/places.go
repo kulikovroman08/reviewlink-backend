@@ -1,22 +1,13 @@
-package place
+package controller
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
-	"github.com/kulikovroman08/reviewlink-backend/internal/service"
 )
 
-type Handler struct {
-	service service.PlaceService
-}
-
-func NewHandler(service service.PlaceService) *Handler {
-	return &Handler{service: service}
-}
-
-func (h *Handler) CreatePlace(c *gin.Context) {
+func (h *Application) CreatePlace(c *gin.Context) {
 	role := c.GetString("role")
 	if role != "admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
@@ -29,9 +20,9 @@ func (h *Handler) CreatePlace(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.CreatePlace(c.Request.Context(), req)
+	resp, err := h.PlaceService.CreatePlace(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create place"})
 		return
 	}
 
