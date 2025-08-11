@@ -5,11 +5,13 @@ import (
 )
 
 type Application struct {
-	UserService service.UserService
+	UserService  service.UserService
+	PlaceService service.PlaceService
 }
 
-func NewApplication(userService service.UserService) *Application {
+func NewApplication(user service.UserService, place service.PlaceService) *Application {
 	return &Application{
-		UserService: userService,
+		UserService:  user,
+		PlaceService: place,
 	}
 }

@@ -13,4 +13,6 @@ reviewlink
 
 # Logs
 *.log
+
 hashgen/
+debug/

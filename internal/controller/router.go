@@ -23,5 +23,12 @@ func SetupRouter(app *Application) *gin.Engine {
 		authorized.DELETE("", app.DeleteUser)
 	}
 
+	// Places
+	places := r.Group("/places")
+	places.Use(middleware.AuthMiddleware())
+	{
+		places.POST("", app.CreatePlace)
+	}
+
 	return r
 }

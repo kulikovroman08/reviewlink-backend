@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type User struct {
 	ID           string
@@ -11,4 +15,12 @@ type User struct {
 	Points       int
 	CreatedAt    time.Time
 	IsDeleted    bool
+}
+
+type Place struct {
+	ID        uuid.UUID
+	Name      string
+	Address   string
+	CreatedAt time.Time
+	IsDeleted bool
 }

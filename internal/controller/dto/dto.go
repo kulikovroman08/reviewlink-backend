@@ -30,3 +30,12 @@ type UserResponse struct {
 	Role   string `json:"role"`
 	Points int    `json:"points"`
 }
+
+type CreatePlaceRequest struct {
+	Name    string `json:"name" binding:"required"`
+	Address string `json:"address" binding:"required"`
+}
+
+type CreatePlaceResponse struct {
+	ID string `json:"id"`
+}
