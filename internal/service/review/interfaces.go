@@ -8,8 +8,9 @@ import (
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 )
 
-type Repository interface {
+type ReviewRepository interface {
 	GetReviewToken(ctx context.Context, token string) (*model.ReviewToken, error)
 	MarkReviewTokenUsed(ctx context.Context, tokenID uuid.UUID, usedAt time.Time) error
 	CreateReview(ctx context.Context, review model.Review) error
+	HasReviewToday(ctx context.Context, userID, placeID uuid.UUID) (bool, error)
 }

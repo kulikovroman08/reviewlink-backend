@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 
 	"github.com/jackc/pgx/v5"
@@ -243,6 +245,27 @@ func (r *PostgresUserRepository) SoftDeleteUser(ctx context.Context, id string) 
 
 	if err != nil {
 		return fmt.Errorf("exec SoftDeleteUser: %w", err)
+	}
+
+	return nil
+}
+
+func (r *PostgresUserRepository) AddPoints(ctx context.Context, userID uuid.UUID, points int) error {
+	expr := sq.Expr(fmt.Sprintf("%s + ?", userPointsColumn), points)
+
+	query, args, err := r.psql.
+		Update(userTable).
+		Set(userPointsColumn, expr).
+		Where(sq.Eq{userIDColumn: userID}).
+		ToSql()
+
+	if err != nil {
+		return fmt.Errorf("build AddPoints query: %w", err)
+	}
+
+	_, err = r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("exec AddPoints: %w", err)
 	}
 
 	return nil

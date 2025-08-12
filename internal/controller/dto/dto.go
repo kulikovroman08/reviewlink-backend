@@ -39,3 +39,9 @@ type CreatePlaceRequest struct {
 type CreatePlaceResponse struct {
 	ID string `json:"id"`
 }
+
+type SubmitReviewRequest struct {
+	Token   string `json:"token" binding:"required"`
+	Rating  int    `json:"rating" binding:"required,min=1,max=5"`
+	Content string `json:"content"`
+}

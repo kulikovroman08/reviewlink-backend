@@ -18,3 +18,7 @@ type UserService interface {
 type PlaceService interface {
 	CreatePlace(ctx context.Context, req dto.CreatePlaceRequest) (dto.CreatePlaceResponse, error)
 }
+
+type ReviewService interface {
+	SubmitReview(ctx context.Context, userID string, req dto.SubmitReviewRequest) error
+}

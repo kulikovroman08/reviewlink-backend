@@ -2,8 +2,11 @@ package review
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
@@ -21,13 +24,14 @@ const (
 	reviewTokenUsedAt    = "used_at"
 	reviewTokenExpiresAt = "expires_at"
 
-	reviewTable    = "reviews"
-	reviewIDColumn = "id"
-	reviewUserID   = "user_id"
-	reviewPlaceID  = "place_id"
-	reviewTokenID  = "token_id"
-	reviewContent  = "content"
-	reviewRating   = "rating"
+	reviewTable     = "reviews"
+	reviewIDColumn  = "id"
+	reviewUserID    = "user_id"
+	reviewPlaceID   = "place_id"
+	reviewTokenID   = "token_id"
+	reviewContent   = "content"
+	reviewRating    = "rating"
+	reviewCreatedAt = "created_at"
 )
 
 type PostgresReviewRepository struct {
@@ -59,10 +63,12 @@ func (r *PostgresReviewRepository) GetReviewToken(ctx context.Context, token str
 	if err != nil {
 		return nil, fmt.Errorf("build GetReviewToken query: %w", err)
 	}
-
+	fmt.Println("SQL QUERY:", query)
+	fmt.Println("ARGS:", args)
 	row := r.db.QueryRow(ctx, query, args...)
 
 	var rt model.ReviewToken
+	fmt.Println("TRYING TO SCAN TOKEN RESULT...")
 	err = row.Scan(
 		&rt.ID,
 		&rt.PlaceID,
@@ -73,6 +79,7 @@ func (r *PostgresReviewRepository) GetReviewToken(ctx context.Context, token str
 	)
 
 	if err != nil {
+		fmt.Println("SCAN ERROR:", err)
 		return nil, fmt.Errorf("scan GetReviewToken row: %w", err)
 	}
 
@@ -108,6 +115,7 @@ func (r *PostgresReviewRepository) CreateReview(ctx context.Context, review mode
 			reviewTokenID,
 			reviewContent,
 			reviewRating,
+			reviewCreatedAt,
 		).
 		Values(
 			review.ID,
@@ -116,6 +124,7 @@ func (r *PostgresReviewRepository) CreateReview(ctx context.Context, review mode
 			review.TokenID,
 			review.Content,
 			review.Rating,
+			time.Now().UTC(),
 		).
 		ToSql()
 
@@ -128,4 +137,35 @@ func (r *PostgresReviewRepository) CreateReview(ctx context.Context, review mode
 	}
 
 	return nil
+}
+
+func (r *PostgresReviewRepository) HasReviewToday(ctx context.Context, userID, placeID uuid.UUID) (bool, error) {
+	today := time.Now().Truncate(24 * time.Hour)
+	tomorrow := today.Add(24 * time.Hour)
+
+	query, args, err := r.builder.
+		Select("1").
+		From(reviewTable).
+		Where(sq.Eq{
+			reviewUserID:  userID,
+			reviewPlaceID: placeID,
+		}).
+		Where(sq.GtOrEq{"created_at": today}).
+		Where(sq.Lt{"created_at": tomorrow}).
+		Limit(1).
+		ToSql()
+	if err != nil {
+		return false, fmt.Errorf("build HasReviewToday query: %w", err)
+	}
+
+	row := r.db.QueryRow(ctx, query, args...)
+	var dummy int
+	err = row.Scan(&dummy)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("exec HasReviewToday: %w", err)
+	}
+	return true, nil
 }
