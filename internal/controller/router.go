@@ -30,5 +30,12 @@ func SetupRouter(app *Application) *gin.Engine {
 		places.POST("", app.CreatePlace)
 	}
 
+	// Reviews
+	reviews := r.Group("/review")
+	reviews.Use(middleware.AuthMiddleware())
+	{
+		reviews.POST("", app.SubmitReview)
+	}
+
 	return r
 }
