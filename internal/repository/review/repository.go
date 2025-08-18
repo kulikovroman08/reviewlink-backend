@@ -21,7 +21,6 @@ const (
 	reviewTokenPlaceID   = "place_id"
 	reviewTokenValue     = "token_value"
 	reviewTokenIsUsed    = "is_used"
-	reviewTokenUsedAt    = "used_at"
 	reviewTokenExpiresAt = "expires_at"
 
 	reviewTable     = "reviews"
@@ -53,7 +52,6 @@ func (r *PostgresReviewRepository) GetReviewToken(ctx context.Context, token str
 			reviewTokenPlaceID,
 			reviewTokenValue,
 			reviewTokenIsUsed,
-			reviewTokenUsedAt,
 			reviewTokenExpiresAt,
 		).
 		From(reviewTokenTable).
@@ -63,34 +61,30 @@ func (r *PostgresReviewRepository) GetReviewToken(ctx context.Context, token str
 	if err != nil {
 		return nil, fmt.Errorf("build GetReviewToken query: %w", err)
 	}
-	fmt.Println("SQL QUERY:", query)
-	fmt.Println("ARGS:", args)
+
 	row := r.db.QueryRow(ctx, query, args...)
 
 	var rt model.ReviewToken
-	fmt.Println("TRYING TO SCAN TOKEN RESULT...")
+
 	err = row.Scan(
 		&rt.ID,
 		&rt.PlaceID,
 		&rt.Token,
 		&rt.IsUsed,
-		&rt.UsedAt,
 		&rt.ExpiresAt,
 	)
 
 	if err != nil {
-		fmt.Println("SCAN ERROR:", err)
 		return nil, fmt.Errorf("scan GetReviewToken row: %w", err)
 	}
 
 	return &rt, nil
 }
 
-func (r *PostgresReviewRepository) MarkReviewTokenUsed(ctx context.Context, tokenID uuid.UUID, usedAt time.Time) error {
+func (r *PostgresReviewRepository) MarkReviewTokenUsed(ctx context.Context, tokenID uuid.UUID) error {
 	query, args, err := r.builder.
 		Update(reviewTokenTable).
 		Set(reviewTokenIsUsed, true).
-		Set(reviewTokenUsedAt, usedAt).
 		Where(sq.Eq{reviewTokenIDColumn: tokenID}).
 		ToSql()
 
@@ -139,7 +133,7 @@ func (r *PostgresReviewRepository) CreateReview(ctx context.Context, review mode
 	return nil
 }
 
-func (r *PostgresReviewRepository) HasReviewToday(ctx context.Context, userID, placeID uuid.UUID) (bool, error) {
+func (r *PostgresReviewRepository) HasReviewToday(ctx context.Context, userID, placeID string) (bool, error) {
 	today := time.Now().Truncate(24 * time.Hour)
 	tomorrow := today.Add(24 * time.Hour)
 

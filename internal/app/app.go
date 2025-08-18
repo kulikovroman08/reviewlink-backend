@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/kulikovroman08/reviewlink-backend/internal/service"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -12,9 +14,6 @@ import (
 	repoPlace "github.com/kulikovroman08/reviewlink-backend/internal/repository/place"
 	repoReview "github.com/kulikovroman08/reviewlink-backend/internal/repository/review"
 	repoUser "github.com/kulikovroman08/reviewlink-backend/internal/repository/user"
-	servicePlace "github.com/kulikovroman08/reviewlink-backend/internal/service/place"
-	serviceReview "github.com/kulikovroman08/reviewlink-backend/internal/service/review"
-	serviceUser "github.com/kulikovroman08/reviewlink-backend/internal/service/user"
 )
 
 func InitApp(cfg *configs.Config) *gin.Engine {
@@ -24,15 +23,12 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 	}
 
 	userRepo := repoUser.NewPostgresUserRepository(dbpool)
-	userService := serviceUser.NewService(userRepo)
-
-	placeRepo := repoPlace.NewPostgresPlaceRepository(dbpool)
-	placeService := servicePlace.NewService(placeRepo)
-
 	reviewRepo := repoReview.NewPostgresReviewRepository(dbpool)
-	reviewService := serviceReview.NewService(reviewRepo, userRepo)
+	placeRepo := repoPlace.NewPostgresPlaceRepository(dbpool)
 
-	app := controller.NewApplication(userService, placeService, reviewService)
+	svc := service.NewService(userRepo, reviewRepo, placeRepo)
+
+	app := controller.NewApplication(svc)
 
 	return controller.SetupRouter(app)
 }

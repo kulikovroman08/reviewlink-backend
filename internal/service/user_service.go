@@ -1,4 +1,4 @@
-package user
+package service
 
 import (
 	"context"
@@ -11,22 +11,13 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 	"github.com/kulikovroman08/reviewlink-backend/internal/model/claims"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Service struct {
-	repo UserRepository
-}
-
-func NewService(repo UserRepository) *Service {
-	return &Service{repo: repo}
-}
-
 func (s *Service) GetUser(ctx context.Context, userID string) (*model.User, error) {
-	user, err := s.repo.FindByID(ctx, userID)
+	user, err := s.UserRepo.FindByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("user not found: %w", err)
@@ -38,7 +29,7 @@ func (s *Service) GetUser(ctx context.Context, userID string) (*model.User, erro
 }
 
 func (s *Service) Signup(ctx context.Context, name, email, password string) (string, error) {
-	existing, err := s.repo.FindAnyByEmail(ctx, email)
+	existing, err := s.UserRepo.FindAnyByEmail(ctx, email)
 	if err != nil {
 		if isUnexpectedErr(err) {
 			return "", fmt.Errorf("check existing user: %w", err)
@@ -63,7 +54,7 @@ func (s *Service) Signup(ctx context.Context, name, email, password string) (str
 			IsDeleted:    false,
 		}
 
-		if err := s.repo.CreateUser(ctx, user); err != nil {
+		if err := s.UserRepo.CreateUser(ctx, user); err != nil {
 			return "", fmt.Errorf("create user: %w", err)
 		}
 
@@ -75,7 +66,7 @@ func (s *Service) Signup(ctx context.Context, name, email, password string) (str
 		existing.PasswordHash = string(hashedPassword)
 		existing.IsDeleted = false
 
-		if err := s.repo.UpdateUser(ctx, existing); err != nil {
+		if err := s.UserRepo.UpdateUser(ctx, existing); err != nil {
 			return "", fmt.Errorf("restore user: %w", err)
 		}
 		return s.generateJWT(existing)
@@ -85,7 +76,7 @@ func (s *Service) Signup(ctx context.Context, name, email, password string) (str
 }
 
 func (s *Service) Login(ctx context.Context, email, password string) (string, error) {
-	user, err := s.repo.FindByEmail(ctx, email)
+	user, err := s.UserRepo.FindByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return "", fmt.Errorf("user not found: %w", err)
@@ -100,54 +91,52 @@ func (s *Service) Login(ctx context.Context, email, password string) (string, er
 	return s.generateJWT(user)
 }
 
-func (s *Service) UpdateUser(ctx context.Context, req dto.UpdateUserRequest) (*model.User, error) {
-	user, err := s.repo.FindByID(ctx, req.UserID)
+func (s *Service) UpdateUser(ctx context.Context, user model.User, password string) (model.User, error) {
+	current, err := s.UserRepo.FindByID(ctx, user.ID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("user not found: %w", err)
+			return model.User{}, fmt.Errorf("user not found: %w", err)
 		}
 
-		return nil, fmt.Errorf("find user: %w", err)
+		return model.User{}, fmt.Errorf("find user: %w", err)
 	}
 
-	if s.shouldUpdateEmail(req.Email, user.Email) {
-		var existing *model.User
-
-		existing, err := s.repo.FindByEmail(ctx, *req.Email)
+	if s.shouldUpdateEmail(&user.Email, current.Email) {
+		existing, err := s.UserRepo.FindByEmail(ctx, user.Email)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
 
 			} else {
-				return nil, fmt.Errorf("check email: %w", err)
+				return model.User{}, fmt.Errorf("check email: %w", err)
 			}
 		} else if existing.ID != user.ID {
-			return nil, fmt.Errorf("email already used")
+			return model.User{}, fmt.Errorf("email already used")
 		}
 
-		user.Email = *req.Email
+		current.Email = user.Email
 	}
 
-	if req.Name != nil {
-		user.Name = *req.Name
+	if user.Name != "" {
+		current.Name = user.Name
 	}
 
-	if req.Password != nil {
-		hash, err := bcrypt.GenerateFromPassword([]byte(*req.Password), bcrypt.DefaultCost)
+	if password != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		if err != nil {
-			return nil, fmt.Errorf("hash password: %w", err)
+			return model.User{}, fmt.Errorf("hash password: %w", err)
 		}
-		user.PasswordHash = string(hash)
+		current.PasswordHash = string(hash)
 	}
 
-	if err := s.repo.UpdateUser(ctx, user); err != nil {
-		return nil, fmt.Errorf("update user: %w", err)
+	if err := s.UserRepo.UpdateUser(ctx, current); err != nil {
+		return model.User{}, fmt.Errorf("update user: %w", err)
 	}
 
-	return user, nil
+	return *current, nil
 }
 
 func (s *Service) DeleteUser(ctx context.Context, userID string) error {
-	_, err := s.repo.FindByID(ctx, userID)
+	_, err := s.UserRepo.FindByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return fmt.Errorf("user not found: %w", err)
@@ -155,7 +144,7 @@ func (s *Service) DeleteUser(ctx context.Context, userID string) error {
 		return fmt.Errorf("find user: %w", err)
 	}
 
-	if err := s.repo.SoftDeleteUser(ctx, userID); err != nil {
+	if err := s.UserRepo.SoftDeleteUser(ctx, userID); err != nil {
 		return fmt.Errorf("soft delete user: %w", err)
 	}
 

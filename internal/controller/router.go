@@ -31,7 +31,7 @@ func SetupRouter(app *Application) *gin.Engine {
 	}
 
 	// Reviews
-	reviews := r.Group("/review")
+	reviews := r.Group("/reviews")
 	reviews.Use(middleware.AuthMiddleware())
 	{
 		reviews.POST("", app.SubmitReview)

@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/kulikovroman08/reviewlink-backend/internal/model"
+
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 )
@@ -16,7 +18,7 @@ func (h *Application) Signup(c *gin.Context) {
 		return
 	}
 
-	token, err := h.UserService.Signup(c.Request.Context(), req.Name, req.Email, req.Password)
+	token, err := h.Service.Signup(c.Request.Context(), req.Name, req.Email, req.Password)
 	if err != nil {
 		switch {
 		case strings.Contains(err.Error(), "email already used"):
@@ -39,7 +41,7 @@ func (h *Application) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := h.UserService.Login(c.Request.Context(), req.Email, req.Password)
+	token, err := h.Service.Login(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
 		switch {
 		case matchesErr(err, "user not found"):
@@ -64,7 +66,7 @@ func (h *Application) GetUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.UserService.GetUser(c.Request.Context(), userID)
+	user, err := h.Service.GetUser(c.Request.Context(), userID)
 	if err != nil {
 		switch {
 		case matchesErr(err, "user not found"):
@@ -113,7 +115,21 @@ func (h *Application) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	updatedUser, err := h.UserService.UpdateUser(c.Request.Context(), req)
+	var user model.User
+	user.ID = req.UserID
+	if req.Name != nil {
+		user.Name = *req.Name
+	}
+	if req.Email != nil {
+		user.Email = *req.Email
+	}
+
+	var password string
+	if req.Password != nil {
+		password = *req.Password
+	}
+
+	updatedUser, err := h.Service.UpdateUser(c.Request.Context(), user, password)
 	if err != nil {
 		switch {
 		case matchesErr(err, "user not found"):
@@ -134,7 +150,7 @@ func (h *Application) UpdateUser(c *gin.Context) {
 func (h *Application) DeleteUser(c *gin.Context) {
 	userID := c.GetString("user_id")
 
-	if err := h.UserService.DeleteUser(c.Request.Context(), userID); err != nil {
+	if err := h.Service.DeleteUser(c.Request.Context(), userID); err != nil {
 		switch {
 		case matchesErr(err, "user not found"):
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})

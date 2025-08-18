@@ -30,7 +30,6 @@ type ReviewToken struct {
 	PlaceID   uuid.UUID
 	Token     string
 	IsUsed    bool
-	UsedAt    *time.Time
 	ExpiresAt time.Time
 }
 

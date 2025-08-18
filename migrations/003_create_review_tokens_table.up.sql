@@ -4,6 +4,5 @@ CREATE TABLE review_tokens
     place_id    UUID        NOT NULL REFERENCES places (id),
     token_value VARCHAR(20) NOT NULL UNIQUE,
     is_used     BOOLEAN     NOT NULL DEFAULT false,
-    used_at     TIMESTAMP,
     expires_at  TIMESTAMP   NOT NULL
 );

@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/google/uuid"
+
 // Структура входного запроса
 type SignupRequest struct {
 	Name     string `json:"name" binding:"required"`
@@ -41,7 +43,8 @@ type CreatePlaceResponse struct {
 }
 
 type SubmitReviewRequest struct {
-	Token   string `json:"token" binding:"required"`
-	Rating  int    `json:"rating" binding:"required,min=1,max=5"`
-	Content string `json:"content"`
+	Token   string    `json:"token" binding:"required"`
+	PlaceID uuid.UUID `json:"place_id" binding:"required"`
+	Rating  int       `json:"rating" binding:"required,min=1,max=5"`
+	Content string    `json:"content"`
 }
