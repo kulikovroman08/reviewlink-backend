@@ -1,21 +1,19 @@
 package service
 
 import (
-	"github.com/kulikovroman08/reviewlink-backend/internal/service/place"
-	"github.com/kulikovroman08/reviewlink-backend/internal/service/review"
-	"github.com/kulikovroman08/reviewlink-backend/internal/service/user"
+	"github.com/kulikovroman08/reviewlink-backend/internal/repository"
 )
 
 type Service struct {
-	UserRepo   user.UserRepository
-	ReviewRepo review.ReviewRepository
-	PlaceRepo  place.PlaceRepository
+	UserRepo   repository.UserRepository
+	PlaceRepo  repository.PlaceRepository
+	ReviewRepo repository.ReviewRepository
 }
 
 func NewService(
-	userRepo user.UserRepository,
-	reviewRepo review.ReviewRepository,
-	placeRepo place.PlaceRepository,
+	userRepo repository.UserRepository,
+	reviewRepo repository.ReviewRepository,
+	placeRepo repository.PlaceRepository,
 ) *Service {
 	return &Service{
 		UserRepo:   userRepo,

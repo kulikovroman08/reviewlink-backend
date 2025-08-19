@@ -45,7 +45,7 @@ func (s *Service) SubmitReview(ctx context.Context, review model.Review, tokenSt
 		return fmt.Errorf("create review: %w", err)
 	}
 
-	if err := s.ReviewRepo.MarkReviewTokenUsed(ctx, token.ID); err != nil {
+	if err := s.ReviewRepo.MarkReviewTokenUsed(ctx, token.ID.String()); err != nil {
 		return fmt.Errorf("mark token used: %w", err)
 	}
 
@@ -60,7 +60,7 @@ func (s *Service) SubmitReview(ctx context.Context, review model.Review, tokenSt
 	}
 
 	if points > 0 {
-		if err := s.UserRepo.AddPoints(ctx, review.UserID, points); err != nil {
+		if err := s.UserRepo.AddPoints(ctx, review.UserID.String(), points); err != nil {
 			return fmt.Errorf("add points: %w", err)
 		}
 	}

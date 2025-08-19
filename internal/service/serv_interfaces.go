@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 )
 
@@ -16,7 +15,7 @@ type UserService interface {
 }
 
 type PlaceService interface {
-	CreatePlace(ctx context.Context, place model.Place) (dto.CreatePlaceResponse, error)
+	CreatePlace(ctx context.Context, place model.Place) (*model.Place, error)
 }
 
 type ReviewService interface {

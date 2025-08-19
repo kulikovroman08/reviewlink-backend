@@ -41,7 +41,7 @@ func NewPostgresUserRepository(db *pgxpool.Pool) *PostgresUserRepository {
 	}
 }
 
-func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*model.User, error) {
+func (r *PostgresUserRepository) FindByID(ctx context.Context, userID string) (*model.User, error) {
 	query, args, err := r.builder.
 		Select(
 			userIDColumn,
@@ -55,7 +55,7 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*mode
 		).
 		From(userTable).
 		Where(sq.And{
-			sq.Eq{userIDColumn: id},
+			sq.Eq{userIDColumn: userID},
 			sq.Eq{userIsDeletedColumn: false},
 		}).
 		ToSql()
@@ -232,11 +232,11 @@ func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *model.Use
 	return nil
 }
 
-func (r *PostgresUserRepository) SoftDeleteUser(ctx context.Context, id string) error {
+func (r *PostgresUserRepository) SoftDeleteUser(ctx context.Context, userID string) error {
 	query, args, err := r.builder.
 		Update(userTable).
 		Set(userIsDeletedColumn, true).
-		Where(sq.Eq{userIDColumn: id}).
+		Where(sq.Eq{userIDColumn: userID}).
 		ToSql()
 
 	if err != nil {
@@ -252,26 +252,26 @@ func (r *PostgresUserRepository) SoftDeleteUser(ctx context.Context, id string) 
 	return nil
 }
 
-func (r *PostgresUserRepository) AddPoints(ctx context.Context, userID uuid.UUID, points int) error {
+func (r *PostgresUserRepository) AddPoints(ctx context.Context, userID string, points int) error {
+	uuidID, err := uuid.Parse(userID)
+	if err != nil {
+		return fmt.Errorf("invalid user ID: %w", err)
+	}
+
 	query, args, err := r.builder.
 		Update(userTable).
-		Set(userPointsColumn, sq.Expr(fmt.Sprintf("%s + ?", userPointsColumn), points)).
-		Where(sq.Eq{userIDColumn: userID}).
+		Set(userPointsColumn, sq.Expr("points + ?", points)).
+		Where(sq.Eq{userIDColumn: uuidID}).
 		ToSql()
 	if err != nil {
 		return fmt.Errorf("build AddPoints query: %w", err)
 	}
 
-	_, err = r.db.Exec(ctx, query, args...)
-	if err != nil {
+	if _, err := r.db.Exec(ctx, query, args...); err != nil {
 		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			switch pgErr.Code {
-			case "23514":
-				return fmt.Errorf("points limit exceeded: %w", err)
-			}
+		if errors.As(err, &pgErr) && pgErr.Code == "23514" {
+			return fmt.Errorf("points limit exceeded: %w", err)
 		}
-
 		return fmt.Errorf("exec AddPoints: %w", err)
 	}
 

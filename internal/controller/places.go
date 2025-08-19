@@ -27,11 +27,15 @@ func (h *Application) CreatePlace(c *gin.Context) {
 		Address: req.Address,
 	}
 
-	resp, err := h.Service.CreatePlace(c.Request.Context(), place)
+	createdPlace, err := h.Service.CreatePlace(c.Request.Context(), place)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create place"})
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	resp := dto.CreatePlaceResponse{
+		ID: createdPlace.ID.String(),
+	}
+
+	c.JSON(http.StatusCreated, resp)
 }

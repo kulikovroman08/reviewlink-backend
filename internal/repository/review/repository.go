@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/jackc/pgx/v5"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
@@ -81,11 +82,16 @@ func (r *PostgresReviewRepository) GetReviewToken(ctx context.Context, token str
 	return &rt, nil
 }
 
-func (r *PostgresReviewRepository) MarkReviewTokenUsed(ctx context.Context, tokenID uuid.UUID) error {
+func (r *PostgresReviewRepository) MarkReviewTokenUsed(ctx context.Context, tokenID string) error {
+	uuidID, err := uuid.Parse(tokenID)
+	if err != nil {
+		return fmt.Errorf("invalid token ID: %w", err)
+	}
+
 	query, args, err := r.builder.
 		Update(reviewTokenTable).
 		Set(reviewTokenIsUsed, true).
-		Where(sq.Eq{reviewTokenIDColumn: tokenID}).
+		Where(sq.Eq{reviewTokenIDColumn: uuidID}).
 		ToSql()
 
 	if err != nil {
