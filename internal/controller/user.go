@@ -18,7 +18,7 @@ func (h *Application) Signup(c *gin.Context) {
 		return
 	}
 
-	token, err := h.Service.Signup(c.Request.Context(), req.Name, req.Email, req.Password)
+	token, err := h.UserService.Signup(c.Request.Context(), req.Name, req.Email, req.Password)
 	if err != nil {
 		switch {
 		case strings.Contains(err.Error(), "email already used"):
@@ -41,7 +41,7 @@ func (h *Application) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := h.Service.Login(c.Request.Context(), req.Email, req.Password)
+	token, err := h.UserService.Login(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
 		switch {
 		case matchesErr(err, "user not found"):
@@ -66,7 +66,7 @@ func (h *Application) GetUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.Service.GetUser(c.Request.Context(), userID)
+	user, err := h.UserService.GetUser(c.Request.Context(), userID)
 	if err != nil {
 		switch {
 		case matchesErr(err, "user not found"):
@@ -129,7 +129,7 @@ func (h *Application) UpdateUser(c *gin.Context) {
 		password = *req.Password
 	}
 
-	updatedUser, err := h.Service.UpdateUser(c.Request.Context(), user, password)
+	updatedUser, err := h.UserService.UpdateUser(c.Request.Context(), user, password)
 	if err != nil {
 		switch {
 		case matchesErr(err, "user not found"):
@@ -150,7 +150,7 @@ func (h *Application) UpdateUser(c *gin.Context) {
 func (h *Application) DeleteUser(c *gin.Context) {
 	userID := c.GetString("user_id")
 
-	if err := h.Service.DeleteUser(c.Request.Context(), userID); err != nil {
+	if err := h.UserService.DeleteUser(c.Request.Context(), userID); err != nil {
 		switch {
 		case matchesErr(err, "user not found"):
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})

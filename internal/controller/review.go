@@ -31,7 +31,7 @@ func (h *Application) SubmitReview(c *gin.Context) {
 		Rating:  req.Rating,
 	}
 
-	err = h.Service.SubmitReview(c.Request.Context(), review, req.Token)
+	err = h.ReviewService.SubmitReview(c.Request.Context(), review, req.Token)
 	if err != nil {
 		switch {
 		case strings.Contains(err.Error(), "token already used"):
