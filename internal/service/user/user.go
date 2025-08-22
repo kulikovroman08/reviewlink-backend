@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/kulikovroman08/reviewlink-backend/internal/repository/user"
+	"github.com/kulikovroman08/reviewlink-backend/internal/repository"
 
 	"github.com/jackc/pgx/v5"
 
@@ -19,10 +19,10 @@ import (
 )
 
 type userService struct {
-	userRepo user.UserRepository
+	userRepo repository.UserRepository
 }
 
-func NewUserService(userRepo user.UserRepository) UserService {
+func NewUserService(userRepo repository.UserRepository) *userService {
 	return &userService{userRepo: userRepo}
 }
 

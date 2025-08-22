@@ -1,4 +1,4 @@
-package user
+package repository
 
 import (
 	"context"
@@ -14,4 +14,15 @@ type UserRepository interface {
 	UpdateUser(ctx context.Context, user *model.User) error
 	SoftDeleteUser(ctx context.Context, userID string) error
 	AddPoints(ctx context.Context, userID string, points int) error
+}
+
+type PlaceRepository interface {
+	CreatePlace(ctx context.Context, place *model.Place) error
+}
+
+type ReviewRepository interface {
+	GetReviewToken(ctx context.Context, token string) (*model.ReviewToken, error)
+	MarkReviewTokenUsed(ctx context.Context, tokenID string) error
+	CreateReview(ctx context.Context, review model.Review) error
+	HasReviewToday(ctx context.Context, userID, placeID string) (bool, error)
 }

@@ -5,25 +5,24 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kulikovroman08/reviewlink-backend/internal/repository/place"
-	"github.com/kulikovroman08/reviewlink-backend/internal/repository/review"
-	"github.com/kulikovroman08/reviewlink-backend/internal/repository/user"
+	"github.com/kulikovroman08/reviewlink-backend/internal/repository"
+	"github.com/kulikovroman08/reviewlink-backend/internal/service"
 
 	"github.com/google/uuid"
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 )
 
 type reviewService struct {
-	reviewRepo review.ReviewRepository
-	userRepo   user.UserRepository
-	placeRepo  place.PlaceRepository
+	reviewRepo repository.ReviewRepository
+	userRepo   repository.UserRepository
+	placeRepo  repository.PlaceRepository
 }
 
 func NewReviewService(
-	reviewRepo review.ReviewRepository,
-	userRepo user.UserRepository,
-	placeRepo place.PlaceRepository,
-) ReviewService {
+	reviewRepo repository.ReviewRepository,
+	userRepo repository.UserRepository,
+	placeRepo repository.PlaceRepository,
+) service.ReviewService {
 	return &reviewService{
 		reviewRepo: reviewRepo,
 		userRepo:   userRepo,

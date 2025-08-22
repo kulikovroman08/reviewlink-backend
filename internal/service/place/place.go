@@ -5,16 +5,17 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	placeRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/place"
+	"github.com/kulikovroman08/reviewlink-backend/internal/repository"
+	"github.com/kulikovroman08/reviewlink-backend/internal/service"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 )
 
 type placeService struct {
-	placeRepo placeRepo.PlaceRepository
+	placeRepo repository.PlaceRepository
 }
 
-func NewPlaceService(placeRepo placeRepo.PlaceRepository) PlaceService {
+func NewPlaceService(placeRepo repository.PlaceRepository) service.PlaceService {
 	return &placeService{placeRepo: placeRepo}
 }
 
