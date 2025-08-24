@@ -26,3 +26,7 @@ type ReviewRepository interface {
 	CreateReview(ctx context.Context, review model.Review) error
 	HasReviewToday(ctx context.Context, userID, placeID string) (bool, error)
 }
+
+type TokenRepository interface {
+	CreateTokens(ctx context.Context, tokens []model.ReviewToken) error
+}

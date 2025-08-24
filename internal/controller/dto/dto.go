@@ -48,3 +48,12 @@ type SubmitReviewRequest struct {
 	Rating  int       `json:"rating" binding:"required,min=1,max=5"`
 	Content string    `json:"content"`
 }
+
+type GenerateTokensRequest struct {
+	PlaceID string `json:"place_id" binding:"required,uuid"`
+	Count   int    `json:"count" binding:"required,min=1,max=100"`
+}
+
+type GenerateTokensResponse struct {
+	Tokens []string `json:"tokens"`
+}

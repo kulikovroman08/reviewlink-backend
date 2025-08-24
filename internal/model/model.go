@@ -41,3 +41,6 @@ type Review struct {
 	Content string
 	Rating  int
 }
+type GenerateTokensResult struct {
+	Tokens []string
+}

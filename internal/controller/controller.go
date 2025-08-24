@@ -8,16 +8,19 @@ type Application struct {
 	UserService   service.UserService
 	PlaceService  service.PlaceService
 	ReviewService service.ReviewService
+	TokenService  service.TokenService
 }
 
 func NewApplication(
-	userSvc service.UserService,
-	placeSvc service.PlaceService,
-	reviewSvc service.ReviewService,
+	user service.UserService,
+	place service.PlaceService,
+	review service.ReviewService,
+	token service.TokenService,
 ) *Application {
 	return &Application{
-		UserService:   userSvc,
-		PlaceService:  placeSvc,
-		ReviewService: reviewSvc,
+		UserService:   user,
+		PlaceService:  place,
+		ReviewService: review,
+		TokenService:  token,
 	}
 }
