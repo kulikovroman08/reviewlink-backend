@@ -37,5 +37,12 @@ func SetupRouter(app *Application) *gin.Engine {
 		reviews.POST("", app.SubmitReview)
 	}
 
+	// Generate Token Admin
+	admin := r.Group("/admin")
+	admin.Use(middleware.AuthMiddleware())
+	{
+		admin.POST("/tokens", app.GenerateTokens)
+	}
+
 	return r
 }
