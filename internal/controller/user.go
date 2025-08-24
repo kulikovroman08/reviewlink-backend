@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/kulikovroman08/reviewlink-backend/internal/model"
+
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 )
@@ -113,7 +115,21 @@ func (h *Application) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	updatedUser, err := h.UserService.UpdateUser(c.Request.Context(), req)
+	var user model.User
+	user.ID = req.UserID
+	if req.Name != nil {
+		user.Name = *req.Name
+	}
+	if req.Email != nil {
+		user.Email = *req.Email
+	}
+
+	var password string
+	if req.Password != nil {
+		password = *req.Password
+	}
+
+	updatedUser, err := h.UserService.UpdateUser(c.Request.Context(), user, password)
 	if err != nil {
 		switch {
 		case matchesErr(err, "user not found"):

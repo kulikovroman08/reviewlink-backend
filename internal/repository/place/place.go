@@ -15,8 +15,6 @@ const (
 	placeIDColumn      = "id"
 	placeNameColumn    = "name"
 	placeAddressColumn = "address"
-	placeCreatedAt     = "created_at"
-	placeIsDeleted     = "is_deleted"
 )
 
 type PostgresPlaceRepository struct {
@@ -31,30 +29,28 @@ func NewPostgresPlaceRepository(db *pgxpool.Pool) *PostgresPlaceRepository {
 	}
 }
 
-func (r *PostgresPlaceRepository) CreatePlace(ctx context.Context, p model.Place) error {
+func (r *PostgresPlaceRepository) CreatePlace(ctx context.Context, place *model.Place) error {
 	query, args, err := r.builder.
 		Insert(placeTable).
 		Columns(
 			placeIDColumn,
 			placeNameColumn,
 			placeAddressColumn,
-			placeCreatedAt,
-			placeIsDeleted,
 		).
 		Values(
-			p.ID,
-			p.Name,
-			p.Address,
-			p.CreatedAt,
-			p.IsDeleted,
+			place.ID,
+			place.Name,
+			place.Address,
 		).
+		Suffix("RETURNING created_at, is_deleted").
 		ToSql()
 
 	if err != nil {
 		return fmt.Errorf("build CreatePlace query: %w", err)
 	}
 
-	if _, err := r.db.Exec(ctx, query, args...); err != nil {
+	err = r.db.QueryRow(ctx, query, args...).Scan(&place.CreatedAt, &place.IsDeleted)
+	if err != nil {
 		return fmt.Errorf("exec CreatePlace: %w", err)
 	}
 

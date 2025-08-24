@@ -3,6 +3,8 @@ package controller
 import (
 	"net/http"
 
+	"github.com/kulikovroman08/reviewlink-backend/internal/model"
+
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 )
@@ -20,11 +22,20 @@ func (h *Application) CreatePlace(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.PlaceService.CreatePlace(c.Request.Context(), req)
+	place := model.Place{
+		Name:    req.Name,
+		Address: req.Address,
+	}
+
+	createdPlace, err := h.PlaceService.CreatePlace(c.Request.Context(), place)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create place"})
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	resp := dto.CreatePlaceResponse{
+		ID: createdPlace.ID.String(),
+	}
+
+	c.JSON(http.StatusCreated, resp)
 }

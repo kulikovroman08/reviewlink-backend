@@ -5,6 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/jackc/pgx/v5/pgconn"
+
+	"github.com/google/uuid"
+
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 
 	"github.com/jackc/pgx/v5"
@@ -26,19 +30,19 @@ const (
 )
 
 type PostgresUserRepository struct {
-	db   *pgxpool.Pool
-	psql sq.StatementBuilderType
+	db      *pgxpool.Pool
+	builder sq.StatementBuilderType
 }
 
 func NewPostgresUserRepository(db *pgxpool.Pool) *PostgresUserRepository {
 	return &PostgresUserRepository{
-		db:   db,
-		psql: sq.StatementBuilder.PlaceholderFormat(sq.Dollar),
+		db:      db,
+		builder: sq.StatementBuilder.PlaceholderFormat(sq.Dollar),
 	}
 }
 
-func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*model.User, error) {
-	query, args, err := r.psql.
+func (r *PostgresUserRepository) FindByID(ctx context.Context, userID string) (*model.User, error) {
+	query, args, err := r.builder.
 		Select(
 			userIDColumn,
 			userNameColumn,
@@ -51,7 +55,7 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*mode
 		).
 		From(userTable).
 		Where(sq.And{
-			sq.Eq{userIDColumn: id},
+			sq.Eq{userIDColumn: userID},
 			sq.Eq{userIsDeletedColumn: false},
 		}).
 		ToSql()
@@ -83,7 +87,7 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, id string) (*mode
 }
 
 func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) (*model.User, error) {
-	query, args, err := r.psql.
+	query, args, err := r.builder.
 		Select(
 			userIDColumn,
 			userNameColumn,
@@ -128,7 +132,7 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 }
 
 func (r *PostgresUserRepository) FindAnyByEmail(ctx context.Context, email string) (*model.User, error) {
-	query, args, err := r.psql.
+	query, args, err := r.builder.
 		Select(
 			userIDColumn,
 			userNameColumn,
@@ -170,7 +174,7 @@ func (r *PostgresUserRepository) FindAnyByEmail(ctx context.Context, email strin
 }
 
 func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *model.User) error {
-	query, args, err := r.psql.
+	query, args, err := r.builder.
 		Insert(userTable).
 		Columns(
 			userIDColumn,
@@ -207,7 +211,7 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *model.Use
 }
 
 func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *model.User) error {
-	query, args, err := r.psql.
+	query, args, err := r.builder.
 		Update(userTable).
 		Set(userNameColumn, user.Name).
 		Set(userEmailColumn, user.Email).
@@ -228,11 +232,11 @@ func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *model.Use
 	return nil
 }
 
-func (r *PostgresUserRepository) SoftDeleteUser(ctx context.Context, id string) error {
-	query, args, err := r.psql.
+func (r *PostgresUserRepository) SoftDeleteUser(ctx context.Context, userID string) error {
+	query, args, err := r.builder.
 		Update(userTable).
 		Set(userIsDeletedColumn, true).
-		Where(sq.Eq{userIDColumn: id}).
+		Where(sq.Eq{userIDColumn: userID}).
 		ToSql()
 
 	if err != nil {
@@ -243,6 +247,32 @@ func (r *PostgresUserRepository) SoftDeleteUser(ctx context.Context, id string) 
 
 	if err != nil {
 		return fmt.Errorf("exec SoftDeleteUser: %w", err)
+	}
+
+	return nil
+}
+
+func (r *PostgresUserRepository) AddPoints(ctx context.Context, userID string, points int) error {
+	uuidID, err := uuid.Parse(userID)
+	if err != nil {
+		return fmt.Errorf("invalid user ID: %w", err)
+	}
+
+	query, args, err := r.builder.
+		Update(userTable).
+		Set(userPointsColumn, sq.Expr("points + ?", points)).
+		Where(sq.Eq{userIDColumn: uuidID}).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("build AddPoints query: %w", err)
+	}
+
+	if _, err := r.db.Exec(ctx, query, args...); err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23514" {
+			return fmt.Errorf("points limit exceeded: %w", err)
+		}
+		return fmt.Errorf("exec AddPoints: %w", err)
 	}
 
 	return nil
