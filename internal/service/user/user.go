@@ -101,28 +101,25 @@ func (s *userService) Login(ctx context.Context, email, password string) (string
 	return s.generateJWT(user)
 }
 
-func (s *userService) UpdateUser(ctx context.Context, user model.User, password string) (model.User, error) {
+func (s *userService) UpdateUser(ctx context.Context, user model.User, password string) (*model.User, error) {
 	current, err := s.userRepo.FindByID(ctx, user.ID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return model.User{}, fmt.Errorf("user not found: %w", err)
+			return nil, fmt.Errorf("user not found: %w", err)
 		}
 
-		return model.User{}, fmt.Errorf("find user: %w", err)
+		return nil, fmt.Errorf("find user: %w", err)
 	}
 
 	if s.shouldUpdateEmail(&user.Email, current.Email) {
 		existing, err := s.userRepo.FindByEmail(ctx, user.Email)
 		if err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-
-			} else {
-				return model.User{}, fmt.Errorf("check email: %w", err)
+			if !errors.Is(err, pgx.ErrNoRows) {
+				return nil, fmt.Errorf("check email: %w", err)
 			}
 		} else if existing.ID != user.ID {
-			return model.User{}, fmt.Errorf("email already used")
+			return nil, fmt.Errorf("email already used")
 		}
-
 		current.Email = user.Email
 	}
 
@@ -133,16 +130,16 @@ func (s *userService) UpdateUser(ctx context.Context, user model.User, password 
 	if password != "" {
 		hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		if err != nil {
-			return model.User{}, fmt.Errorf("hash password: %w", err)
+			return nil, fmt.Errorf("hash password: %w", err)
 		}
 		current.PasswordHash = string(hash)
 	}
 
 	if err := s.userRepo.UpdateUser(ctx, current); err != nil {
-		return model.User{}, fmt.Errorf("update user: %w", err)
+		return nil, fmt.Errorf("update user: %w", err)
 	}
 
-	return *current, nil
+	return current, nil
 }
 
 func (s *userService) DeleteUser(ctx context.Context, userID string) error {

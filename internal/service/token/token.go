@@ -14,22 +14,35 @@ type Service struct {
 	repo repo.TokenRepository
 }
 
-func NewService(repo repo.TokenRepository) *Service {
+func NewTokenService(repo repo.TokenRepository) *Service {
 	return &Service{repo: repo}
 }
-func (s *Service) GenerateTokens(ctx context.Context, placeID string, count int) (model.GenerateTokensResult, error) {
+func (s *Service) GenerateTokens(ctx context.Context, placeID string, count int) (*model.GenerateTokensResult, error) {
 	id, err := uuid.Parse(placeID)
 	if err != nil {
-		return model.GenerateTokensResult{}, fmt.Errorf("invalid place_id: %w", err)
+		return nil, fmt.Errorf("invalid place_id: %w", err)
 	}
 
+	tokens, values, err := generateTokens(id, count)
+	if err != nil {
+		return nil, fmt.Errorf("generate tokens: %w", err)
+	}
+
+	if err := s.repo.CreateTokens(ctx, tokens); err != nil {
+		return nil, fmt.Errorf("create tokens: %w", err)
+	}
+
+	return &model.GenerateTokensResult{Tokens: values}, nil
+}
+
+func generateTokens(placeID uuid.UUID, count int) ([]model.ReviewToken, []string, error) {
 	tokens := make([]model.ReviewToken, 0, count)
 	values := make([]string, 0, count)
 
 	for i := 0; i < count; i++ {
 		token := model.ReviewToken{
 			ID:        uuid.New(),
-			PlaceID:   id,
+			PlaceID:   placeID,
 			Token:     uuid.New().String()[:8],
 			IsUsed:    false,
 			ExpiresAt: time.Now().Add(72 * time.Hour),
@@ -37,10 +50,5 @@ func (s *Service) GenerateTokens(ctx context.Context, placeID string, count int)
 		tokens = append(tokens, token)
 		values = append(values, token.Token)
 	}
-
-	if err := s.repo.CreateTokens(ctx, tokens); err != nil {
-		return model.GenerateTokensResult{}, fmt.Errorf("generate tokens: %w", err)
-	}
-
-	return model.GenerateTokensResult{Tokens: values}, nil
+	return tokens, values, nil
 }

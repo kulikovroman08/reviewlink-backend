@@ -33,7 +33,7 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 	userService := svcUser.NewUserService(userRepo)
 	placeService := svcPlace.NewPlaceService(placeRepo)
 	reviewService := svcReview.NewReviewService(reviewRepo, userRepo, placeRepo)
-	tokenService := svcToken.NewService(tokenRepo)
+	tokenService := svcToken.NewTokenService(tokenRepo)
 
 	app := controller.NewApplication(userService, placeService, reviewService, tokenService)
 

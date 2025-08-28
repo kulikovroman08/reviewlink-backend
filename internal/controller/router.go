@@ -8,40 +8,26 @@ import (
 func SetupRouter(app *Application) *gin.Engine {
 	r := gin.Default()
 
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
-	})
-
-	r.POST("/signup", app.Signup)
-	r.POST("/login", app.Login)
-
-	authorized := r.Group("/users")
-	authorized.Use(middleware.AuthMiddleware())
+	// Публичные маршруты
+	public := r.Group("/")
 	{
-		authorized.GET("", app.GetUser)
-		authorized.PUT("", app.UpdateUser)
-		authorized.DELETE("", app.DeleteUser)
+		public.GET("/health", func(c *gin.Context) {
+			c.JSON(200, gin.H{"status": "ok"})
+		})
+		public.POST("/signup", app.Signup)
+		public.POST("/login", app.Login)
 	}
 
-	// Places
-	places := r.Group("/places")
-	places.Use(middleware.AuthMiddleware())
+	// Защищенные маршруты
+	protected := r.Group("/")
+	protected.Use(middleware.AuthMiddleware())
 	{
-		places.POST("", app.CreatePlace)
-	}
-
-	// Reviews
-	reviews := r.Group("/reviews")
-	reviews.Use(middleware.AuthMiddleware())
-	{
-		reviews.POST("", app.SubmitReview)
-	}
-
-	// Generate Token Admin
-	admin := r.Group("/admin")
-	admin.Use(middleware.AuthMiddleware())
-	{
-		admin.POST("/tokens", app.GenerateTokens)
+		protected.GET("/users", app.GetUser)
+		protected.PUT("/users", app.UpdateUser)
+		protected.DELETE("/users", app.DeleteUser)
+		protected.POST("/places", app.CreatePlace)
+		protected.POST("/reviews", app.SubmitReview)
+		protected.POST("/admin/tokens", app.GenerateTokens)
 	}
 
 	return r
