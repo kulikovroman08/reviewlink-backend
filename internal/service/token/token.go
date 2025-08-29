@@ -18,12 +18,8 @@ func NewTokenService(repo repo.TokenRepository) *Service {
 	return &Service{repo: repo}
 }
 func (s *Service) GenerateTokens(ctx context.Context, placeID string, count int) (*model.GenerateTokensResult, error) {
-	id, err := uuid.Parse(placeID)
-	if err != nil {
-		return nil, fmt.Errorf("invalid place_id: %w", err)
-	}
 
-	tokens, values, err := generateTokens(id, count)
+	tokens, values, err := generateTokens(placeID, count)
 	if err != nil {
 		return nil, fmt.Errorf("generate tokens: %w", err)
 	}
@@ -35,7 +31,12 @@ func (s *Service) GenerateTokens(ctx context.Context, placeID string, count int)
 	return &model.GenerateTokensResult{Tokens: values}, nil
 }
 
-func generateTokens(placeID uuid.UUID, count int) ([]model.ReviewToken, []string, error) {
+func generateTokens(placeIDStr string, count int) ([]model.ReviewToken, []string, error) {
+	placeID, err := uuid.Parse(placeIDStr)
+	if err != nil {
+		return nil, nil, fmt.Errorf("invalid place_id: %w", err)
+	}
+
 	tokens := make([]model.ReviewToken, 0, count)
 	values := make([]string, 0, count)
 
