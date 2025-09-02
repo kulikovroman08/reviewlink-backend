@@ -159,6 +159,11 @@ func (s *userService) DeleteUser(ctx context.Context, userID string) error {
 }
 
 func (s *userService) generateJWT(user *model.User) (string, error) {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return "", errors.New("missing JWT_SECRET")
+	}
+
 	claims := claims.Claims{
 		UserID: user.ID,
 		Role:   user.Role,
@@ -167,7 +172,7 @@ func (s *userService) generateJWT(user *model.User) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	return token.SignedString([]byte(secret))
 }
 
 func (s *userService) shouldUpdateEmail(newEmail *string, currentEmail string) bool {
