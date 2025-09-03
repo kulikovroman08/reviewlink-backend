@@ -1,0 +1,45 @@
+name: Go Integration Tests
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: reviewlink
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U app -d reviewlink"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.1'
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run integration tests
+        env:
+          APP_ENV: test
+          DB_URL: postgres://app:secret@localhost:5432/reviewlink?sslmode=disable
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: go test -v -race -coverprofile=coverage.out ./...
