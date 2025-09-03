@@ -3,11 +3,12 @@ package user
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kulikovroman08/reviewlink-backend/tests/integration"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/kulikovroman08/reviewlink-backend/tests/integration"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 	"github.com/stretchr/testify/suite"
