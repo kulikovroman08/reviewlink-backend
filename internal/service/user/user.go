@@ -160,9 +160,6 @@ func (s *userService) DeleteUser(ctx context.Context, userID string) error {
 
 func (s *userService) generateJWT(user *model.User) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		return "", errors.New("missing JWT_SECRET")
-	}
 
 	claims := claims.Claims{
 		UserID: user.ID,

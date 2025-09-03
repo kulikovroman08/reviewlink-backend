@@ -83,6 +83,24 @@ func (s *SignupTestSuite) TestSignupInvalidEmail() {
 	s.Equal("invalid input", resp["error"])
 }
 
+func (s *SignupTestSuite) TestSignupInvalidEmailFormat() {
+	tests := []struct {
+		name  string
+		email string
+	}{
+		{"Missing @", "invalid.com"},
+		{"Double @", "invalid@@example.com"},
+	}
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			body := fmt.Sprintf(`{"name":"Test","email":"%s","password":"123456"}`, tt.email)
+			w, resp := s.signupRequest(body)
+			s.Equal(http.StatusBadRequest, w.Code)
+			s.Equal("invalid input", resp["error"])
+		})
+	}
+}
+
 func (s *SignupTestSuite) TestSignupMissingPassword() {
 	body := `{"name": "Charlie", "email": "charlie@example.com"}`
 	w, resp := s.signupRequest(body)
