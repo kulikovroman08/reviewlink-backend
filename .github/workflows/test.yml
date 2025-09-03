@@ -37,6 +37,16 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: Install golang-migrate
+        run: |
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.16.2/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/local/bin/
+
+      - name: Run DB migrations
+        env:
+          DB_URL: postgres://app:secret@localhost:5432/reviewlink?sslmode=disable
+        run: migrate -path ./migrations -database "$DB_URL" up
+
       - name: Run integration tests
         env:
           APP_ENV: test
