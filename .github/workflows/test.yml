@@ -52,4 +52,8 @@ jobs:
           APP_ENV: test
           DB_URL: postgres://app:secret@localhost:5432/reviewlink?sslmode=disable
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        run: go test -v -race -coverprofile=coverage.out ./...
+        run: |
+          go test -v -race \
+            -coverpkg=./internal/... \
+            -coverprofile=coverage.out \
+            ./tests/integration/...
