@@ -4,7 +4,7 @@ import "github.com/google/uuid"
 
 // Структура входного запроса
 type SignupRequest struct {
-	Name     string `json:"name" binding:"required"`
+	Name     string `json:"name" binding:"required,max=100"`
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=6"`
 }
@@ -20,9 +20,9 @@ type LoginRequest struct {
 
 type UpdateUserRequest struct {
 	UserID   string  `json:"-"`
-	Name     *string `json:"name"`
-	Email    *string `json:"email"`
-	Password *string `json:"password"`
+	Name     *string `json:"name" binding:"omitempty,max=100"`
+	Email    *string `json:"email" binding:"omitempty,email"`
+	Password *string `json:"password" binding:"omitempty,min=6"`
 }
 
 type UserResponse struct {
