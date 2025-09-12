@@ -7,7 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/kulikovroman08/reviewlink-backend/tests/integration"
+	"github.com/go-testfixtures/testfixtures/v3"
+	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/kulikovroman08/reviewlink-backend/internal/tests/integration"
+
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -21,34 +24,44 @@ func TestLoginSuite(t *testing.T) {
 	suite.Run(t, new(LoginTestSuite))
 }
 
-func (s *LoginTestSuite) SetupTest() {
+func (s *LoginTestSuite) SetupSuite() {
 	s.TS = integration.NewTestSetup()
-	s.TS.TruncateUsers()
+}
 
-	signupPayload := map[string]string{
-		"name":     "Alice",
-		"email":    "alice@example.com",
-		"password": "password123",
-	}
-	body, err := json.Marshal(signupPayload)
-	require.NoError(s.T(), err)
+func (s *LoginTestSuite) TearDownSuite() {
+	s.TS.Close()
+}
 
-	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	rec := httptest.NewRecorder()
+func (s *LoginTestSuite) SetupTest() {
+	s.TS.TruncateAll()
 
-	s.TS.App.ServeHTTP(rec, req)
-	require.Equal(s.T(), http.StatusOK, rec.Code)
+	db := stdlib.OpenDBFromPool(s.TS.DB)
+	defer db.Close()
+
+	fixture, err := testfixtures.New(
+		testfixtures.Database(db),
+		testfixtures.Dialect("postgres"),
+		testfixtures.Files(
+			"../fixtures/users.yml",
+		),
+	)
+	s.Require().NoError(err)
+	s.Require().NoError(fixture.Load())
 }
 
 func (s *LoginTestSuite) TearDownTest() {
-	s.TS.TruncateUsers()
+	s.TS.TruncateAll()
 }
 
 func (s *LoginTestSuite) TestLoginSuccess() {
+	const (
+		inputEmail    = "bob@example.com"
+		inputPassword = "password123"
+	)
+
 	loginPayload := map[string]string{
-		"email":    "alice@example.com",
-		"password": "password123",
+		"email":    inputEmail,
+		"password": inputPassword,
 	}
 	body, err := json.Marshal(loginPayload)
 	require.NoError(s.T(), err)
@@ -69,9 +82,14 @@ func (s *LoginTestSuite) TestLoginSuccess() {
 }
 
 func (s *LoginTestSuite) TestLoginWrongPassword() {
+	const (
+		inputEmail    = "bob@example.com"
+		wrongPassword = "wrongpassword"
+	)
+
 	payload := map[string]string{
-		"email":    "alice@example.com",
-		"password": "wrongpassword",
+		"email":    inputEmail,
+		"password": wrongPassword,
 	}
 	body, err := json.Marshal(payload)
 	require.NoError(s.T(), err)
@@ -86,9 +104,14 @@ func (s *LoginTestSuite) TestLoginWrongPassword() {
 }
 
 func (s *LoginTestSuite) TestLoginNonExistentUser() {
+	const (
+		nonExistentEmail = "ghost@example.com"
+		anyPassword      = "password123"
+	)
+
 	payload := map[string]string{
-		"email":    "ghost@example.com",
-		"password": "password123",
+		"email":    nonExistentEmail,
+		"password": anyPassword,
 	}
 	body, err := json.Marshal(payload)
 	require.NoError(s.T(), err)

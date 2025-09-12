@@ -7,7 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/kulikovroman08/reviewlink-backend/tests/integration"
+	"github.com/go-testfixtures/testfixtures/v3"
+	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/kulikovroman08/reviewlink-backend/internal/tests/integration"
+
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -24,15 +27,32 @@ func TestUpdateUserSuite(t *testing.T) {
 
 func (s *UpdateUserTestSuite) SetupTest() {
 	s.TS = integration.NewTestSetup()
-	s.TS.TruncateUsers()
-	s.Token = s.TS.SignupAndLogin("update@example.com", "password123")
+	s.TS.TruncateAll()
+
+	db := stdlib.OpenDBFromPool(s.TS.DB)
+	fixture, err := testfixtures.New(
+		testfixtures.Database(db),
+		testfixtures.Dialect("postgres"),
+		testfixtures.Files(
+			"../fixtures/users.yml",
+		),
+	)
+	require.NoError(s.T(), err)
+	require.NoError(s.T(), fixture.Load())
+
+	s.Token = s.TS.Login("update@example.com", "password123")
 }
 
 func (s *UpdateUserTestSuite) TestUpdateUserNameSuccess() {
+	const (
+		newName = "New Name"
+	)
+
 	body := map[string]string{
-		"name": "New Name",
+		"name": newName,
 	}
-	data, _ := json.Marshal(body)
+	data, err := json.Marshal(body)
+	require.NoError(s.T(), err)
 
 	req := httptest.NewRequest(http.MethodPut, "/users", bytes.NewReader(data))
 	req.Header.Set("Authorization", "Bearer "+s.Token)
@@ -58,10 +78,15 @@ func (s *UpdateUserTestSuite) TestUpdateUserNoFieldsProvided() {
 }
 
 func (s *UpdateUserTestSuite) TestUpdateUserInvalidEmail() {
+	const (
+		invalidEmail = "not-an-email"
+	)
+
 	body := map[string]string{
-		"email": "not-an-email",
+		"email": invalidEmail,
 	}
-	data, _ := json.Marshal(body)
+	data, err := json.Marshal(body)
+	require.NoError(s.T(), err)
 
 	req := httptest.NewRequest(http.MethodPut, "/users", bytes.NewReader(data))
 	req.Header.Set("Authorization", "Bearer "+s.Token)

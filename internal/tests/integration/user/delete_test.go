@@ -8,7 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kulikovroman08/reviewlink-backend/tests/integration"
+	"github.com/go-testfixtures/testfixtures/v3"
+	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/kulikovroman08/reviewlink-backend/internal/tests/integration"
+
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -23,17 +26,42 @@ func TestDeleteUserSuite(t *testing.T) {
 	suite.Run(t, new(DeleteUserTestSuite))
 }
 
-func (s *DeleteUserTestSuite) SetupTest() {
+func (s *DeleteUserTestSuite) SetupSuite() {
 	s.TS = integration.NewTestSetup()
-	s.TS.TruncateUsers()
-	s.Token = s.TS.SignupAndLogin("delete@example.com", "password123")
+}
+
+func (s *DeleteUserTestSuite) TearDownSuite() {
+	s.TS.Close()
+}
+
+func (s *DeleteUserTestSuite) SetupTest() {
+	s.TS.TruncateAll()
+
+	db := stdlib.OpenDBFromPool(s.TS.DB)
+	defer db.Close()
+
+	fixture, err := testfixtures.New(
+		testfixtures.Database(db),
+		testfixtures.Dialect("postgres"),
+		testfixtures.Files(
+			"../fixtures/users.yml",
+		),
+	)
+	s.Require().NoError(err)
+	s.Require().NoError(fixture.Load())
+
+	s.Token = s.TS.Login("john@example.com", "securepass")
 }
 
 func (s *DeleteUserTestSuite) TearDownTest() {
-	s.TS.TruncateUsers()
+	s.TS.TruncateAll()
 }
 
 func (s *DeleteUserTestSuite) TestDeleteUserSuccess() {
+	const (
+		expectedMessage = "user deleted"
+	)
+
 	req := httptest.NewRequest(http.MethodDelete, "/users", nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.Token))
 	rec := httptest.NewRecorder()
@@ -45,7 +73,7 @@ func (s *DeleteUserTestSuite) TestDeleteUserSuccess() {
 	var resp map[string]string
 	err := json.NewDecoder(rec.Body).Decode(&resp)
 	require.NoError(s.T(), err)
-	require.Equal(s.T(), "user deleted", strings.ToLower(resp["message"]))
+	require.Equal(s.T(), expectedMessage, strings.ToLower(resp["message"]))
 }
 
 func (s *DeleteUserTestSuite) TestDeleteUser_Unauthorized() {

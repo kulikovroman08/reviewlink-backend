@@ -9,6 +9,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/kulikovroman08/reviewlink-backend/internal/repository/place"
+
 	"github.com/kulikovroman08/reviewlink-backend/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +18,12 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller"
+	reviewRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/review"
+	tokenRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/token"
 	"github.com/kulikovroman08/reviewlink-backend/internal/repository/user"
+	placeService "github.com/kulikovroman08/reviewlink-backend/internal/service/place"
+	reviewService "github.com/kulikovroman08/reviewlink-backend/internal/service/review"
+	tokenService "github.com/kulikovroman08/reviewlink-backend/internal/service/token"
 	userService "github.com/kulikovroman08/reviewlink-backend/internal/service/user"
 )
 
@@ -41,9 +48,18 @@ func NewTestSetup() *TestSetup {
 
 	userRepo := user.NewPostgresUserRepository(db)
 	userSrv := userService.NewUserService(userRepo)
+	placeRepo := place.NewPostgresPlaceRepository(db)
+	placeSrv := placeService.NewPlaceService(placeRepo)
+	reviewRepo := reviewRepo.NewPostgresReviewRepository(db)
+	reviewSrv := reviewService.NewReviewService(reviewRepo, userRepo, placeRepo)
+	tokRepo := tokenRepo.NewPostgresTokenRepository(db)
+	tokSrv := tokenService.NewTokenService(tokRepo)
 
 	app := &controller.Application{
-		UserService: userSrv,
+		UserService:   userSrv,
+		PlaceService:  placeSrv,
+		ReviewService: reviewSrv,
+		TokenService:  tokSrv,
 	}
 
 	r := gin.Default()
@@ -57,6 +73,9 @@ func NewTestSetup() *TestSetup {
 		protected.GET("/users", app.GetUser)
 		protected.PUT("/users", app.UpdateUser)
 		protected.DELETE("/users", app.DeleteUser)
+		protected.POST("/places", app.CreatePlace)
+		protected.POST("/reviews", app.SubmitReview)
+		protected.POST("/admin/tokens", app.GenerateTokens)
 	}
 
 	return &TestSetup{
@@ -65,31 +84,28 @@ func NewTestSetup() *TestSetup {
 	}
 }
 
-func (ts *TestSetup) TruncateUsers() {
-	_, err := ts.DB.Exec(context.Background(), "TRUNCATE users RESTART IDENTITY CASCADE;")
+func (ts *TestSetup) TruncateAll() {
+	_, err := ts.DB.Exec(context.Background(),
+		"TRUNCATE users, places, reviews, review_tokens RESTART IDENTITY CASCADE;")
 	if err != nil {
 		log.Fatalf("failed to truncate users table: %v", err)
 	}
 }
 
-func (ts *TestSetup) SignupAndLogin(email, password string) string {
+func (ts *TestSetup) Close() {
+	ts.DB.Close()
+}
+
+func (ts *TestSetup) Login(email, password string) string {
 	payload := map[string]string{
-		"name":     "Test User",
 		"email":    email,
 		"password": password,
 	}
 	data, _ := json.Marshal(payload)
 
-	// Signup
-	req := httptest.NewRequest("POST", "/signup", bytes.NewReader(data))
+	req := httptest.NewRequest("POST", "/login", bytes.NewReader(data))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
-	ts.App.ServeHTTP(rec, req)
-
-	// Login
-	req = httptest.NewRequest("POST", "/login", bytes.NewReader(data))
-	req.Header.Set("Content-Type", "application/json")
-	rec = httptest.NewRecorder()
 	ts.App.ServeHTTP(rec, req)
 
 	var resp map[string]string

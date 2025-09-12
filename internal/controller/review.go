@@ -37,7 +37,7 @@ func (h *Application) SubmitReview(c *gin.Context) {
 		case strings.Contains(err.Error(), "token already used"):
 			c.JSON(http.StatusForbidden, gin.H{"error": "token already used"})
 
-		case strings.Contains(err.Error(), "token expired"):
+		case strings.Contains(err.Error(), "token is expired"):
 			c.JSON(http.StatusForbidden, gin.H{"error": "token expired"})
 
 		default:

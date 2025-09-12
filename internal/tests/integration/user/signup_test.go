@@ -8,9 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
-
-	"github.com/kulikovroman08/reviewlink-backend/tests/integration"
+	"github.com/kulikovroman08/reviewlink-backend/internal/tests/integration"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -24,9 +22,20 @@ func TestSignupSuite(t *testing.T) {
 	suite.Run(t, new(SignupTestSuite))
 }
 
-func (s *SignupTestSuite) SetupTest() {
+func (s *SignupTestSuite) SetupSuite() {
 	s.TS = integration.NewTestSetup()
-	s.TS.TruncateUsers()
+}
+
+func (s *SignupTestSuite) TearDownSuite() {
+	s.TS.Close()
+}
+
+func (s *SignupTestSuite) SetupTest() {
+	s.TS.TruncateAll()
+}
+
+func (s *SignupTestSuite) TearDownTest() {
+	s.TS.TruncateAll()
 }
 
 func (s *SignupTestSuite) sendSignupRequest(name, email, password string) (int, map[string]string) {
@@ -45,64 +54,49 @@ func (s *SignupTestSuite) sendSignupRequest(name, email, password string) (int, 
 
 func (s *SignupTestSuite) createUser(name, email, password string) {
 	code, _ := s.sendSignupRequest(name, email, password)
-	s.Equal(http.StatusOK, code)
+	s.Require().Equal(http.StatusOK, code)
+}
+
+func (s *SignupTestSuite) assertErrorResponse(code int, resp map[string]string, expectedCode int, expectedErr string) {
+	s.Equal(expectedCode, code)
+	s.Equal(expectedErr, resp["error"])
 }
 
 func (s *SignupTestSuite) TestSignupSuccess() {
-	code := func() int {
-		body := `{"name": "Alice", "email": "alice@example.com", "password": "123456"}`
-		req := httptest.NewRequest(http.MethodPost, "/signup", strings.NewReader(body))
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-		s.TS.App.ServeHTTP(w, req)
-		s.Equal(http.StatusOK, w.Code)
-
-		var resp dto.AuthResponse
-		err := json.Unmarshal(w.Body.Bytes(), &resp)
-		s.NoError(err)
-		s.NotEmpty(resp.Token)
-		return w.Code
-	}()
-
+	code, resp := s.sendSignupRequest("Alice", "alice@example.com", "123456")
 	s.Equal(http.StatusOK, code)
+	s.NotEmpty(resp["token"])
 }
 
 func (s *SignupTestSuite) TestSignupEmailAlreadyUsed() {
 	s.createUser("Alice", "alice@example.com", "123456")
 
 	code, resp := s.sendSignupRequest("Alice", "alice@example.com", "123456")
-	s.Equal(http.StatusConflict, code)
-	s.Equal("email already in use", resp["error"])
+	s.assertErrorResponse(code, resp, http.StatusConflict, "email already in use")
 }
 
 func (s *SignupTestSuite) TestSignupMissingName() {
 	code, resp := s.sendSignupRequest("", "test@example.com", "123456")
-	s.Equal(http.StatusBadRequest, code)
-	s.Equal("invalid input", resp["error"])
+	s.assertErrorResponse(code, resp, http.StatusBadRequest, "invalid input")
 }
 
 func (s *SignupTestSuite) TestSignupInvalidEmail() {
 	code, resp := s.sendSignupRequest("Bob", "invalid@@email", "123456")
-	s.Equal(http.StatusBadRequest, code)
-	s.Equal("invalid input", resp["error"])
+	s.assertErrorResponse(code, resp, http.StatusBadRequest, "invalid input")
 }
 
 func (s *SignupTestSuite) TestSignupMissingPassword() {
 	code, resp := s.sendSignupRequest("Charlie", "charlie@example.com", "")
-	s.Equal(http.StatusBadRequest, code)
-	s.Equal("invalid input", resp["error"])
+	s.assertErrorResponse(code, resp, http.StatusBadRequest, "invalid input")
 }
 
 func (s *SignupTestSuite) TestSignupShortPassword() {
 	code, resp := s.sendSignupRequest("Dave", "dave@example.com", "123")
-	s.Equal(http.StatusBadRequest, code)
-	s.Equal("invalid input", resp["error"])
+	s.assertErrorResponse(code, resp, http.StatusBadRequest, "invalid input")
 }
 
 func (s *SignupTestSuite) TestSignupUserNameTooLong() {
 	longName := strings.Repeat("a", 300)
 	code, resp := s.sendSignupRequest(longName, "long@example.com", "123456")
-
-	s.Equal(http.StatusBadRequest, code)
-	s.Equal("invalid input", resp["error"])
+	s.assertErrorResponse(code, resp, http.StatusBadRequest, "invalid input")
 }
