@@ -14,13 +14,13 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: reviewlink
+          POSTGRES_DB: reviewlink_test
           POSTGRES_USER: app
           POSTGRES_PASSWORD: secret
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U app -d reviewlink"
+          --health-cmd="pg_isready -U app -d reviewlink_test"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
