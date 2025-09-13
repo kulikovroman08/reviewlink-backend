@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/go-testfixtures/testfixtures/v3"
-	"github.com/jackc/pgx/v5/stdlib"
-	"github.com/kulikovroman08/reviewlink-backend/internal/tests/integration"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/go-testfixtures/testfixtures/v3"
+	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/kulikovroman08/reviewlink-backend/internal/tests/integration"
 
 	"github.com/stretchr/testify/suite"
 )
