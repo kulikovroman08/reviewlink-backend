@@ -47,8 +47,8 @@ func (s *DeleteUserTestSuite) SetupTest() {
 			"../fixtures/users.yml",
 		),
 	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixture.Load())
+	require.NoError(s.T(), err, "init fixtures failed")
+	require.NoError(s.T(), fixture.Load(), "load fixtures failed")
 
 	s.Token = s.TS.Login("john@example.com", "securepass")
 }
@@ -76,7 +76,7 @@ func (s *DeleteUserTestSuite) TestDeleteUserSuccess() {
 	require.Equal(s.T(), expectedMessage, strings.ToLower(resp["message"]))
 }
 
-func (s *DeleteUserTestSuite) TestDeleteUser_Unauthorized() {
+func (s *DeleteUserTestSuite) TestDeleteUserUnauthorized() {
 	req := httptest.NewRequest(http.MethodDelete, "/users", nil)
 	rec := httptest.NewRecorder()
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
 	"os"
 	"time"
 
@@ -30,7 +31,7 @@ func (s *userService) GetUser(ctx context.Context, userID string) (*model.User, 
 	user, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("user not found: %w", err)
+			return nil, serviceErrors.ErrUserNotFound
 		}
 		return nil, fmt.Errorf("get user: %w", err)
 	}
@@ -82,20 +83,20 @@ func (s *userService) Signup(ctx context.Context, name, email, password string) 
 		return s.generateJWT(existing)
 	}
 
-	return "", errors.New("email already used")
+	return "", serviceErrors.ErrEmailAlreadyUsed
 }
 
 func (s *userService) Login(ctx context.Context, email, password string) (string, error) {
 	user, err := s.userRepo.FindByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return "", fmt.Errorf("user not found: %w", err)
+			return "", serviceErrors.ErrUserNotFound
 		}
 		return "", fmt.Errorf("check existing user: %w", err)
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		return "", fmt.Errorf("invalid credentials")
+		return "", serviceErrors.ErrInvalidCredentials
 	}
 
 	return s.generateJWT(user)
@@ -118,7 +119,7 @@ func (s *userService) UpdateUser(ctx context.Context, user model.User, password 
 				return nil, fmt.Errorf("check email: %w", err)
 			}
 		} else if existing.ID != user.ID {
-			return nil, fmt.Errorf("email already used")
+			return nil, serviceErrors.ErrEmailAlreadyUsed
 		}
 		current.Email = user.Email
 	}
@@ -146,7 +147,7 @@ func (s *userService) DeleteUser(ctx context.Context, userID string) error {
 	_, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return fmt.Errorf("user not found: %w", err)
+			return serviceErrors.ErrUserNotFound
 		}
 		return fmt.Errorf("find user: %w", err)
 	}

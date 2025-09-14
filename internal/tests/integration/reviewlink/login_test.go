@@ -45,8 +45,8 @@ func (s *LoginTestSuite) SetupTest() {
 			"../fixtures/users.yml",
 		),
 	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixture.Load())
+	require.NoError(s.T(), err, "init fixtures failed")
+	require.NoError(s.T(), fixture.Load(), "load fixtures failed")
 }
 
 func (s *LoginTestSuite) TearDownTest() {

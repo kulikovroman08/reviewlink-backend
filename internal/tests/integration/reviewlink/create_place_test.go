@@ -3,6 +3,7 @@ package reviewlink
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -46,8 +47,8 @@ func (s *CreatePlaceTestSuite) SetupTest() {
 			"../fixtures/places.yml",
 		),
 	)
-	s.Require().NoError(err, "init fixtures failed")
-	s.Require().NoError(fixture.Load(), "load fixtures failed")
+	require.NoError(s.T(), err, "init fixtures failed")
+	require.NoError(s.T(), fixture.Load(), "load fixtures failed")
 
 	s.Token = s.TS.Login("admin@example.com", "securepass")
 }
@@ -70,7 +71,7 @@ func (s *CreatePlaceTestSuite) TestSuccessCreatePlace() {
 	rec := httptest.NewRecorder()
 	s.TS.App.ServeHTTP(rec, req)
 
-	s.Require().Equal(http.StatusCreated, rec.Code)
+	require.Equal(s.T(), http.StatusCreated, rec.Code)
 }
 
 func (s *CreatePlaceTestSuite) TestCreatePlaceMissingName() {
@@ -86,7 +87,7 @@ func (s *CreatePlaceTestSuite) TestCreatePlaceMissingName() {
 	rec := httptest.NewRecorder()
 	s.TS.App.ServeHTTP(rec, req)
 
-	s.Require().Equal(http.StatusBadRequest, rec.Code)
+	require.Equal(s.T(), http.StatusBadRequest, rec.Code)
 }
 
 func (s *CreatePlaceTestSuite) TestCreatePlaceUnauthorized() {
@@ -102,5 +103,5 @@ func (s *CreatePlaceTestSuite) TestCreatePlaceUnauthorized() {
 	rec := httptest.NewRecorder()
 	s.TS.App.ServeHTTP(rec, req)
 
-	s.Require().Equal(http.StatusUnauthorized, rec.Code)
+	require.Equal(s.T(), http.StatusUnauthorized, rec.Code)
 }

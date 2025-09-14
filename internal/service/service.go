@@ -6,6 +6,8 @@ import (
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 )
 
+//go:generate go run go.uber.org/mock/mockgen -source=service.go -destination=../tests/integration/mocks/service_mocks.go -package=mocks
+
 type UserService interface {
 	Signup(ctx context.Context, name, email, password string) (string, error)
 	Login(ctx context.Context, email, password string) (string, error)

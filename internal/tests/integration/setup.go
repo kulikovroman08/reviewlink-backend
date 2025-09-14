@@ -19,11 +19,9 @@ import (
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller"
 	reviewRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/review"
-	tokenRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/token"
 	"github.com/kulikovroman08/reviewlink-backend/internal/repository/user"
 	placeService "github.com/kulikovroman08/reviewlink-backend/internal/service/place"
 	reviewService "github.com/kulikovroman08/reviewlink-backend/internal/service/review"
-	tokenService "github.com/kulikovroman08/reviewlink-backend/internal/service/token"
 	userService "github.com/kulikovroman08/reviewlink-backend/internal/service/user"
 )
 
@@ -52,14 +50,14 @@ func NewTestSetup() *TestSetup {
 	placeSrv := placeService.NewPlaceService(placeRepo)
 	reviewRepo := reviewRepo.NewPostgresReviewRepository(db)
 	reviewSrv := reviewService.NewReviewService(reviewRepo, userRepo, placeRepo)
-	tokRepo := tokenRepo.NewPostgresTokenRepository(db)
-	tokSrv := tokenService.NewTokenService(tokRepo)
+	//tokRepo := tokenRepo.NewPostgresTokenRepository(db)
+	//tokSrv := tokenService.NewTokenService(tokRepo)
 
 	app := &controller.Application{
 		UserService:   userSrv,
 		PlaceService:  placeSrv,
 		ReviewService: reviewSrv,
-		TokenService:  tokSrv,
+		//TokenService:  tokSrv,
 	}
 
 	r := gin.Default()
@@ -75,7 +73,7 @@ func NewTestSetup() *TestSetup {
 		protected.DELETE("/users", app.DeleteUser)
 		protected.POST("/places", app.CreatePlace)
 		protected.POST("/reviews", app.SubmitReview)
-		protected.POST("/admin/tokens", app.GenerateTokens)
+		//protected.POST("/admin/tokens", app.GenerateTokens)
 	}
 
 	return &TestSetup{

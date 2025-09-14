@@ -1,10 +1,11 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
+	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -34,14 +35,17 @@ func (h *Application) SubmitReview(c *gin.Context) {
 	err = h.ReviewService.SubmitReview(c.Request.Context(), review, req.Token)
 	if err != nil {
 		switch {
-		case strings.Contains(err.Error(), "token already used"):
-			c.JSON(http.StatusForbidden, gin.H{"error": "token already used"})
-
-		case strings.Contains(err.Error(), "token is expired"):
+		case errors.Is(err, serviceErrors.ErrTokenExpired):
 			c.JSON(http.StatusForbidden, gin.H{"error": "token expired"})
 
+		case errors.Is(err, serviceErrors.ErrInvalidToken):
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+
+		case errors.Is(err, serviceErrors.ErrInvalidCredentials):
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 		default:
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 
 		}
 		return

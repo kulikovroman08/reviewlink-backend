@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
+	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
@@ -29,7 +31,16 @@ func (h *Application) CreatePlace(c *gin.Context) {
 
 	createdPlace, err := h.PlaceService.CreatePlace(c.Request.Context(), place)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create place"})
+		switch {
+		case errors.Is(err, serviceErrors.ErrPlaceAlreadyExists):
+			c.JSON(http.StatusConflict, gin.H{"error": "place already exists"})
+
+		case errors.Is(err, serviceErrors.ErrInvalidPlaceData):
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid place data"})
+
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create place"})
+		}
 		return
 	}
 

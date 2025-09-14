@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"net/http"
-	"strings"
-
+	"errors"
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
+	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
@@ -21,7 +21,7 @@ func (h *Application) Signup(c *gin.Context) {
 	token, err := h.UserService.Signup(c.Request.Context(), req.Name, req.Email, req.Password)
 	if err != nil {
 		switch {
-		case strings.Contains(err.Error(), "email already used"):
+		case errors.Is(err, serviceErrors.ErrEmailAlreadyUsed):
 			c.JSON(http.StatusConflict, gin.H{"error": "email already in use"})
 
 		default:
@@ -44,12 +44,11 @@ func (h *Application) Login(c *gin.Context) {
 	token, err := h.UserService.Login(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
 		switch {
-		case matchesErr(err, "user not found"):
+		case errors.Is(err, serviceErrors.ErrUserNotFound):
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
 
-		case matchesErr(err, "invalid credentials"):
+		case errors.Is(err, serviceErrors.ErrInvalidCredentials):
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
-
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "login failed"})
 		}
@@ -69,7 +68,7 @@ func (h *Application) GetUser(c *gin.Context) {
 	user, err := h.UserService.GetUser(c.Request.Context(), userID)
 	if err != nil {
 		switch {
-		case matchesErr(err, "user not found"):
+		case errors.Is(err, serviceErrors.ErrUserNotFound):
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 
 		default:
@@ -132,10 +131,10 @@ func (h *Application) UpdateUser(c *gin.Context) {
 	updatedUser, err := h.UserService.UpdateUser(c.Request.Context(), user, password)
 	if err != nil {
 		switch {
-		case matchesErr(err, "user not found"):
+		case errors.Is(err, serviceErrors.ErrUserNotFound):
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 
-		case matchesErr(err, "email already used"):
+		case errors.Is(err, serviceErrors.ErrEmailAlreadyUsed):
 			c.JSON(http.StatusConflict, gin.H{"error": "email already in use"})
 
 		default:
@@ -152,7 +151,7 @@ func (h *Application) DeleteUser(c *gin.Context) {
 
 	if err := h.UserService.DeleteUser(c.Request.Context(), userID); err != nil {
 		switch {
-		case matchesErr(err, "user not found"):
+		case errors.Is(err, serviceErrors.ErrUserNotFound):
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 
 		default:
@@ -162,8 +161,4 @@ func (h *Application) DeleteUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "user deleted"})
-}
-
-func matchesErr(err error, substr string) bool {
-	return strings.Contains(err.Error(), substr)
 }

@@ -45,8 +45,8 @@ func (s *GetUserTestSuite) SetupTest() {
 			"../fixtures/users.yml",
 		),
 	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixture.Load())
+	require.NoError(s.T(), err, "init fixtures failed")
+	require.NoError(s.T(), fixture.Load(), "load fixtures failed")
 
 	s.Token = s.TS.Login("john@example.com", "securepass")
 }

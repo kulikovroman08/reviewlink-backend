@@ -3,6 +3,7 @@ package reviewlink
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -54,7 +55,7 @@ func (s *SignupTestSuite) sendSignupRequest(name, email, password string) (int, 
 
 func (s *SignupTestSuite) createUser(name, email, password string) {
 	code, _ := s.sendSignupRequest(name, email, password)
-	s.Require().Equal(http.StatusOK, code)
+	require.Equal(s.T(), http.StatusOK, code)
 }
 
 func (s *SignupTestSuite) assertErrorResponse(code int, resp map[string]string, expectedCode int, expectedErr string) {

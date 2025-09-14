@@ -3,7 +3,7 @@ package reviewlink
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -49,9 +49,9 @@ func (s *SubmitReviewTestSuite) SetupTest() {
 			"../fixtures/reviews.yml",
 		),
 	)
-	fmt.Println("Loaded fixtures for reviews")
-	s.Require().NoError(err)
-	s.Require().NoError(fixture.Load())
+
+	require.NoError(s.T(), err, "init fixtures failed")
+	require.NoError(s.T(), fixture.Load(), "load fixtures failed")
 
 	s.Token = s.TS.Login("bob@example.com", "password123")
 }
@@ -83,7 +83,7 @@ func (s *SubmitReviewTestSuite) TestSubmitReviewSuccess() {
 	rec := httptest.NewRecorder()
 	s.TS.App.ServeHTTP(rec, req)
 
-	s.Require().Equal(http.StatusCreated, rec.Code)
+	require.Equal(s.T(), http.StatusCreated, rec.Code)
 }
 
 func (s *SubmitReviewTestSuite) TestSubmitReviewAlreadyToday() {
@@ -111,8 +111,8 @@ func (s *SubmitReviewTestSuite) TestSubmitReviewAlreadyToday() {
 	rec := httptest.NewRecorder()
 	s.TS.App.ServeHTTP(rec, req)
 
-	s.Require().Equal(http.StatusBadRequest, rec.Code)
-	s.Require().Contains(rec.Body.String(), "invalid token")
+	require.Equal(s.T(), http.StatusBadRequest, rec.Code)
+	require.Contains(s.T(), rec.Body.String(), "invalid credentials")
 }
 
 func (s *SubmitReviewTestSuite) TestSubmitReviewExpiredToken() {
@@ -138,6 +138,6 @@ func (s *SubmitReviewTestSuite) TestSubmitReviewExpiredToken() {
 	rec := httptest.NewRecorder()
 	s.TS.App.ServeHTTP(rec, req)
 
-	s.Require().Equal(http.StatusForbidden, rec.Code)
-	s.Require().Contains(rec.Body.String(), "token expired")
+	require.Equal(s.T(), http.StatusForbidden, rec.Code)
+	require.Contains(s.T(), rec.Body.String(), "token expired")
 }
