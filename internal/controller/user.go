@@ -11,6 +11,18 @@ import (
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 )
 
+// Signup godoc
+// @Summary      Регистрация пользователя
+// @Description  Создаёт нового пользователя и возвращает токен
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.SignupRequest true "Данные для регистрации"
+// @Success      200 {object} dto.AuthResponse
+// @Failure 400 {object} dto.ErrorResponse "invalid input"
+// @Failure 409 {object} dto.ErrorResponse "email already in use"
+// @Failure 500 {object} dto.ErrorResponse "failed to signup"
+// @Router       /signup [post]
 func (h *Application) Signup(c *gin.Context) {
 	var req dto.SignupRequest
 
@@ -34,6 +46,18 @@ func (h *Application) Signup(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.AuthResponse{Token: token})
 }
 
+// Login godoc
+// @Summary      Авторизация пользователя
+// @Description  Логин по email и паролю, возвращает JWT-токен
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.LoginRequest true "Данные для входа"
+// @Success      200 {object} dto.AuthResponse "Успешный вход"
+// @Failure      400 {object} dto.ErrorResponse "invalid input"
+// @Failure      401 {object} dto.ErrorResponse "user not found / invalid credentials"
+// @Failure      500 {object} dto.ErrorResponse "login failed"
+// @Router       /login [post]
 func (h *Application) Login(c *gin.Context) {
 	var req dto.LoginRequest
 
@@ -59,6 +83,18 @@ func (h *Application) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.AuthResponse{Token: token})
 }
 
+// GetUser godoc
+// @Summary      Получение пользователя
+// @Description  Возвращает данные пользователя по user_id из токена
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} dto.UserResponse
+// @Failure      401 {object} dto.ErrorResponse "unauthorized"
+// @Failure      404 {object} dto.ErrorResponse "user not found"
+// @Failure      500 {object} dto.ErrorResponse "failed to get user"
+// @Router       /users [get]
 func (h *Application) GetUser(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
@@ -89,6 +125,21 @@ func (h *Application) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// UpdateUser godoc
+// @Summary      Обновление пользователя
+// @Description  Обновляет имя, email или пароль пользователя по user_id из токена
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.UpdateUserRequest true "Данные для обновления пользователя"
+// @Success      200 {object} dto.UserResponse
+// @Failure      400 {object} dto.ErrorResponse "invalid input / at least one field must be provided"
+// @Failure      401 {object} dto.ErrorResponse "unauthorized"
+// @Failure      404 {object} dto.ErrorResponse "user not found"
+// @Failure      409 {object} dto.ErrorResponse "email already in use"
+// @Failure      500 {object} dto.ErrorResponse "failed to update user"
+// @Security     BearerAuth
+// @Router       /users [put]
 func (h *Application) UpdateUser(c *gin.Context) {
 	userID := c.GetString("user_id")
 
@@ -147,6 +198,16 @@ func (h *Application) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedUser)
 }
 
+// DeleteUser godoc
+// @Summary      Удаление пользователя
+// @Description  Удаляет пользователя по user_id из токена
+// @Tags         users
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200 {object} dto.DeleteUserResponse
+// @Failure      404 {object} dto.ErrorResponse "user not found"
+// @Failure      500 {object} dto.ErrorResponse "failed to delete user"
+// @Router       /users [delete]
 func (h *Application) DeleteUser(c *gin.Context) {
 	userID := c.GetString("user_id")
 
@@ -161,5 +222,5 @@ func (h *Application) DeleteUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "user deleted"})
+	c.JSON(http.StatusOK, dto.DeleteUserResponse{Message: "user deleted"})
 }
