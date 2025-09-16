@@ -27,9 +27,10 @@ func TestUpdateUserSuite(t *testing.T) {
 
 func (s *UpdateUserTestSuite) SetupTest() {
 	s.TS = integration.NewTestSetup()
-	s.TS.TruncateAll()
 
 	db := stdlib.OpenDBFromPool(s.TS.DB)
+	defer db.Close()
+
 	fixture, err := testfixtures.New(
 		testfixtures.Database(db),
 		testfixtures.Dialect("postgres"),

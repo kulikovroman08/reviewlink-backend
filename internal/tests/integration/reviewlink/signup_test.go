@@ -3,11 +3,13 @@ package reviewlink
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/tests/integration"
 
@@ -31,12 +33,8 @@ func (s *SignupTestSuite) TearDownSuite() {
 	s.TS.Close()
 }
 
-func (s *SignupTestSuite) SetupTest() {
-	s.TS.TruncateAll()
-}
-
-func (s *SignupTestSuite) TearDownTest() {
-	s.TS.TruncateAll()
+func (s *SignupTestSuite) uniqueEmail() string {
+	return fmt.Sprintf("user_%d@example.com", time.Now().UnixNano())
 }
 
 func (s *SignupTestSuite) sendSignupRequest(name, email, password string) (int, map[string]string) {
@@ -64,9 +62,10 @@ func (s *SignupTestSuite) assertErrorResponse(code int, resp map[string]string, 
 }
 
 func (s *SignupTestSuite) TestSignupSuccess() {
-	code, resp := s.sendSignupRequest("Alice", "alice@example.com", "123456")
-	s.Equal(http.StatusOK, code)
-	s.NotEmpty(resp["token"])
+	email := s.uniqueEmail()
+	code, resp := s.sendSignupRequest("Alice", email, "123456")
+	require.Equal(s.T(), http.StatusOK, code)
+	require.NotEmpty(s.T(), resp["token"])
 }
 
 func (s *SignupTestSuite) TestSignupEmailAlreadyUsed() {

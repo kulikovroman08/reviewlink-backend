@@ -3,10 +3,11 @@ package reviewlink
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/jackc/pgx/v5/stdlib"
@@ -34,8 +35,6 @@ func (s *SubmitReviewTestSuite) TearDownSuite() {
 }
 
 func (s *SubmitReviewTestSuite) SetupTest() {
-	s.TS.TruncateAll()
-
 	db := stdlib.OpenDBFromPool(s.TS.DB)
 	defer db.Close()
 
@@ -54,10 +53,6 @@ func (s *SubmitReviewTestSuite) SetupTest() {
 	require.NoError(s.T(), fixture.Load(), "load fixtures failed")
 
 	s.Token = s.TS.Login("bob@example.com", "password123")
-}
-
-func (s *SubmitReviewTestSuite) TearDownTest() {
-	s.TS.TruncateAll()
 }
 
 func (s *SubmitReviewTestSuite) TestSubmitReviewSuccess() {

@@ -2,8 +2,9 @@ package controller
 
 import (
 	"errors"
-	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
 	"net/http"
+
+	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
@@ -27,7 +28,7 @@ func (a *Application) GenerateTokens(c *gin.Context) {
 		switch {
 		case errors.Is(err, serviceErrors.ErrInvalidPlaceID):
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid place id"})
-			
+
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate tokens"})
 		}

@@ -33,8 +33,6 @@ func (s *GetUserTestSuite) TearDownSuite() {
 }
 
 func (s *GetUserTestSuite) SetupTest() {
-	s.TS.TruncateAll()
-
 	db := stdlib.OpenDBFromPool(s.TS.DB)
 	defer db.Close()
 
@@ -49,10 +47,6 @@ func (s *GetUserTestSuite) SetupTest() {
 	require.NoError(s.T(), fixture.Load(), "load fixtures failed")
 
 	s.Token = s.TS.Login("john@example.com", "securepass")
-}
-
-func (s *GetUserTestSuite) TearDownTest() {
-	s.TS.TruncateAll()
 }
 
 func (s *GetUserTestSuite) TestGetUserSuccess() {

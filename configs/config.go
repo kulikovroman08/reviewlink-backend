@@ -12,11 +12,11 @@ type Config struct {
 }
 
 func LoadConfig() Config {
-	_ = godotenv.Load() // не паникуем, если .env нет
+	_ = godotenv.Load()
 
 	return Config{
 		HTTPPort: getEnv("PORT", "8080"),
-		DBUrl:    getEnv("DB_URL", "postgres://user:pass@localhost:5432/reviewlink"),
+		DBUrl:    getEnv("DB_URL", ""),
 	}
 }
 

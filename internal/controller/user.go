@@ -2,9 +2,10 @@ package controller
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"

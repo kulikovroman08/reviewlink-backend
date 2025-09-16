@@ -33,8 +33,6 @@ func (s *LoginTestSuite) TearDownSuite() {
 }
 
 func (s *LoginTestSuite) SetupTest() {
-	s.TS.TruncateAll()
-
 	db := stdlib.OpenDBFromPool(s.TS.DB)
 	defer db.Close()
 
@@ -47,10 +45,6 @@ func (s *LoginTestSuite) SetupTest() {
 	)
 	require.NoError(s.T(), err, "init fixtures failed")
 	require.NoError(s.T(), fixture.Load(), "load fixtures failed")
-}
-
-func (s *LoginTestSuite) TearDownTest() {
-	s.TS.TruncateAll()
 }
 
 func (s *LoginTestSuite) TestLoginSuccess() {

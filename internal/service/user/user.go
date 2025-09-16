@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
 	"os"
 	"time"
+
+	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/repository"
 
