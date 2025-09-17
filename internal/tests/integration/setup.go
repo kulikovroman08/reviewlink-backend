@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/repository/place"
@@ -33,7 +34,11 @@ type TestSetup struct {
 func NewTestSetup() *TestSetup {
 	gin.SetMode(gin.TestMode)
 
-	_ = godotenv.Load(".env.test")
+	root := os.Getenv("PROJECT_ROOT")
+	if root == "" {
+		root, _ = os.Getwd()
+	}
+	_ = godotenv.Load(filepath.Join(root, ".env.test"))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

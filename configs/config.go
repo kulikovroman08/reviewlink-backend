@@ -1,28 +1,45 @@
 package configs
 
 import (
+	"log"
 	"os"
+	"path/filepath"
 
-	"github.com/joho/godotenv"
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
-	HTTPPort string
-	DBUrl    string
+	AppEnv    string `env:"APP_ENV" env-default:"dev"`
+	HTTPPort  string `env:"PORT" env-default:"8080"`
+	DBUrl     string `env:"DB_URL"`
+	DBUrlTest string `env:"DB_URL_TEST"`
 }
 
-func LoadConfig() Config {
-	_ = godotenv.Load()
+func LoadConfig() *Config {
+	var cfg Config
 
-	return Config{
-		HTTPPort: getEnv("PORT", "8080"),
-		DBUrl:    getEnv("DB_URL", ""),
-	}
-}
+	// Читаем APP_ENV напрямую
+	appEnv := os.Getenv("APP_ENV")
 
-func getEnv(key, fallback string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
+	// Определяем абсолютный путь к .env / .env.test
+	wd, _ := os.Getwd()
+	envFile := filepath.Join(wd, ".env")
+	if appEnv == "test" {
+		envFile = filepath.Join(wd, ".env.test")
 	}
-	return fallback
+
+	// Читаем конфиг
+	if err := cleanenv.ReadConfig(envFile, &cfg); err != nil {
+		log.Fatalf("failed to read config from %s: %v", envFile, err)
+	}
+
+	// Подменяем строку подключения в тестах
+	if cfg.AppEnv == "test" && cfg.DBUrlTest != "" {
+		cfg.DBUrl = cfg.DBUrlTest
+	}
+
+	log.Printf("APP_ENV: %s", cfg.AppEnv)
+	log.Printf("DB_URL: %s", cfg.DBUrl)
+
+	return &cfg
 }

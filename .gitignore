@@ -16,3 +16,5 @@
 hashgen/
 debug/
 scratch/
+checkenv/
+.vscode/

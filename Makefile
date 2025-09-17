@@ -25,8 +25,5 @@ migrate-force-zero-test:
 	migrate -path ./migrations -database "$$DB_URL_TEST" force 0
 
 test-integration:
-	@set -a; source .env; set +a; \
-    	PROJECT_ROOT=$$(pwd) APP_ENV=test DB_URL="$$DB_URL_TEST" \
-    	go test ./internal/tests/... -v -p 1 -count 1
-
+	@PROJECT_ROOT=$$(pwd) APP_ENV=test go test ./internal/tests/integration/... -v -p 1 -count 1
 
