@@ -10,6 +10,19 @@ import (
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 )
 
+// GenerateTokens godoc
+// @Summary      Генерация токенов (только для админов)
+// @Description  Эндпоинт доступен только пользователям с ролью **admin**.
+// @Tags         admin
+// @Accept       json
+// @Produce      json
+// @Param        request  body      dto.GenerateTokensRequest  true  "Данные для генерации токенов"
+// @Success      200      {object}  dto.GenerateTokensResponse
+// @Failure      400      {object}  dto.ErrorResponse "invalid input"
+// @Failure      403      {object}  dto.ErrorResponse "only admin can generate tokens"
+// @Failure      500      {object}  dto.ErrorResponse "failed to generate tokens"
+// @Router       /admin/tokens [post]
+// @Security     BearerAuth
 func (a *Application) GenerateTokens(c *gin.Context) {
 	role := c.GetString("role")
 	if role != "admin" {

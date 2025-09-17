@@ -15,6 +15,63 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/tokens": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Эндпоинт доступен только пользователям с ролью **admin**.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Генерация токенов (только для админов)",
+                "parameters": [
+                    {
+                        "description": "Данные для генерации токенов",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GenerateTokensRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GenerateTokensResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "only admin can generate tokens",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "failed to generate tokens",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Логин по email и паролю, возвращает JWT-токен",
@@ -60,6 +117,117 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "login failed",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/places": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Эндпоинт доступен только пользователям с ролью **admin**.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "places"
+                ],
+                "summary": "Создание места (только для админов)",
+                "parameters": [
+                    {
+                        "description": "Данные для создания места",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreatePlaceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreatePlaceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "access denied",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "failed to create place",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reviews": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Авторизованный пользователь может оставить отзыв на место, используя одноразовый токен.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "Отправка отзыва",
+                "parameters": [
+                    {
+                        "description": "Данные отзыва",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SubmitReviewRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "invalid input или invalid token",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "invalid user_id",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "token already used или token expired",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -277,6 +445,29 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreatePlaceRequest": {
+            "type": "object",
+            "required": [
+                "address",
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreatePlaceResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.DeleteUserResponse": {
             "type": "object",
             "properties": {
@@ -291,6 +482,34 @@ const docTemplate = `{
             "properties": {
                 "error": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.GenerateTokensRequest": {
+            "type": "object",
+            "required": [
+                "count",
+                "place_id"
+            ],
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1
+                },
+                "place_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GenerateTokensResponse": {
+            "type": "object",
+            "properties": {
+                "tokens": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -327,6 +546,30 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "minLength": 6
+                }
+            }
+        },
+        "dto.SubmitReviewRequest": {
+            "type": "object",
+            "required": [
+                "place_id",
+                "rating",
+                "token"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "place_id": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 1
+                },
+                "token": {
+                    "type": "string"
                 }
             }
         },

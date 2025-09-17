@@ -5,6 +5,21 @@ definitions:
       token:
         type: string
     type: object
+  dto.CreatePlaceRequest:
+    properties:
+      address:
+        type: string
+      name:
+        type: string
+    required:
+    - address
+    - name
+    type: object
+  dto.CreatePlaceResponse:
+    properties:
+      id:
+        type: string
+    type: object
   dto.DeleteUserResponse:
     properties:
       message:
@@ -15,6 +30,25 @@ definitions:
     properties:
       error:
         type: string
+    type: object
+  dto.GenerateTokensRequest:
+    properties:
+      count:
+        maximum: 100
+        minimum: 1
+        type: integer
+      place_id:
+        type: string
+    required:
+    - count
+    - place_id
+    type: object
+  dto.GenerateTokensResponse:
+    properties:
+      tokens:
+        items:
+          type: string
+        type: array
     type: object
   dto.LoginRequest:
     properties:
@@ -40,6 +74,23 @@ definitions:
     - email
     - name
     - password
+    type: object
+  dto.SubmitReviewRequest:
+    properties:
+      content:
+        type: string
+      place_id:
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: integer
+      token:
+        type: string
+    required:
+    - place_id
+    - rating
+    - token
     type: object
   dto.UpdateUserRequest:
     properties:
@@ -70,6 +121,42 @@ info:
   title: Reviewlink API
   version: "1.0"
 paths:
+  /admin/tokens:
+    post:
+      consumes:
+      - application/json
+      description: Эндпоинт доступен только пользователям с ролью **admin**.
+      parameters:
+      - description: Данные для генерации токенов
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GenerateTokensRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GenerateTokensResponse'
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: only admin can generate tokens
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to generate tokens
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Генерация токенов (только для админов)
+      tags:
+      - admin
   /login:
     post:
       consumes:
@@ -104,6 +191,77 @@ paths:
       summary: Авторизация пользователя
       tags:
       - auth
+  /places:
+    post:
+      consumes:
+      - application/json
+      description: Эндпоинт доступен только пользователям с ролью **admin**.
+      parameters:
+      - description: Данные для создания места
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePlaceRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CreatePlaceResponse'
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: access denied
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to create place
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Создание места (только для админов)
+      tags:
+      - places
+  /reviews:
+    post:
+      consumes:
+      - application/json
+      description: Авторизованный пользователь может оставить отзыв на место, используя
+        одноразовый токен.
+      parameters:
+      - description: Данные отзыва
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SubmitReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: invalid input или invalid token
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: invalid user_id
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: token already used или token expired
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Отправка отзыва
+      tags:
+      - reviews
   /signup:
     post:
       consumes:
