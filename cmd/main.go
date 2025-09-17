@@ -3,14 +3,14 @@ package main
 import (
 	"log"
 
-	config "github.com/kulikovroman08/reviewlink-backend/configs"
+	"github.com/kulikovroman08/reviewlink-backend/configs"
 	"github.com/kulikovroman08/reviewlink-backend/internal/app"
 )
 
 func main() {
-	cfg := config.LoadConfig()
+	cfg := configs.LoadConfig()
 
-	reviewLinkApp := app.InitApp(cfg)
+	reviewLinkApp := app.InitApp(&cfg)
 
 	log.Println("Server running on :" + cfg.HTTPPort)
 
