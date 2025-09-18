@@ -57,3 +57,10 @@ jobs:
             -coverpkg=./internal/... \
             -coverprofile=coverage.out \
             ./internal/tests/integration/...
+      - name: Show coverage summary
+        run: go tool cover -func=coverage.out
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage.out
