@@ -12,6 +12,19 @@ import (
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 )
 
+// SubmitReview godoc
+// @Summary      Отправка отзыва
+// @Description  Авторизованный пользователь может оставить отзыв на место, используя одноразовый токен.
+// @Tags         reviews
+// @Accept       json
+// @Produce      json
+// @Param        request  body      dto.SubmitReviewRequest  true  "Данные отзыва"
+// @Success      201
+// @Failure      400      {object}  dto.ErrorResponse "invalid input или invalid token"
+// @Failure      401      {object}  dto.ErrorResponse "invalid user_id"
+// @Failure      403      {object}  dto.ErrorResponse "token already used или token expired"
+// @Router       /reviews [post]
+// @Security     BearerAuth
 func (h *Application) SubmitReview(c *gin.Context) {
 	var req dto.SubmitReviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

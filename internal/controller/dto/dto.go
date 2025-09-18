@@ -32,7 +32,9 @@ type UserResponse struct {
 	Role   string `json:"role"`
 	Points int    `json:"points"`
 }
-
+type DeleteUserResponse struct {
+	Message string `json:"message" example:"user deleted"`
+}
 type CreatePlaceRequest struct {
 	Name    string `json:"name" binding:"required"`
 	Address string `json:"address" binding:"required"`
@@ -56,4 +58,8 @@ type GenerateTokensRequest struct {
 
 type GenerateTokensResponse struct {
 	Tokens []string `json:"tokens"`
+}
+
+type ErrorResponse struct {
+	Error string `json:"error"`
 }
