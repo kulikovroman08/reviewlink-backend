@@ -1,0 +1,66 @@
+name: Go Integration Tests
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: reviewlink_test
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U app -d reviewlink_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.1'
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Install golang-migrate
+        run: |
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.16.2/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/local/bin/
+
+      - name: Run DB migrations
+        env:
+          DB_URL_TEST: postgres://app:secret@localhost:5432/reviewlink_test?sslmode=disable
+        run: migrate -path ./migrations -database "$DB_URL_TEST" up
+
+      - name: Run integration tests
+        env:
+          APP_ENV: test
+          DB_URL_TEST: postgres://app:secret@localhost:5432/reviewlink_test?sslmode=disable
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          go test -v -race \
+            -coverpkg=./internal/... \
+            -coverprofile=coverage.out \
+            ./internal/tests/integration/...
+      - name: Show coverage summary
+        run: go tool cover -func=coverage.out
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage.out

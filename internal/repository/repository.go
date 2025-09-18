@@ -6,6 +6,8 @@ import (
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 )
 
+//go:generate go run go.uber.org/mock/mockgen -source=repository.go -destination=../tests/integration/mocks/repository_mocks.go -package=mocks
+
 type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (*model.User, error)
 	FindByID(ctx context.Context, userID string) (*model.User, error)

@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -12,17 +13,21 @@ type Config struct {
 }
 
 func LoadConfig() Config {
-	_ = godotenv.Load() // не паникуем, если .env нет
+	_ = godotenv.Load(".env")
+	_ = godotenv.Load(".env.test")
+
+	dbURL := os.Getenv("DB_URL")
+	if os.Getenv("APP_ENV") == "test" {
+		if val := os.Getenv("DB_URL_TEST"); val != "" {
+			dbURL = val
+		}
+	}
+
+	fmt.Println("APP_ENV:", os.Getenv("APP_ENV"))
+	fmt.Println("DB_URL:", dbURL)
 
 	return Config{
-		HTTPPort: getEnv("PORT", "8080"),
-		DBUrl:    getEnv("DB_URL", "postgres://user:pass@localhost:5432/reviewlink"),
+		HTTPPort: os.Getenv("PORT"),
+		DBUrl:    dbURL,
 	}
-}
-
-func getEnv(key, fallback string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return fallback
 }

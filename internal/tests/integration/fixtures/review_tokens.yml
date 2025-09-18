@@ -1,0 +1,20 @@
+# Валидный токен для Bob (будет использоваться в успешном тесте)
+- id: "6d8f07a2-9d91-4a6a-bc73-8c7a6e8a1f01"
+  place_id: "a8c52b0c-8f11-4b9c-9c3f-123456789abc"   # Test Place
+  token_value: "VALIDTOKEN123"
+  is_used: false
+  expires_at: "2099-12-31 23:59:59"
+
+# Токен для John, но отзыв уже оставлен сегодня
+- id: "72a83c71-6bfb-4b19-a6ee-bf82f6496b77"
+  place_id: "a8c52b0c-8f11-4b9c-9c3f-123456789abc"
+  token_value: "USEDTODAY999"
+  is_used: false
+  expires_at: "2099-12-31 23:59:59"
+
+# Просроченный токен для Bob
+- id: "8a2f0e4c-75aa-482d-931a-2d6c3b214c9a"
+  place_id: "a8c52b0c-8f11-4b9c-9c3f-123456789abc"
+  token_value: "EXPIRED00001"
+  is_used: false
+  expires_at: "2020-01-01 00:00:00"

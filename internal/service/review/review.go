@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
+
 	"github.com/kulikovroman08/reviewlink-backend/internal/repository"
 	"github.com/kulikovroman08/reviewlink-backend/internal/service"
 
@@ -32,11 +34,11 @@ func NewReviewService(
 
 func (s *reviewService) SubmitReview(ctx context.Context, review model.Review, tokenStr string) error {
 	if tokenStr == "" {
-		return fmt.Errorf("token required")
+		return serviceErrors.ErrInvalidCredentials
 	}
 
 	if review.Rating < 1 || review.Rating > 5 {
-		return fmt.Errorf("invalid rating")
+		return serviceErrors.ErrInvalidCredentials
 	}
 
 	token, err := s.reviewRepo.GetReviewToken(ctx, tokenStr)
@@ -44,11 +46,11 @@ func (s *reviewService) SubmitReview(ctx context.Context, review model.Review, t
 		return fmt.Errorf("get token: %w", err)
 	}
 	if token.IsUsed {
-		return fmt.Errorf("token is used")
+		return serviceErrors.ErrInvalidCredentials
 	}
 
 	if token.ExpiresAt.Before(time.Now()) {
-		return fmt.Errorf("token is expired")
+		return serviceErrors.ErrTokenExpired
 	}
 
 	hashToday, err := s.reviewRepo.HasReviewToday(ctx, review.UserID.String(), token.PlaceID.String())
@@ -56,7 +58,7 @@ func (s *reviewService) SubmitReview(ctx context.Context, review model.Review, t
 		return fmt.Errorf("check existing review: %w", err)
 	}
 	if hashToday {
-		return fmt.Errorf("review already submitted today for this place")
+		return serviceErrors.ErrInvalidCredentials
 	}
 
 	review.ID = uuid.New()

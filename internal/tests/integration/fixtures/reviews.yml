@@ -1,0 +1,8 @@
+# Отзыв John, оставленный сегодня для Test Place
+- id: "c4a7fdd2-6e9d-4f8a-9c59-44f88d66c7b0"
+  user_id: "a1111111-2222-3333-4444-555555555555"   # John
+  place_id: "a8c52b0c-8f11-4b9c-9c3f-123456789abc"
+  token_id: "72a83c71-6bfb-4b19-a6ee-bf82f6496b77"
+  content: "Отличное место, прихожу каждый день!"
+  rating: 5
+  created_at: "{{ now }}"

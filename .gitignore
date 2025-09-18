@@ -6,7 +6,6 @@
 *.out
 *.test
 *.http
-reviewlink
 
 # Env
 .env
@@ -16,3 +15,6 @@ reviewlink
 
 hashgen/
 debug/
+scratch/
+checkenv/
+.vscode/
