@@ -1,10 +1,11 @@
 package main
 
 import (
+	"log"
+
 	_ "github.com/kulikovroman08/reviewlink-backend/docs"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"log"
 
 	"github.com/kulikovroman08/reviewlink-backend/configs"
 	"github.com/kulikovroman08/reviewlink-backend/internal/app"
