@@ -26,6 +26,7 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.64.8
+          install-mode: source 
           args: --timeout=5m --verbose
           skip-cache: true
 
