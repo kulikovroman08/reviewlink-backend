@@ -4,8 +4,6 @@ import (
 	"log"
 
 	_ "github.com/kulikovroman08/reviewlink-backend/docs"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"github.com/kulikovroman08/reviewlink-backend/configs"
 	"github.com/kulikovroman08/reviewlink-backend/internal/app"
@@ -23,8 +21,6 @@ func main() {
 	cfg := configs.LoadConfig()
 
 	reviewLinkApp := app.InitApp(&cfg)
-
-	reviewLinkApp.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	log.Println("Server running on :" + cfg.HTTPPort)
 

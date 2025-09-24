@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
 	"github.com/kulikovroman08/reviewlink-backend/internal/tests/integration"
 
 	"github.com/stretchr/testify/require"
@@ -36,7 +36,11 @@ func (s *DeleteUserTestSuite) TearDownSuite() {
 
 func (s *DeleteUserTestSuite) SetupTest() {
 	db := stdlib.OpenDBFromPool(s.TS.DB)
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			s.T().Logf("failed to close db: %v", err)
+		}
+	}()
 
 	fixture, err := testfixtures.New(
 		testfixtures.Database(db),
@@ -64,10 +68,10 @@ func (s *DeleteUserTestSuite) TestDeleteUserSuccess() {
 
 	require.Equal(s.T(), http.StatusOK, rec.Code)
 
-	var resp map[string]string
+	var resp dto.MessageResponse
 	err := json.NewDecoder(rec.Body).Decode(&resp)
 	require.NoError(s.T(), err)
-	require.Equal(s.T(), expectedMessage, strings.ToLower(resp["message"]))
+	require.Equal(s.T(), expectedMessage, resp.Message)
 }
 
 func (s *DeleteUserTestSuite) TestDeleteUserUnauthorized() {

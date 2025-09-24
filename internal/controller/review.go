@@ -15,26 +15,27 @@ import (
 // SubmitReview godoc
 // @Summary      Отправка отзыва
 // @Description  Авторизованный пользователь может оставить отзыв на место, используя одноразовый токен.
-// @Tags         reviews
+// @Tags         users
 // @Accept       json
 // @Produce      json
 // @Param        request  body      dto.SubmitReviewRequest  true  "Данные отзыва"
 // @Success      201
-// @Failure      400      {object}  dto.ErrorResponse "invalid input или invalid token"
-// @Failure      401      {object}  dto.ErrorResponse "invalid user_id"
-// @Failure      403      {object}  dto.ErrorResponse "token already used или token expired"
+// @Failure 400 {object} dto.ErrorResponse "invalid input"
+// @Failure 401 {object} dto.ErrorResponse "invalid user_id / invalid token"
+// @Failure 403 {object} dto.ErrorResponse "token expired / token already used"
+// @Failure 500 {object} dto.ErrorResponse "internal error"
 // @Router       /reviews [post]
 // @Security     BearerAuth
 func (h *Application) SubmitReview(c *gin.Context) {
 	var req dto.SubmitReviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: dto.ErrInvalidInput})
 		return
 	}
 
 	userID, err := uuid.Parse(c.GetString("user_id"))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user_id"})
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: dto.ErrInvalidUserID})
 		return
 	}
 
@@ -49,16 +50,16 @@ func (h *Application) SubmitReview(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrTokenExpired):
-			c.JSON(http.StatusForbidden, gin.H{"error": "token expired"})
+			c.JSON(http.StatusForbidden, dto.ErrorResponse{Error: dto.ErrTokenExpired})
 
 		case errors.Is(err, serviceErrors.ErrInvalidToken):
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: dto.ErrInvalidToken})
 
 		case errors.Is(err, serviceErrors.ErrInvalidCredentials):
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: dto.ErrInvalidCredentials})
 
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: dto.ErrInternalError})
 
 		}
 		return

@@ -20,12 +20,6 @@ definitions:
       id:
         type: string
     type: object
-  dto.DeleteUserResponse:
-    properties:
-      message:
-        example: user deleted
-        type: string
-    type: object
   dto.ErrorResponse:
     properties:
       error:
@@ -61,11 +55,17 @@ definitions:
     - email
     - password
     type: object
+  dto.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
   dto.SignupRequest:
     properties:
       email:
         type: string
       name:
+        maxLength: 100
         type: string
       password:
         minLength: 6
@@ -97,8 +97,10 @@ definitions:
       email:
         type: string
       name:
+        maxLength: 100
         type: string
       password:
+        minLength: 6
         type: string
     type: object
   dto.UserResponse:
@@ -156,7 +158,7 @@ paths:
       - BearerAuth: []
       summary: Генерация токенов (только для админов)
       tags:
-      - admin
+      - admins
   /login:
     post:
       consumes:
@@ -211,11 +213,15 @@ paths:
           schema:
             $ref: '#/definitions/dto.CreatePlaceResponse'
         "400":
-          description: invalid input
+          description: invalid input / invalid place data
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "403":
           description: access denied
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: place already exists
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "500":
@@ -226,7 +232,7 @@ paths:
       - BearerAuth: []
       summary: Создание места (только для админов)
       tags:
-      - places
+      - admins
   /reviews:
     post:
       consumes:
@@ -246,22 +252,26 @@ paths:
         "201":
           description: Created
         "400":
-          description: invalid input или invalid token
+          description: invalid input
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "401":
-          description: invalid user_id
+          description: invalid user_id / invalid token
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "403":
-          description: token already used или token expired
+          description: token expired / token already used
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: internal error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Отправка отзыва
       tags:
-      - reviews
+      - users
   /signup:
     post:
       consumes:
@@ -303,9 +313,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: user deleted
           schema:
-            $ref: '#/definitions/dto.DeleteUserResponse'
+            $ref: '#/definitions/dto.MessageResponse'
         "404":
           description: user not found
           schema:
@@ -331,7 +341,7 @@ paths:
           schema:
             $ref: '#/definitions/dto.UserResponse'
         "401":
-          description: unauthorized
+          description: authentication required
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "404":

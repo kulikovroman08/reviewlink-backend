@@ -30,7 +30,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "admin"
+                    "admins"
                 ],
                 "summary": "Генерация токенов (только для админов)",
                 "parameters": [
@@ -139,7 +139,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "places"
+                    "admins"
                 ],
                 "summary": "Создание места (только для админов)",
                 "parameters": [
@@ -161,13 +161,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "invalid input",
+                        "description": "invalid input / invalid place data",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "access denied",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "place already exists",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -196,7 +202,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "reviews"
+                    "users"
                 ],
                 "summary": "Отправка отзыва",
                 "parameters": [
@@ -215,19 +221,25 @@ const docTemplate = `{
                         "description": "Created"
                     },
                     "400": {
-                        "description": "invalid input или invalid token",
+                        "description": "invalid input",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "401": {
-                        "description": "invalid user_id",
+                        "description": "invalid user_id / invalid token",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "403": {
-                        "description": "token already used или token expired",
+                        "description": "token expired / token already used",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -313,7 +325,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "unauthorized",
+                        "description": "authentication required",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -415,9 +427,9 @@ const docTemplate = `{
                 "summary": "Удаление пользователя",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "user deleted",
                         "schema": {
-                            "$ref": "#/definitions/dto.DeleteUserResponse"
+                            "$ref": "#/definitions/dto.MessageResponse"
                         }
                     },
                     "404": {
@@ -465,15 +477,6 @@ const docTemplate = `{
             "properties": {
                 "id": {
                     "type": "string"
-                }
-            }
-        },
-        "dto.DeleteUserResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "user deleted"
                 }
             }
         },
@@ -529,6 +532,14 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.MessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.SignupRequest": {
             "type": "object",
             "required": [
@@ -541,7 +552,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "password": {
                     "type": "string",
@@ -580,10 +592,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 6
                 }
             }
         },
