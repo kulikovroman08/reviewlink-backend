@@ -1,5 +1,3 @@
-version: "2"
-
 run:
   timeout: 2m
 
@@ -8,14 +6,10 @@ linters:
     - govet         # стандартный анализатор ошибок
     - errcheck      # проверка необработанных ошибок
     - staticcheck   # много полезных проверок (устаревшие функции, ошибки)
+    - gofmt         # проверка форматирования
+    - goimports     # порядок и наличие импортов
     - unused        # поиск неиспользуемых переменных, функций и т.д.
 
-formatters:
-  enable:
-    - gofmt
-    - goimports
-
 output:
-  formats:
-    tab: {}
-    json: {}
+  print-issued-lines: true
+  print-linter-name: true
