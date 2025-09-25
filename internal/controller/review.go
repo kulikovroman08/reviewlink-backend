@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
+	"github.com/kulikovroman08/reviewlink-backend/internal/controller/response"
 )
 
 // SubmitReview godoc
@@ -29,13 +30,13 @@ import (
 func (h *Application) SubmitReview(c *gin.Context) {
 	var req dto.SubmitReviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: dto.ErrInvalidInput})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
 		return
 	}
 
 	userID, err := uuid.Parse(c.GetString("user_id"))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: dto.ErrInvalidUserID})
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: response.ErrInvalidUserID})
 		return
 	}
 
@@ -50,16 +51,16 @@ func (h *Application) SubmitReview(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrTokenExpired):
-			c.JSON(http.StatusForbidden, dto.ErrorResponse{Error: dto.ErrTokenExpired})
+			c.JSON(http.StatusForbidden, dto.ErrorResponse{Error: response.ErrTokenExpired})
 
 		case errors.Is(err, serviceErrors.ErrInvalidToken):
-			c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: dto.ErrInvalidToken})
+			c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: response.ErrInvalidToken})
 
 		case errors.Is(err, serviceErrors.ErrInvalidCredentials):
-			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: dto.ErrInvalidCredentials})
+			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidCredentials})
 
 		default:
-			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: dto.ErrInternalError})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrInternalError})
 
 		}
 		return

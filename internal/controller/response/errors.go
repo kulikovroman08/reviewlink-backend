@@ -1,4 +1,4 @@
-package dto
+package response
 
 // Общие ошибки
 const (

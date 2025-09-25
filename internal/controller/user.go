@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
+	"github.com/kulikovroman08/reviewlink-backend/internal/controller/response"
 )
 
 // Signup godoc
@@ -27,7 +28,7 @@ func (h *Application) Signup(c *gin.Context) {
 	var req dto.SignupRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: dto.ErrInvalidInput})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
 		return
 	}
 
@@ -35,10 +36,10 @@ func (h *Application) Signup(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrEmailAlreadyUsed):
-			c.JSON(http.StatusConflict, dto.ErrorResponse{Error: dto.ErrEmailAlreadyExists})
+			c.JSON(http.StatusConflict, dto.ErrorResponse{Error: response.ErrEmailAlreadyExists})
 
 		default:
-			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: dto.ErrFailedSignup})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrFailedSignup})
 		}
 		return
 	}
@@ -62,7 +63,7 @@ func (h *Application) Login(c *gin.Context) {
 	var req dto.LoginRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: dto.ErrInvalidInput})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
 		return
 	}
 
@@ -70,12 +71,12 @@ func (h *Application) Login(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrUserNotFound):
-			c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: dto.ErrUserNotFound})
+			c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: response.ErrUserNotFound})
 
 		case errors.Is(err, serviceErrors.ErrInvalidCredentials):
-			c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: dto.ErrInvalidCredentials})
+			c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: response.ErrInvalidCredentials})
 		default:
-			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: dto.ErrFailedLogin})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrFailedLogin})
 		}
 		return
 	}
@@ -98,7 +99,7 @@ func (h *Application) Login(c *gin.Context) {
 func (h *Application) GetUser(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
-		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: dto.ErrUnauthorized})
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: response.ErrUnauthorized})
 		return
 	}
 
@@ -106,10 +107,10 @@ func (h *Application) GetUser(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrUserNotFound):
-			c.JSON(http.StatusNotFound, dto.ErrorResponse{Error: dto.ErrUserNotFound})
+			c.JSON(http.StatusNotFound, dto.ErrorResponse{Error: response.ErrUserNotFound})
 
 		default:
-			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: dto.ErrFailedGetUser})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrFailedGetUser})
 		}
 		return
 	}
@@ -145,7 +146,7 @@ func (h *Application) UpdateUser(c *gin.Context) {
 
 	var req dto.UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: dto.ErrInvalidInput})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
 		return
 	}
 
@@ -162,7 +163,7 @@ func (h *Application) UpdateUser(c *gin.Context) {
 		hasUpdate = true
 	}
 	if !hasUpdate {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: dto.ErrAtLeastOneField})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrAtLeastOneField})
 		return
 	}
 
@@ -184,13 +185,13 @@ func (h *Application) UpdateUser(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrUserNotFound):
-			c.JSON(http.StatusNotFound, dto.ErrorResponse{Error: dto.ErrUserNotFound})
+			c.JSON(http.StatusNotFound, dto.ErrorResponse{Error: response.ErrUserNotFound})
 
 		case errors.Is(err, serviceErrors.ErrEmailAlreadyUsed):
-			c.JSON(http.StatusConflict, dto.ErrorResponse{Error: dto.ErrEmailAlreadyExists})
+			c.JSON(http.StatusConflict, dto.ErrorResponse{Error: response.ErrEmailAlreadyExists})
 
 		default:
-			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: dto.ErrFailedUpdateUser})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrFailedUpdateUser})
 		}
 		return
 	}
@@ -214,13 +215,13 @@ func (h *Application) DeleteUser(c *gin.Context) {
 	if err := h.UserService.DeleteUser(c.Request.Context(), userID); err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrUserNotFound):
-			c.JSON(http.StatusNotFound, dto.ErrorResponse{Error: dto.ErrUserNotFound})
+			c.JSON(http.StatusNotFound, dto.ErrorResponse{Error: response.ErrUserNotFound})
 
 		default:
-			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: dto.ErrFailedDeleteUser})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrFailedDeleteUser})
 		}
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.MessageResponse{Message: dto.ErrUserDeleted})
+	c.JSON(http.StatusOK, dto.MessageResponse{Message: response.ErrUserDeleted})
 }

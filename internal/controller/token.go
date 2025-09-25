@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
+	"github.com/kulikovroman08/reviewlink-backend/internal/controller/response"
 )
 
 // GenerateTokens godoc
@@ -26,13 +27,13 @@ import (
 func (a *Application) GenerateTokens(c *gin.Context) {
 	role := c.GetString("role")
 	if role != "admin" {
-		c.JSON(http.StatusForbidden, dto.ErrorResponse{Error: dto.ErrOnlyAdminCanGenerateTokens})
+		c.JSON(http.StatusForbidden, dto.ErrorResponse{Error: response.ErrOnlyAdminCanGenerateTokens})
 		return
 	}
 
 	var req dto.GenerateTokensRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: dto.ErrInvalidInput})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
 		return
 	}
 
@@ -40,10 +41,10 @@ func (a *Application) GenerateTokens(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrInvalidPlaceID):
-			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: dto.ErrInvalidPlaceID})
+			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidPlaceID})
 
 		default:
-			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: dto.ErrFailedGenerateTokens})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrFailedGenerateTokens})
 		}
 		return
 	}

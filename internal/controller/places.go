@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
+	"github.com/kulikovroman08/reviewlink-backend/internal/controller/response"
 )
 
 // CreatePlace godoc
@@ -28,13 +29,13 @@ import (
 func (h *Application) CreatePlace(c *gin.Context) {
 	role := c.GetString("role")
 	if role != "admin" {
-		c.JSON(http.StatusForbidden, dto.ErrorResponse{Error: dto.ErrAccessDenied})
+		c.JSON(http.StatusForbidden, dto.ErrorResponse{Error: response.ErrAccessDenied})
 		return
 	}
 
 	var req dto.CreatePlaceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: dto.ErrInvalidInput})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
 		return
 	}
 
@@ -47,13 +48,13 @@ func (h *Application) CreatePlace(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrPlaceAlreadyExists):
-			c.JSON(http.StatusConflict, dto.ErrorResponse{Error: dto.ErrPlaceAlreadyExists})
+			c.JSON(http.StatusConflict, dto.ErrorResponse{Error: response.ErrPlaceAlreadyExists})
 
 		case errors.Is(err, serviceErrors.ErrInvalidPlaceData):
-			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: dto.ErrInvalidPlaceData})
+			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidPlaceData})
 
 		default:
-			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: dto.ErrFailedCreatePlace})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrFailedCreatePlace})
 		}
 		return
 	}
