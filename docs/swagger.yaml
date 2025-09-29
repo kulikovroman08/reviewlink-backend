@@ -1,0 +1,408 @@
+basePath: /
+definitions:
+  dto.AuthResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  dto.CreatePlaceRequest:
+    properties:
+      address:
+        type: string
+      name:
+        type: string
+    required:
+    - address
+    - name
+    type: object
+  dto.CreatePlaceResponse:
+    properties:
+      id:
+        type: string
+    type: object
+  dto.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  dto.GenerateTokensRequest:
+    properties:
+      count:
+        maximum: 100
+        minimum: 1
+        type: integer
+      place_id:
+        type: string
+    required:
+    - count
+    - place_id
+    type: object
+  dto.GenerateTokensResponse:
+    properties:
+      tokens:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  dto.SignupRequest:
+    properties:
+      email:
+        type: string
+      name:
+        maxLength: 100
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  dto.SubmitReviewRequest:
+    properties:
+      content:
+        type: string
+      place_id:
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: integer
+      token:
+        type: string
+    required:
+    - place_id
+    - rating
+    - token
+    type: object
+  dto.UpdateUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        maxLength: 100
+        type: string
+      password:
+        minLength: 6
+        type: string
+    type: object
+  dto.UserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      points:
+        type: integer
+      role:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API для пользователей, мест, отзывов и токенов
+  title: Reviewlink API
+  version: "1.0"
+paths:
+  /admin/tokens:
+    post:
+      consumes:
+      - application/json
+      description: Эндпоинт доступен только пользователям с ролью **admin**.
+      parameters:
+      - description: Данные для генерации токенов
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GenerateTokensRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GenerateTokensResponse'
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: only admin can generate tokens
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to generate tokens
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Генерация токенов (только для админов)
+      tags:
+      - admins
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Логин по email и паролю, возвращает JWT-токен
+      parameters:
+      - description: Данные для входа
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный вход
+          schema:
+            $ref: '#/definitions/dto.AuthResponse'
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: user not found / invalid credentials
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: login failed
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Авторизация пользователя
+      tags:
+      - auth
+  /places:
+    post:
+      consumes:
+      - application/json
+      description: Эндпоинт доступен только пользователям с ролью **admin**.
+      parameters:
+      - description: Данные для создания места
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePlaceRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CreatePlaceResponse'
+        "400":
+          description: invalid input / invalid place data
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: access denied
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: place already exists
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to create place
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Создание места (только для админов)
+      tags:
+      - admins
+  /reviews:
+    post:
+      consumes:
+      - application/json
+      description: Авторизованный пользователь может оставить отзыв на место, используя
+        одноразовый токен.
+      parameters:
+      - description: Данные отзыва
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SubmitReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: invalid user_id / invalid token
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: token expired / token already used
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Отправка отзыва
+      tags:
+      - users
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт нового пользователя и возвращает токен
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SignupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AuthResponse'
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: email already in use
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to signup
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Регистрация пользователя
+      tags:
+      - auth
+  /users:
+    delete:
+      description: Удаляет пользователя по user_id из токена
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: user deleted
+          schema:
+            $ref: '#/definitions/dto.MessageResponse'
+        "404":
+          description: user not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to delete user
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Удаление пользователя
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Возвращает данные пользователя по user_id из токена
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: user not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to get user
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение пользователя
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Обновляет имя, email или пароль пользователя по user_id из токена
+      parameters:
+      - description: Данные для обновления пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+        "400":
+          description: invalid input / at least one field must be provided
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: user not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: email already in use
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to update user
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обновление пользователя
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

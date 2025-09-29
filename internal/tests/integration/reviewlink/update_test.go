@@ -29,7 +29,11 @@ func (s *UpdateUserTestSuite) SetupTest() {
 	s.TS = integration.NewTestSetup()
 
 	db := stdlib.OpenDBFromPool(s.TS.DB)
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			s.T().Logf("failed to close db: %v", err)
+		}
+	}()
 
 	fixture, err := testfixtures.New(
 		testfixtures.Database(db),

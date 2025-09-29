@@ -9,13 +9,26 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller/dto"
+	"github.com/kulikovroman08/reviewlink-backend/internal/controller/response"
 )
 
+// Signup godoc
+// @Summary      Регистрация пользователя
+// @Description  Создаёт нового пользователя и возвращает токен
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.SignupRequest true "Данные для регистрации"
+// @Success      200 {object} dto.AuthResponse
+// @Failure 400 {object} dto.ErrorResponse "invalid input"
+// @Failure 409 {object} dto.ErrorResponse "email already in use"
+// @Failure 500 {object} dto.ErrorResponse "failed to signup"
+// @Router       /signup [post]
 func (h *Application) Signup(c *gin.Context) {
 	var req dto.SignupRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
 		return
 	}
 
@@ -23,10 +36,10 @@ func (h *Application) Signup(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrEmailAlreadyUsed):
-			c.JSON(http.StatusConflict, gin.H{"error": "email already in use"})
+			c.JSON(http.StatusConflict, dto.ErrorResponse{Error: response.ErrEmailAlreadyExists})
 
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to signup"})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrFailedSignup})
 		}
 		return
 	}
@@ -34,11 +47,23 @@ func (h *Application) Signup(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.AuthResponse{Token: token})
 }
 
+// Login godoc
+// @Summary      Авторизация пользователя
+// @Description  Логин по email и паролю, возвращает JWT-токен
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.LoginRequest true "Данные для входа"
+// @Success      200 {object} dto.AuthResponse "Успешный вход"
+// @Failure      400 {object} dto.ErrorResponse "invalid input"
+// @Failure      401 {object} dto.ErrorResponse "user not found / invalid credentials"
+// @Failure      500 {object} dto.ErrorResponse "login failed"
+// @Router       /login [post]
 func (h *Application) Login(c *gin.Context) {
 	var req dto.LoginRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
 		return
 	}
 
@@ -46,12 +71,12 @@ func (h *Application) Login(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrUserNotFound):
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
+			c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: response.ErrUserNotFound})
 
 		case errors.Is(err, serviceErrors.ErrInvalidCredentials):
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+			c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: response.ErrInvalidCredentials})
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "login failed"})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrFailedLogin})
 		}
 		return
 	}
@@ -59,10 +84,22 @@ func (h *Application) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.AuthResponse{Token: token})
 }
 
+// GetUser godoc
+// @Summary      Получение пользователя
+// @Description  Возвращает данные пользователя по user_id из токена
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} dto.UserResponse
+// @Failure      401 {object} dto.ErrorResponse "authentication required"
+// @Failure      404 {object} dto.ErrorResponse "user not found"
+// @Failure      500 {object} dto.ErrorResponse "failed to get user"
+// @Router       /users [get]
 func (h *Application) GetUser(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: response.ErrUnauthorized})
 		return
 	}
 
@@ -70,10 +107,10 @@ func (h *Application) GetUser(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrUserNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			c.JSON(http.StatusNotFound, dto.ErrorResponse{Error: response.ErrUserNotFound})
 
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrFailedGetUser})
 		}
 		return
 	}
@@ -89,17 +126,32 @@ func (h *Application) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// UpdateUser godoc
+// @Summary      Обновление пользователя
+// @Description  Обновляет имя, email или пароль пользователя по user_id из токена
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.UpdateUserRequest true "Данные для обновления пользователя"
+// @Success      200 {object} dto.UserResponse
+// @Failure      400 {object} dto.ErrorResponse "invalid input / at least one field must be provided"
+// @Failure      401 {object} dto.ErrorResponse "unauthorized"
+// @Failure      404 {object} dto.ErrorResponse "user not found"
+// @Failure      409 {object} dto.ErrorResponse "email already in use"
+// @Failure      500 {object} dto.ErrorResponse "failed to update user"
+// @Security     BearerAuth
+// @Router       /users [put]
 func (h *Application) UpdateUser(c *gin.Context) {
 	userID := c.GetString("user_id")
 
 	var req dto.UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
 		return
 	}
 
 	req.UserID = userID
-
+	//nolint:staticcheck
 	hasUpdate := false
 	if req.Name != nil {
 		hasUpdate = true
@@ -111,7 +163,7 @@ func (h *Application) UpdateUser(c *gin.Context) {
 		hasUpdate = true
 	}
 	if !hasUpdate {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "at least one field must be provided"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrAtLeastOneField})
 		return
 	}
 
@@ -133,13 +185,13 @@ func (h *Application) UpdateUser(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrUserNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			c.JSON(http.StatusNotFound, dto.ErrorResponse{Error: response.ErrUserNotFound})
 
 		case errors.Is(err, serviceErrors.ErrEmailAlreadyUsed):
-			c.JSON(http.StatusConflict, gin.H{"error": "email already in use"})
+			c.JSON(http.StatusConflict, dto.ErrorResponse{Error: response.ErrEmailAlreadyExists})
 
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update user"})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrFailedUpdateUser})
 		}
 		return
 	}
@@ -147,19 +199,29 @@ func (h *Application) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedUser)
 }
 
+// DeleteUser godoc
+// @Summary      Удаление пользователя
+// @Description  Удаляет пользователя по user_id из токена
+// @Tags         users
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200 {object} dto.MessageResponse "user deleted"
+// @Failure      404 {object} dto.ErrorResponse "user not found"
+// @Failure      500 {object} dto.ErrorResponse "failed to delete user"
+// @Router       /users [delete]
 func (h *Application) DeleteUser(c *gin.Context) {
 	userID := c.GetString("user_id")
 
 	if err := h.UserService.DeleteUser(c.Request.Context(), userID); err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrUserNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			c.JSON(http.StatusNotFound, dto.ErrorResponse{Error: response.ErrUserNotFound})
 
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete user"})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrFailedDeleteUser})
 		}
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "user deleted"})
+	c.JSON(http.StatusOK, dto.MessageResponse{Message: response.ErrUserDeleted})
 }

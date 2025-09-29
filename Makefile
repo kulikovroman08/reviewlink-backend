@@ -5,6 +5,9 @@ SHELL := /bin/bash
 lint:
 	golangci-lint run ./...
 
+lint-vscode:
+	~/.local/bin/golangci-lint-1.64.8 run ./...
+
 migrate-up:
 	@set -a; source .env; set +a; \
 	migrate -path ./migrations -database "$$DB_URL" up

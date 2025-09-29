@@ -3,6 +3,8 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/kulikovroman08/reviewlink-backend/pkg/middleware"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func SetupRouter(app *Application) *gin.Engine {
@@ -16,6 +18,8 @@ func SetupRouter(app *Application) *gin.Engine {
 		})
 		public.POST("/signup", app.Signup)
 		public.POST("/login", app.Login)
+
+		public.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
 	// Защищенные маршруты
