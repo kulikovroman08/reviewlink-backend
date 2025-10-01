@@ -60,6 +60,15 @@ definitions:
       message:
         type: string
     type: object
+  dto.ReviewResponse:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      rating:
+        type: integer
+    type: object
   dto.SignupRequest:
     properties:
       email:
@@ -233,6 +242,49 @@ paths:
       summary: Создание места (только для админов)
       tags:
       - admins
+  /places/{id}/reviews:
+    get:
+      consumes:
+      - application/json
+      description: Получение списка отзывов по placeID с фильтрацией и сортировкой
+      parameters:
+      - description: Place ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Фильтр по рейтингу (1-5)
+        in: query
+        name: rating
+        type: integer
+      - description: 'Сортировка: date_asc или date_desc'
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ReviewResponse'
+            type: array
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: place not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Просмотр отзывов по заведению
+      tags:
+      - places
   /reviews:
     post:
       consumes:

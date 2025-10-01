@@ -181,6 +181,71 @@
                 }
             }
         },
+        "/places/{id}/reviews": {
+            "get": {
+                "description": "Получение списка отзывов по placeID с фильтрацией и сортировкой",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "places"
+                ],
+                "summary": "Просмотр отзывов по заведению",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Place ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Фильтр по рейтингу (1-5)",
+                        "name": "rating",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка: date_asc или date_desc",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ReviewResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "place not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/reviews": {
             "post": {
                 "security": [
@@ -531,6 +596,20 @@
             "properties": {
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.ReviewResponse": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
                 }
             }
         },

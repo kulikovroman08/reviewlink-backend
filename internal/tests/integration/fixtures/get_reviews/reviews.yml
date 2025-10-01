@@ -1,0 +1,31 @@
+- id: "91c4f4d2-9b0e-4e82-9c5a-9b3a7f7c1a11"
+  user_id: "fcb2f1a1-3c64-45d9-9f83-f89adf1f9b23"
+  place_id: "a8c52b0c-8f11-4b9c-9c3f-123456789abc"
+  token_id: "6d8f07a2-9d91-4a6a-bc73-8c7a6e8a1f01"
+  content: "Очень вкусно!"
+  rating: 5
+  created_at: "{{ now }}"
+
+- id: "f7a8c3e2-1d4b-45a9-b6d1-8d2a3b9c2f44"
+  user_id: "fcb2f1a1-3c64-45d9-9f83-f89adf1f9b23"
+  place_id: "a8c52b0c-8f11-4b9c-9c3f-123456789abc"
+  token_id: "6d8f07a2-9d91-4a6a-bc73-8c7a6e8a1f01"
+  content: "Вернусь ещё раз!"
+  rating: 5
+  created_at: "{{ now }}"
+
+- id: "2a6c7d9e-5b4c-4783-91e4-9f6c8a7b2d55"
+  user_id: "3e8f1e3e-7a97-4b5b-8c6f-1db110e61d47"
+  place_id: "a8c52b0c-8f11-4b9c-9c3f-123456789abc"
+  token_id: "6d8f07a2-9d91-4a6a-bc73-8c7a6e8a1f01"
+  content: "Хорошо, но есть куда расти"
+  rating: 4
+  created_at: "{{ now }}"
+
+- id: "3a9d7f5c-2f44-482b-8c5b-6d9a1e2c3f77"
+  user_id: "fcb2f1a1-3c64-45d9-9f83-f89adf1f9b23"
+  place_id: "a8c52b0c-8f11-4b9c-9c3f-123456789abc"
+  token_id: "6d8f07a2-9d91-4a6a-bc73-8c7a6e8a1f01"
+  content: "Так себе"
+  rating: 2
+  created_at: "{{ now }}"

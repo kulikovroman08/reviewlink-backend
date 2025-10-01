@@ -1,6 +1,10 @@
 package dto
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // Структура входного запроса
 type SignupRequest struct {
@@ -46,6 +50,12 @@ type SubmitReviewRequest struct {
 	PlaceID uuid.UUID `json:"place_id" binding:"required"`
 	Rating  int       `json:"rating" binding:"required,min=1,max=5"`
 	Content string    `json:"content"`
+}
+
+type ReviewResponse struct {
+	Rating    int       `json:"rating"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type GenerateTokensRequest struct {

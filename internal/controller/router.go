@@ -20,6 +20,7 @@ func SetupRouter(app *Application) *gin.Engine {
 		public.POST("/login", app.Login)
 
 		public.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		public.GET("/places/:id/reviews", app.GetReviews)
 	}
 
 	// Защищенные маршруты
