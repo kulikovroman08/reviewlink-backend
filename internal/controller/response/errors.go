@@ -42,5 +42,8 @@ const (
 
 // Reviews
 const (
-	ErrInvalidUserID = "invalid user_id"
+	ErrInvalidUserID      = "invalid user_id"
+	ErrInvalidRating      = "invalid rating"
+	ErrReviewNotFound     = "review not found"
+	ErrFailedUpdateReview = "failed to update review"
 )

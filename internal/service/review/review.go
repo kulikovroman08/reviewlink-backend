@@ -2,6 +2,7 @@ package review
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"time"
@@ -108,4 +109,20 @@ func (s *reviewService) GetReviews(ctx context.Context, placeID string, filter m
 	}
 
 	return reviews, nil
+}
+
+func (s *reviewService) UpdateReview(ctx context.Context, reviewID, userID string, content string, rating int) error {
+	if rating < 1 || rating > 5 {
+		return serviceErrors.ErrInvalidRating
+	}
+
+	err := s.reviewRepo.UpdateReview(ctx, reviewID, userID, content, rating)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return serviceErrors.ErrReviewNotFound
+		}
+		return err
+	}
+
+	return nil
 }

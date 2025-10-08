@@ -41,6 +41,7 @@ type Review struct {
 	Content   string
 	Rating    int
 	CreatedAt time.Time
+	UpdatedAt *time.Time
 }
 
 type ReviewFilter struct {

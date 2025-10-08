@@ -2,6 +2,7 @@ package review
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"time"
@@ -235,4 +236,33 @@ func (r *PostgresReviewRepository) FindReviews(ctx context.Context, placeID stri
 		reviews = append(reviews, rev)
 	}
 	return reviews, nil
+}
+
+func (r *PostgresReviewRepository) UpdateReview(ctx context.Context, reviewID, userID string, content string, rating int) error {
+	now := time.Now()
+
+	query, args, err := r.builder.
+		Update(reviewTable).
+		Set(reviewContent, content).
+		Set(reviewRating, rating).
+		Set("updated_at", now).
+		Where(sq.Eq{
+			reviewIDColumn: reviewID,
+			reviewUserID:   userID,
+		}).
+		ToSql()
+	if err != nil {
+		return err
+	}
+
+	res, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+
+	if res.RowsAffected() == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
 }

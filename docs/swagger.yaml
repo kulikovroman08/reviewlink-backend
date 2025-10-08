@@ -101,6 +101,13 @@ definitions:
     - rating
     - token
     type: object
+  dto.UpdateReviewRequest:
+    properties:
+      content:
+        type: string
+      rating:
+        type: integer
+    type: object
   dto.UpdateUserRequest:
     properties:
       email:
@@ -324,6 +331,51 @@ paths:
       summary: Отправка отзыва
       tags:
       - users
+  /reviews/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Автор отзыва может изменить контент и рейтинг
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Данные для обновления отзыва
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: review updated successfully
+          schema:
+            $ref: '#/definitions/dto.MessageResponse'
+        "400":
+          description: invalid input or rating
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: invalid user_id / unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: review not found or not author
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to update review
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Редактирование отзыва
+      tags:
+      - reviews
   /signup:
     post:
       consumes:

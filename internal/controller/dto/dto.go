@@ -52,6 +52,11 @@ type SubmitReviewRequest struct {
 	Content string    `json:"content"`
 }
 
+type UpdateReviewRequest struct {
+	Content string `json:"content"`
+	Rating  int    `json:"rating"`
+}
+
 type ReviewResponse struct {
 	Rating    int       `json:"rating"`
 	Content   string    `json:"content"`
