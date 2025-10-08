@@ -11,4 +11,5 @@ var (
 	ErrPlaceAlreadyExists = errors.New("place already exists")
 	ErrInvalidPlaceData   = errors.New("invalid place data")
 	ErrInvalidPlaceID     = errors.New("invalid place id")
+	ErrPlaceNotFound      = errors.New("place not found")
 )

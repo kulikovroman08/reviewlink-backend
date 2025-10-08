@@ -2,9 +2,11 @@ package review
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/repository"
@@ -89,4 +91,21 @@ func (s *reviewService) SubmitReview(ctx context.Context, review model.Review, t
 	}
 
 	return nil
+}
+
+func (s *reviewService) GetReviews(ctx context.Context, placeID string, filter model.ReviewFilter) ([]model.Review, error) {
+	_, err := s.placeRepo.GetByID(ctx, placeID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, serviceErrors.ErrPlaceNotFound
+		}
+		return nil, fmt.Errorf("check place existence: %w", err)
+	}
+
+	reviews, err := s.reviewRepo.FindReviews(ctx, placeID, filter)
+	if err != nil {
+		return nil, fmt.Errorf("find reviews: %w", err)
+	}
+
+	return reviews, nil
 }

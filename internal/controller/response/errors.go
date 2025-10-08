@@ -37,6 +37,7 @@ const (
 	ErrPlaceAlreadyExists = "place already exists"
 	ErrInvalidPlaceData   = "invalid place data"
 	ErrFailedCreatePlace  = "failed to create place"
+	ErrPlaceNotFound      = "place not found"
 )
 
 // Reviews

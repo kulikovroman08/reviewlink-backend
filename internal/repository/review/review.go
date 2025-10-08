@@ -169,3 +169,70 @@ func (r *PostgresReviewRepository) HasReviewToday(ctx context.Context, userID, p
 	}
 	return true, nil
 }
+
+func (r *PostgresReviewRepository) FindReviews(ctx context.Context, placeID string, filter model.ReviewFilter) ([]model.Review, error) {
+	uid, err := uuid.Parse(placeID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid place id: %w", err)
+	}
+
+	builder := r.builder.
+		Select(
+			reviewIDColumn,
+			reviewUserID,
+			reviewPlaceID,
+			reviewTokenID,
+			reviewContent,
+			reviewRating,
+			reviewCreatedAt,
+		).
+		From(reviewTable).
+		Where(sq.Eq{reviewPlaceID: uid})
+
+	if filter.HasRating {
+		builder = builder.Where(sq.Eq{reviewRating: filter.Rating})
+	}
+	if filter.FromDate != nil {
+		builder = builder.Where(sq.GtOrEq{reviewCreatedAt: *filter.FromDate})
+	}
+	if filter.ToDate != nil {
+		builder = builder.Where(sq.LtOrEq{reviewCreatedAt: *filter.ToDate})
+	}
+
+	switch filter.Sort {
+	case "date_asc":
+		builder = builder.OrderBy(reviewCreatedAt + " ASC")
+	default:
+		builder = builder.OrderBy(reviewCreatedAt + " DESC")
+	}
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("build FindReviews query: %w", err)
+	}
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("exec FindReviews: %w", err)
+	}
+	defer rows.Close()
+
+	reviews := make([]model.Review, 0)
+	for rows.Next() {
+		var rev model.Review
+		err := rows.Scan(
+			&rev.ID,
+			&rev.UserID,
+			&rev.PlaceID,
+			&rev.TokenID,
+			&rev.Content,
+			&rev.Rating,
+			&rev.CreatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("scan FindReviews row: %w", err)
+		}
+		reviews = append(reviews, rev)
+	}
+	return reviews, nil
+}

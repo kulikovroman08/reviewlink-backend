@@ -20,6 +20,7 @@ type UserRepository interface {
 
 type PlaceRepository interface {
 	CreatePlace(ctx context.Context, place *model.Place) error
+	GetByID(ctx context.Context, placeID string) (*model.Place, error)
 }
 
 type ReviewRepository interface {
@@ -27,6 +28,7 @@ type ReviewRepository interface {
 	MarkReviewTokenUsed(ctx context.Context, tokenID string) error
 	CreateReview(ctx context.Context, review model.Review) error
 	HasReviewToday(ctx context.Context, userID, placeID string) (bool, error)
+	FindReviews(ctx context.Context, placeID string, filter model.ReviewFilter) ([]model.Review, error)
 }
 
 type TokenRepository interface {
