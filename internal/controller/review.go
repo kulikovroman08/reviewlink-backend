@@ -2,8 +2,10 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
@@ -86,22 +88,13 @@ func (h *Application) SubmitReview(c *gin.Context) {
 func (h *Application) GetReviews(c *gin.Context) {
 	placeID := c.Param("id")
 
-	var rating *int
-	if r := c.Query("rating"); r != "" {
-		if val, err := strconv.Atoi(r); err == nil {
-			rating = &val
-		} else {
-			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
-			return
-		}
+	filter, err := parseReviewFilter(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
+		return
 	}
 
-	sort := c.Query("sort")
-	if sort == "" {
-		sort = "date_desc"
-	}
-
-	reviews, err := h.ReviewService.GetReviews(c.Request.Context(), placeID, rating, sort)
+	reviews, err := h.ReviewService.GetReviews(c.Request.Context(), placeID, filter)
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrPlaceNotFound):
@@ -122,4 +115,37 @@ func (h *Application) GetReviews(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+func parseReviewFilter(c *gin.Context) (model.ReviewFilter, error) {
+	var f model.ReviewFilter
+
+	if r := c.Query("rating"); r != "" {
+		val, err := strconv.Atoi(r)
+		if err != nil {
+			return f, fmt.Errorf("invalid rating: %w", err)
+		}
+		f.Rating = val
+		f.HasRating = true
+	}
+
+	f.Sort = c.DefaultQuery("sort", "date_desc")
+
+	if from := c.Query("from"); from != "" {
+		t, err := time.Parse("2006-01-02", from)
+		if err != nil {
+			return f, fmt.Errorf("invalid from date: %w", err)
+		}
+		f.FromDate = &t
+	}
+
+	if to := c.Query("to"); to != "" {
+		t, err := time.Parse("2006-01-02", to)
+		if err != nil {
+			return f, fmt.Errorf("invalid to date: %w", err)
+		}
+		f.ToDate = &t
+	}
+
+	return f, nil
 }

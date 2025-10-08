@@ -42,6 +42,15 @@ type Review struct {
 	Rating    int
 	CreatedAt time.Time
 }
+
+type ReviewFilter struct {
+	Rating    int
+	HasRating bool
+	Sort      string
+	FromDate  *time.Time
+	ToDate    *time.Time
+}
+
 type GenerateTokensResult struct {
 	Tokens []string
 }

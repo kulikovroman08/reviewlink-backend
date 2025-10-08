@@ -170,7 +170,7 @@ func (r *PostgresReviewRepository) HasReviewToday(ctx context.Context, userID, p
 	return true, nil
 }
 
-func (r *PostgresReviewRepository) FindReviews(ctx context.Context, placeID string, rating *int, sort string) ([]model.Review, error) {
+func (r *PostgresReviewRepository) FindReviews(ctx context.Context, placeID string, filter model.ReviewFilter) ([]model.Review, error) {
 	uid, err := uuid.Parse(placeID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid place id: %w", err)
@@ -189,13 +189,17 @@ func (r *PostgresReviewRepository) FindReviews(ctx context.Context, placeID stri
 		From(reviewTable).
 		Where(sq.Eq{reviewPlaceID: uid})
 
-	if rating != nil {
-		builder = builder.Where(sq.Eq{reviewRating: *rating})
+	if filter.HasRating {
+		builder = builder.Where(sq.Eq{reviewRating: filter.Rating})
+	}
+	if filter.FromDate != nil {
+		builder = builder.Where(sq.GtOrEq{reviewCreatedAt: *filter.FromDate})
+	}
+	if filter.ToDate != nil {
+		builder = builder.Where(sq.LtOrEq{reviewCreatedAt: *filter.ToDate})
 	}
 
-	switch sort {
-	case "date_desc":
-		builder = builder.OrderBy(reviewCreatedAt + " DESC")
+	switch filter.Sort {
 	case "date_asc":
 		builder = builder.OrderBy(reviewCreatedAt + " ASC")
 	default:

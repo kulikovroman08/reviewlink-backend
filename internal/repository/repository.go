@@ -28,7 +28,7 @@ type ReviewRepository interface {
 	MarkReviewTokenUsed(ctx context.Context, tokenID string) error
 	CreateReview(ctx context.Context, review model.Review) error
 	HasReviewToday(ctx context.Context, userID, placeID string) (bool, error)
-	FindReviews(ctx context.Context, placeID string, rating *int, sort string) ([]model.Review, error)
+	FindReviews(ctx context.Context, placeID string, filter model.ReviewFilter) ([]model.Review, error)
 }
 
 type TokenRepository interface {

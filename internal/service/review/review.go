@@ -93,7 +93,7 @@ func (s *reviewService) SubmitReview(ctx context.Context, review model.Review, t
 	return nil
 }
 
-func (s *reviewService) GetReviews(ctx context.Context, placeID string, rating *int, sort string) ([]model.Review, error) {
+func (s *reviewService) GetReviews(ctx context.Context, placeID string, filter model.ReviewFilter) ([]model.Review, error) {
 	_, err := s.placeRepo.GetByID(ctx, placeID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -102,7 +102,7 @@ func (s *reviewService) GetReviews(ctx context.Context, placeID string, rating *
 		return nil, fmt.Errorf("check place existence: %w", err)
 	}
 
-	reviews, err := s.reviewRepo.FindReviews(ctx, placeID, rating, sort)
+	reviews, err := s.reviewRepo.FindReviews(ctx, placeID, filter)
 	if err != nil {
 		return nil, fmt.Errorf("find reviews: %w", err)
 	}
