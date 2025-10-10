@@ -111,18 +111,18 @@ func (s *reviewService) GetReviews(ctx context.Context, placeID string, filter m
 	return reviews, nil
 }
 
-func (s *reviewService) UpdateReview(ctx context.Context, reviewID, userID string, content string, rating int) error {
+func (s *reviewService) UpdateReview(ctx context.Context, reviewID, userID, content string, rating int) (*model.Review, error) {
 	if rating < 1 || rating > 5 {
-		return serviceErrors.ErrInvalidRating
+		return nil, serviceErrors.ErrInvalidRating
 	}
 
-	err := s.reviewRepo.UpdateReview(ctx, reviewID, userID, content, rating)
+	review, err := s.reviewRepo.UpdateReview(ctx, reviewID, userID, content, rating)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return serviceErrors.ErrReviewNotFound
+			return nil, serviceErrors.ErrReviewNotFound
 		}
-		return err
+		return nil, err
 	}
 
-	return nil
+	return review, nil
 }

@@ -2,7 +2,6 @@ package review
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"time"
@@ -238,7 +237,7 @@ func (r *PostgresReviewRepository) FindReviews(ctx context.Context, placeID stri
 	return reviews, nil
 }
 
-func (r *PostgresReviewRepository) UpdateReview(ctx context.Context, reviewID, userID string, content string, rating int) error {
+func (r *PostgresReviewRepository) UpdateReview(ctx context.Context, reviewID, userID string, content string, rating int) (*model.Review, error) {
 	now := time.Now()
 
 	query, args, err := r.builder.
@@ -250,19 +249,26 @@ func (r *PostgresReviewRepository) UpdateReview(ctx context.Context, reviewID, u
 			reviewIDColumn: reviewID,
 			reviewUserID:   userID,
 		}).
+		Suffix("RETURNING id, user_id, place_id, token_id, content, rating, created_at, updated_at").
 		ToSql()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	res, err := r.db.Exec(ctx, query, args...)
+	var rev model.Review
+	err = r.db.QueryRow(ctx, query, args...).Scan(
+		&rev.ID,
+		&rev.UserID,
+		&rev.PlaceID,
+		&rev.TokenID,
+		&rev.Content,
+		&rev.Rating,
+		&rev.CreatedAt,
+		&rev.UpdatedAt,
+	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if res.RowsAffected() == 0 {
-		return sql.ErrNoRows
-	}
-
-	return nil
+	return &rev, nil
 }

@@ -29,7 +29,7 @@ type ReviewRepository interface {
 	CreateReview(ctx context.Context, review model.Review) error
 	HasReviewToday(ctx context.Context, userID, placeID string) (bool, error)
 	FindReviews(ctx context.Context, placeID string, filter model.ReviewFilter) ([]model.Review, error)
-	UpdateReview(ctx context.Context, reviewID, userID string, content string, rating int) error
+	UpdateReview(ctx context.Context, reviewID, userID, content string, rating int) (*model.Review, error)
 }
 
 type TokenRepository interface {
