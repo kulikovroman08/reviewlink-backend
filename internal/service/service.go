@@ -23,7 +23,7 @@ type PlaceService interface {
 type ReviewService interface {
 	SubmitReview(ctx context.Context, review model.Review, token string) error
 	GetReviews(ctx context.Context, placeID string, filter model.ReviewFilter) ([]model.Review, error)
-	UpdateReview(ctx context.Context, reviewID, userID, content string, rating int) (*model.Review, error)
+	UpdateReview(ctx context.Context, reviewID, userID string, content string, rating int) error
 }
 
 type TokenService interface {

@@ -350,9 +350,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Updated review",
+                        "description": "review updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/model.Review"
+                            "$ref": "#/definitions/dto.MessageResponse"
                         }
                     },
                     "400": {
@@ -362,7 +362,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized or invalid user_id",
+                        "description": "invalid user_id / unauthorized",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -777,35 +777,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "role": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.Review": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "placeID": {
-                    "type": "string"
-                },
-                "rating": {
-                    "type": "integer"
-                },
-                "tokenID": {
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                },
-                "userID": {
                     "type": "string"
                 }
             }

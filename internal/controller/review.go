@@ -158,9 +158,9 @@ func parseReviewFilter(c *gin.Context) (model.ReviewFilter, error) {
 // @Produce      json
 // @Param        id   path      string  true  "Review ID"
 // @Param        request body   dto.UpdateReviewRequest true "Данные для обновления отзыва"
-// @Success      200  {object}  model.Review       "Updated review"
+// @Success      200  {object}  dto.MessageResponse "review updated successfully"
 // @Failure      400  {object}  dto.ErrorResponse "invalid input or rating"
-// @Failure      401  {object}  dto.ErrorResponse  "Unauthorized or invalid user_id"
+// @Failure      401  {object}  dto.ErrorResponse "invalid user_id / unauthorized"
 // @Failure      403  {object}  dto.ErrorResponse "review not found or not author"
 // @Failure      500  {object}  dto.ErrorResponse "failed to update review"
 // @Router       /reviews/{id} [put]
@@ -186,13 +186,7 @@ func (h *Application) UpdateReview(c *gin.Context) {
 		return
 	}
 
-	updatedReview, err := h.ReviewService.UpdateReview(
-		c.Request.Context(),
-		reviewID,
-		userID.String(),
-		req.Content,
-		req.Rating,
-	)
+	err = h.ReviewService.UpdateReview(c.Request.Context(), reviewID, userID.String(), req.Content, req.Rating)
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrInvalidRating):
@@ -207,5 +201,5 @@ func (h *Application) UpdateReview(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, updatedReview)
+	c.JSON(http.StatusOK, dto.MessageResponse{Message: "review updated successfully"})
 }

@@ -132,25 +132,6 @@ definitions:
       role:
         type: string
     type: object
-  model.Review:
-    properties:
-      content:
-        type: string
-      createdAt:
-        type: string
-      id:
-        type: string
-      placeID:
-        type: string
-      rating:
-        type: integer
-      tokenID:
-        type: string
-      updatedAt:
-        type: string
-      userID:
-        type: string
-    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -371,15 +352,15 @@ paths:
       - application/json
       responses:
         "200":
-          description: Updated review
+          description: review updated successfully
           schema:
-            $ref: '#/definitions/model.Review'
+            $ref: '#/definitions/dto.MessageResponse'
         "400":
           description: invalid input or rating
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "401":
-          description: Unauthorized or invalid user_id
+          description: invalid user_id / unauthorized
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "403":
