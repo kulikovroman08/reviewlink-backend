@@ -163,7 +163,7 @@ func parseReviewFilter(c *gin.Context) (model.ReviewFilter, error) {
 // @Failure      401  {object}  dto.ErrorResponse "invalid user_id / unauthorized"
 // @Failure      403  {object}  dto.ErrorResponse "review not found or not author"
 // @Failure      500  {object}  dto.ErrorResponse "failed to update review"
-// @Router       /reviews/{id} [put]
+// @Router       /reviews/{id} [patch]
 // @Security     BearerAuth
 func (h *Application) UpdateReview(c *gin.Context) {
 	var req dto.UpdateReviewRequest

@@ -332,7 +332,7 @@ paths:
       tags:
       - users
   /reviews/{id}:
-    put:
+    patch:
       consumes:
       - application/json
       description: Автор отзыва может изменить контент и рейтинг

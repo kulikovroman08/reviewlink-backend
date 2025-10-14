@@ -307,7 +307,7 @@
             }
         },
         "/reviews/{id}": {
-            "put": {
+            "patch": {
                 "security": [
                     {
                         "BearerAuth": []

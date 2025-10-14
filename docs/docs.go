@@ -313,7 +313,7 @@ const docTemplate = `{
             }
         },
         "/reviews/{id}": {
-            "put": {
+            "patch": {
                 "security": [
                     {
                         "BearerAuth": []
