@@ -1,0 +1,1 @@
+ALTER TABLE reviews ADD COLUMN updated_at TIMESTAMP;

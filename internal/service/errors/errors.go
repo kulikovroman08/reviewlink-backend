@@ -12,4 +12,6 @@ var (
 	ErrInvalidPlaceData   = errors.New("invalid place data")
 	ErrInvalidPlaceID     = errors.New("invalid place id")
 	ErrPlaceNotFound      = errors.New("place not found")
+	ErrInvalidRating      = errors.New("invalid rating value")
+	ErrReviewNotFound     = errors.New("review not found or access denied")
 )

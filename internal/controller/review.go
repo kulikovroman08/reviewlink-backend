@@ -149,3 +149,57 @@ func parseReviewFilter(c *gin.Context) (model.ReviewFilter, error) {
 
 	return f, nil
 }
+
+// UpdateReview godoc
+// @Summary      Редактирование отзыва
+// @Description  Автор отзыва может изменить контент и рейтинг
+// @Tags         reviews
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Review ID"
+// @Param        request body   dto.UpdateReviewRequest true "Данные для обновления отзыва"
+// @Success      200  {object}  dto.MessageResponse "review updated successfully"
+// @Failure      400  {object}  dto.ErrorResponse "invalid input or rating"
+// @Failure      401  {object}  dto.ErrorResponse "invalid user_id / unauthorized"
+// @Failure      403  {object}  dto.ErrorResponse "review not found or not author"
+// @Failure      500  {object}  dto.ErrorResponse "failed to update review"
+// @Router       /reviews/{id} [patch]
+// @Security     BearerAuth
+func (h *Application) UpdateReview(c *gin.Context) {
+	var req dto.UpdateReviewRequest
+
+	reviewID := c.Param("id")
+
+	userID, err := uuid.Parse(c.GetString("user_id"))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: response.ErrInvalidUserID})
+		return
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
+		return
+	}
+
+	if req.Content == "" && req.Rating == 0 {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrAtLeastOneField})
+		return
+	}
+
+	err = h.ReviewService.UpdateReview(c.Request.Context(), reviewID, userID.String(), req.Content, req.Rating)
+	if err != nil {
+		switch {
+		case errors.Is(err, serviceErrors.ErrInvalidRating):
+			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidRating})
+
+		case errors.Is(err, serviceErrors.ErrReviewNotFound):
+			c.JSON(http.StatusForbidden, dto.ErrorResponse{Error: response.ErrReviewNotFound})
+
+		default:
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrFailedUpdateReview})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.MessageResponse{Message: "review updated successfully"})
+}
