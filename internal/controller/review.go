@@ -203,3 +203,38 @@ func (h *Application) UpdateReview(c *gin.Context) {
 
 	c.JSON(http.StatusOK, dto.MessageResponse{Message: "review updated successfully"})
 }
+
+// DeleteReview godoc
+// @Summary      Удаление отзыва
+// @Description  Автор отзыва может удалить свой отзыв (soft delete)
+// @Tags         reviews
+// @Produce      json
+// @Param        id   path      string  true  "Review ID"
+// @Success      200  {object}  dto.MessageResponse "review deleted successfully"
+// @Failure      401  {object}  dto.ErrorResponse "invalid user_id / unauthorized"
+// @Failure      403  {object}  dto.ErrorResponse "review not found or not author"
+// @Failure      500  {object}  dto.ErrorResponse "failed to delete review"
+// @Router       /reviews/{id} [delete]
+// @Security     BearerAuth
+func (h *Application) DeleteReview(c *gin.Context) {
+	reviewID := c.Param("id")
+	userID := c.GetString("user_id")
+
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: response.ErrInvalidUserID})
+		return
+	}
+
+	err := h.ReviewService.DeleteReview(c.Request.Context(), reviewID, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, serviceErrors.ErrReviewNotFound):
+			c.JSON(http.StatusForbidden, dto.ErrorResponse{Error: response.ErrReviewNotFound})
+		default:
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrInternalError})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.MessageResponse{Message: "review deleted successfully"})
+}

@@ -8,6 +8,9 @@ lint:
 lint-vscode:
 	~/.local/bin/golangci-lint-1.64.8 run ./...
 
+swag:
+	swag init -g cmd/main.go -o docs
+
 migrate-up:
 	@set -a; source .env; set +a; \
 	migrate -path ./migrations -database "$$DB_URL" up
