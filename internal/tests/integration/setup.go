@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/kulikovroman08/reviewlink-backend/configs"
 	"github.com/kulikovroman08/reviewlink-backend/internal/repository/place"
 
 	"github.com/gin-gonic/gin"
@@ -40,6 +41,8 @@ func NewTestSetup() *TestSetup {
 	}
 	_ = godotenv.Load(filepath.Join(root, ".env.test"))
 
+	cfg := configs.LoadConfig()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -54,10 +57,10 @@ func NewTestSetup() *TestSetup {
 	reviewRepo := reviewRepo.NewPostgresReviewRepository(db)
 	tokRepo := tokenRepo.NewPostgresTokenRepository(db)
 
+	tokSrv := tokenService.NewTokenService(tokRepo, &cfg)
 	userSrv := userService.NewUserService(userRepo)
-	placeSrv := placeService.NewPlaceService(placeRepo)
-	reviewSrv := reviewService.NewReviewService(reviewRepo, userRepo, placeRepo)
-	tokSrv := tokenService.NewTokenService(tokRepo)
+	placeSrv := placeService.NewPlaceService(placeRepo, tokSrv, &cfg)
+	reviewSrv := reviewService.NewReviewService(reviewRepo, userRepo, placeRepo, tokSrv)
 
 	app := controller.NewApplication(userSrv, placeSrv, reviewSrv, tokSrv)
 	r := controller.SetupRouter(app)

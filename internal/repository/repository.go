@@ -35,4 +35,5 @@ type ReviewRepository interface {
 
 type TokenRepository interface {
 	CreateTokens(ctx context.Context, tokens []model.ReviewToken) error
+	CountActiveTokens(ctx context.Context, placeID string) (int, error)
 }

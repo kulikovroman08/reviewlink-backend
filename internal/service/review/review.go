@@ -9,29 +9,32 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
+	"github.com/kulikovroman08/reviewlink-backend/internal/service/token"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/repository"
-	"github.com/kulikovroman08/reviewlink-backend/internal/service"
 
 	"github.com/google/uuid"
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 )
 
 type reviewService struct {
-	reviewRepo repository.ReviewRepository
-	userRepo   repository.UserRepository
-	placeRepo  repository.PlaceRepository
+	reviewRepo   repository.ReviewRepository
+	userRepo     repository.UserRepository
+	placeRepo    repository.PlaceRepository
+	tokenService *token.Service
 }
 
 func NewReviewService(
 	reviewRepo repository.ReviewRepository,
 	userRepo repository.UserRepository,
 	placeRepo repository.PlaceRepository,
-) service.ReviewService {
+	tokenService *token.Service,
+) *reviewService {
 	return &reviewService{
-		reviewRepo: reviewRepo,
-		userRepo:   userRepo,
-		placeRepo:  placeRepo,
+		reviewRepo:   reviewRepo,
+		userRepo:     userRepo,
+		placeRepo:    placeRepo,
+		tokenService: tokenService,
 	}
 }
 
@@ -73,6 +76,10 @@ func (s *reviewService) SubmitReview(ctx context.Context, review model.Review, t
 
 	if err := s.reviewRepo.MarkReviewTokenUsed(ctx, token.ID.String()); err != nil {
 		return fmt.Errorf("mark token used: %w", err)
+	}
+
+	if err := s.tokenService.CheckAndRefillTokens(ctx, token.PlaceID.String()); err != nil {
+		fmt.Printf("auto-refill tokens failed for place %s: %v\n", token.PlaceID, err)
 	}
 
 	var points int
