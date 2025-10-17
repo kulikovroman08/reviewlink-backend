@@ -126,3 +126,14 @@ func (s *reviewService) UpdateReview(ctx context.Context, reviewID, userID strin
 
 	return nil
 }
+
+func (s *reviewService) DeleteReview(ctx context.Context, reviewID, userID string) error {
+	err := s.reviewRepo.DeleteReview(ctx, reviewID, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return serviceErrors.ErrReviewNotFound
+		}
+		return fmt.Errorf("delete review: %w", err)
+	}
+	return nil
+}

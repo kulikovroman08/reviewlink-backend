@@ -25,14 +25,15 @@ const (
 	reviewTokenIsUsed    = "is_used"
 	reviewTokenExpiresAt = "expires_at"
 
-	reviewTable     = "reviews"
-	reviewIDColumn  = "id"
-	reviewUserID    = "user_id"
-	reviewPlaceID   = "place_id"
-	reviewTokenID   = "token_id"
-	reviewContent   = "content"
-	reviewRating    = "rating"
-	reviewCreatedAt = "created_at"
+	reviewTable        = "reviews"
+	reviewIDColumn     = "id"
+	reviewUserID       = "user_id"
+	reviewPlaceID      = "place_id"
+	reviewTokenID      = "token_id"
+	reviewContent      = "content"
+	reviewRating       = "rating"
+	reviewCreatedAt    = "created_at"
+	reviewIsDeletedCol = "is_deleted"
 )
 
 type PostgresReviewRepository struct {
@@ -188,7 +189,10 @@ func (r *PostgresReviewRepository) FindReviews(ctx context.Context, placeID stri
 			reviewCreatedAt,
 		).
 		From(reviewTable).
-		Where(sq.Eq{reviewPlaceID: uid})
+		Where(sq.Eq{
+			reviewPlaceID:      uid,
+			reviewIsDeletedCol: false,
+		})
 
 	if filter.HasRating {
 		builder = builder.Where(sq.Eq{reviewRating: filter.Rating})
@@ -258,6 +262,31 @@ func (r *PostgresReviewRepository) UpdateReview(ctx context.Context, reviewID, u
 	res, err := r.db.Exec(ctx, query, args...)
 	if err != nil {
 		return err
+	}
+
+	if res.RowsAffected() == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (r *PostgresReviewRepository) DeleteReview(ctx context.Context, reviewID, userID string) error {
+	query, args, err := r.builder.
+		Update(reviewTable).
+		Set(reviewIsDeletedCol, true).
+		Where(sq.Eq{
+			reviewIDColumn: reviewID,
+			reviewUserID:   userID,
+		}).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("build DeleteReview query: %w", err)
+	}
+
+	res, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("exec DeleteReview: %w", err)
 	}
 
 	if res.RowsAffected() == 0 {

@@ -332,6 +332,38 @@ paths:
       tags:
       - users
   /reviews/{id}:
+    delete:
+      description: Автор отзыва может удалить свой отзыв (soft delete)
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: review deleted successfully
+          schema:
+            $ref: '#/definitions/dto.MessageResponse'
+        "401":
+          description: invalid user_id / unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: review not found or not author
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to delete review
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Удаление отзыва
+      tags:
+      - reviews
     patch:
       consumes:
       - application/json
