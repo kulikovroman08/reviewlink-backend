@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 )
@@ -64,4 +65,28 @@ func (r *PostgresTokenRepository) CreateTokens(ctx context.Context, tokens []mod
 	}
 
 	return nil
+}
+
+func (r *PostgresTokenRepository) CountActiveTokens(ctx context.Context, placeID string) (int, error) {
+	uid, err := uuid.Parse(placeID)
+	if err != nil {
+		return 0, fmt.Errorf("invalid placeID: %w", err)
+	}
+
+	query, args, err := r.psql.
+		Select("COUNT(*)").
+		From(reviewTokensTable).
+		Where(sq.Eq{
+			reviewTokenPlaceIDColumn: uid,
+			reviewTokenIsUsedColumn:  false,
+		}).ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("build count query: %w", err)
+	}
+
+	var count int
+	if err := r.db.QueryRow(ctx, query, args...).Scan(&count); err != nil {
+		return 0, fmt.Errorf("execute count query: %w", err)
+	}
+	return count, nil
 }
