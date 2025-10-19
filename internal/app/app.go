@@ -9,10 +9,12 @@ import (
 
 	"github.com/kulikovroman08/reviewlink-backend/configs"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller"
+	repoAdmin "github.com/kulikovroman08/reviewlink-backend/internal/repository/admin"
 	repoPlace "github.com/kulikovroman08/reviewlink-backend/internal/repository/place"
 	repoReview "github.com/kulikovroman08/reviewlink-backend/internal/repository/review"
 	repoToken "github.com/kulikovroman08/reviewlink-backend/internal/repository/token"
 	repoUser "github.com/kulikovroman08/reviewlink-backend/internal/repository/user"
+	svcAdmin "github.com/kulikovroman08/reviewlink-backend/internal/service/admin"
 	svcPlace "github.com/kulikovroman08/reviewlink-backend/internal/service/place"
 	svcReview "github.com/kulikovroman08/reviewlink-backend/internal/service/review"
 	svcToken "github.com/kulikovroman08/reviewlink-backend/internal/service/token"
@@ -29,13 +31,15 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 	reviewRepo := repoReview.NewPostgresReviewRepository(dbpool)
 	placeRepo := repoPlace.NewPostgresPlaceRepository(dbpool)
 	tokenRepo := repoToken.NewPostgresTokenRepository(dbpool)
+	adminRepo := repoAdmin.NewPostgresAdminRepository(dbpool)
 
 	tokenService := svcToken.NewTokenService(tokenRepo, cfg)
 	userService := svcUser.NewUserService(userRepo)
 	placeService := svcPlace.NewPlaceService(placeRepo, tokenService, cfg)
 	reviewService := svcReview.NewReviewService(reviewRepo, userRepo, placeRepo, tokenService)
+	adminService := svcAdmin.NewAdminService(adminRepo)
 
-	app := controller.NewApplication(userService, placeService, reviewService, tokenService)
+	app := controller.NewApplication(userService, placeService, reviewService, tokenService, adminService)
 
 	return controller.SetupRouter(app)
 }

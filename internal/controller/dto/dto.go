@@ -79,3 +79,10 @@ type ErrorResponse struct {
 type MessageResponse struct {
 	Message string `json:"message"`
 }
+
+type AdminStatsResponse struct {
+	TotalUsers    int     `json:"total_users"`
+	TotalReviews  int     `json:"total_reviews"`
+	AverageRating float64 `json:"average_rating"`
+	TotalBonuses  int     `json:"total_bonuses"`
+}

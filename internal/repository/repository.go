@@ -37,3 +37,7 @@ type TokenRepository interface {
 	CreateTokens(ctx context.Context, tokens []model.ReviewToken) error
 	CountActiveTokens(ctx context.Context, placeID string) (int, error)
 }
+
+type AdminRepository interface {
+	GetAdminStats(ctx context.Context) (*model.AdminStats, error)
+}

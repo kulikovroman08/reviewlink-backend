@@ -9,6 +9,7 @@ type Application struct {
 	PlaceService  service.PlaceService
 	ReviewService service.ReviewService
 	TokenService  service.TokenService
+	AdminService  service.AdminService
 }
 
 func NewApplication(
@@ -16,11 +17,13 @@ func NewApplication(
 	place service.PlaceService,
 	review service.ReviewService,
 	token service.TokenService,
+	admin service.AdminService,
 ) *Application {
 	return &Application{
 		UserService:   user,
 		PlaceService:  place,
 		ReviewService: review,
 		TokenService:  token,
+		AdminService:  admin,
 	}
 }

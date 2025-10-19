@@ -1,5 +1,16 @@
 basePath: /
 definitions:
+  dto.AdminStatsResponse:
+    properties:
+      average_rating:
+        type: number
+      total_bonuses:
+        type: integer
+      total_reviews:
+        type: integer
+      total_users:
+        type: integer
+    type: object
   dto.AuthResponse:
     properties:
       token:
@@ -139,6 +150,30 @@ info:
   title: Reviewlink API
   version: "1.0"
 paths:
+  /admin/stats:
+    get:
+      description: 'Возвращает агрегированные данные: количество пользователей, отзывов,
+        средний рейтинг и количество бонусов.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AdminStatsResponse'
+        "403":
+          description: access denied
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to load stats
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение общей статистики (только для админов)
+      tags:
+      - admins
   /admin/tokens:
     post:
       consumes:
