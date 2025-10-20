@@ -29,4 +29,5 @@ type ReviewService interface {
 
 type TokenService interface {
 	GenerateTokens(ctx context.Context, placeID string, count int) (*model.GenerateTokensResult, error)
+	CheckAndRefillTokens(ctx context.Context, placeID string) error
 }

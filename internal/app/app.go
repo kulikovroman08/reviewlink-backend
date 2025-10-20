@@ -30,10 +30,10 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 	placeRepo := repoPlace.NewPostgresPlaceRepository(dbpool)
 	tokenRepo := repoToken.NewPostgresTokenRepository(dbpool)
 
+	tokenService := svcToken.NewTokenService(tokenRepo, cfg)
 	userService := svcUser.NewUserService(userRepo)
-	placeService := svcPlace.NewPlaceService(placeRepo)
-	reviewService := svcReview.NewReviewService(reviewRepo, userRepo, placeRepo)
-	tokenService := svcToken.NewTokenService(tokenRepo)
+	placeService := svcPlace.NewPlaceService(placeRepo, tokenService, cfg)
+	reviewService := svcReview.NewReviewService(reviewRepo, userRepo, placeRepo, tokenService)
 
 	app := controller.NewApplication(userService, placeService, reviewService, tokenService)
 
