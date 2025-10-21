@@ -35,3 +35,8 @@ type TokenService interface {
 type AdminService interface {
 	GetStats(ctx context.Context) (*model.AdminStats, error)
 }
+
+type LeaderboardService interface {
+	GetUserLeaderboard(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
+	GetPlaceLeaderboard(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
+}

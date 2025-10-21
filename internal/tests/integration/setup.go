@@ -19,10 +19,12 @@ import (
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller"
 	repoAdmin "github.com/kulikovroman08/reviewlink-backend/internal/repository/admin"
+	repoLeaderboard "github.com/kulikovroman08/reviewlink-backend/internal/repository/leaderboard"
 	reviewRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/review"
 	tokenRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/token"
 	"github.com/kulikovroman08/reviewlink-backend/internal/repository/user"
 	adminService "github.com/kulikovroman08/reviewlink-backend/internal/service/admin"
+	svcLeaderboard "github.com/kulikovroman08/reviewlink-backend/internal/service/leaderboard"
 	placeService "github.com/kulikovroman08/reviewlink-backend/internal/service/place"
 	reviewService "github.com/kulikovroman08/reviewlink-backend/internal/service/review"
 	tokenService "github.com/kulikovroman08/reviewlink-backend/internal/service/token"
@@ -59,14 +61,23 @@ func NewTestSetup() *TestSetup {
 	reviewRepo := reviewRepo.NewPostgresReviewRepository(db)
 	tokRepo := tokenRepo.NewPostgresTokenRepository(db)
 	adminRepo := repoAdmin.NewPostgresAdminRepository(db)
+	leaderboardRepo := repoLeaderboard.NewRepository(db)
 
 	tokSrv := tokenService.NewTokenService(tokRepo, &cfg)
 	userSrv := userService.NewUserService(userRepo)
 	placeSrv := placeService.NewPlaceService(placeRepo, tokSrv, &cfg)
 	reviewSrv := reviewService.NewReviewService(reviewRepo, userRepo, placeRepo, tokSrv)
 	adminSrv := adminService.NewAdminService(adminRepo)
+	leaderboardService := svcLeaderboard.NewService(leaderboardRepo)
 
-	app := controller.NewApplication(userSrv, placeSrv, reviewSrv, tokSrv, adminSrv)
+	app := controller.NewApplication(userSrv,
+		placeSrv,
+		reviewSrv,
+		tokSrv,
+		adminSrv,
+		leaderboardService,
+	)
+
 	r := controller.SetupRouter(app)
 
 	return &TestSetup{

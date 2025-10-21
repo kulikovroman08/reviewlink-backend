@@ -109,6 +109,122 @@ const docTemplate = `{
                 }
             }
         },
+        "/leaderboard/places": {
+            "get": {
+                "description": "Returns a ranked list of places based on number of reviews and average rating.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "leaderboard"
+                ],
+                "summary": "Get top places leaderboard",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of results (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sorting method: 'reviews' or 'rating' (default 'reviews')",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Minimum average rating filter (default 0)",
+                        "name": "min_rating",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum number of reviews filter (default 0)",
+                        "name": "min_reviews",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of place leaderboard entries",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.LeaderboardEntry"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/leaderboard/users": {
+            "get": {
+                "description": "Returns a ranked list of users based on number of reviews and average rating.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "leaderboard"
+                ],
+                "summary": "Get top users leaderboard",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of results (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sorting method: 'reviews' or 'rating' (default 'reviews')",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Minimum average rating filter (default 0)",
+                        "name": "min_rating",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum number of reviews filter (default 0)",
+                        "name": "min_reviews",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of user leaderboard entries",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.LeaderboardEntry"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Логин по email и паролю, возвращает JWT-токен",
@@ -752,6 +868,26 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "dto.LeaderboardEntry": {
+            "type": "object",
+            "properties": {
+                "avg_rating": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rank": {
+                    "type": "integer"
+                },
+                "reviews_count": {
+                    "type": "integer"
                 }
             }
         },
