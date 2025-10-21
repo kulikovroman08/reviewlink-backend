@@ -31,3 +31,7 @@ type TokenService interface {
 	GenerateTokens(ctx context.Context, placeID string, count int) (*model.GenerateTokensResult, error)
 	CheckAndRefillTokens(ctx context.Context, placeID string) error
 }
+
+type AdminService interface {
+	GetStats(ctx context.Context) (*model.AdminStats, error)
+}

@@ -55,3 +55,10 @@ type ReviewFilter struct {
 type GenerateTokensResult struct {
 	Tokens []string
 }
+
+type AdminStats struct {
+	TotalUsers    int
+	TotalReviews  int
+	AverageRating float64
+	TotalBonuses  int
+}

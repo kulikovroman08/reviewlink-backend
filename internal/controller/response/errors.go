@@ -47,3 +47,8 @@ const (
 	ErrReviewNotFound     = "review not found"
 	ErrFailedUpdateReview = "failed to update review"
 )
+
+// Admin
+const (
+	ErrFailedLoadStats = "failed to load stats"
+)

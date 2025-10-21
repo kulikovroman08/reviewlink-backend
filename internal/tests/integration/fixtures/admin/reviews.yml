@@ -1,0 +1,23 @@
+- id: "c4a7fdd2-6e9d-4f8a-9c59-44f88d66c7b0"
+  user_id: "a1111111-2222-3333-4444-555555555555" # John
+  place_id: "a8c52b0c-8f11-4b9c-9c3f-123456789abc"
+  token_id: "72a83c71-6bfb-4b19-a6ee-bf82f6496b77"
+  content: "Отличное место, прихожу каждый день!"
+  rating: 5
+  created_at: "2023-10-01 10:00:00"
+
+- id: "c4a7fdd2-6e9d-4f8a-9c59-44f88d66c7b1"
+  user_id: "fcb2f1a1-3c64-45d9-9f83-f89adf1f9b23" # Bob
+  place_id: "a8c52b0c-8f11-4b9c-9c3f-123456789abc"
+  token_id: "72a83c71-6bfb-4b19-a6ee-bf82f6496b78"
+  content: "Среднее место."
+  rating: 3
+  created_at: "2023-10-02 11:00:00"
+
+- id: "c4a7fdd2-6e9d-4f8a-9c59-44f88d66c7b2"
+  user_id: "3e8f1e3e-7a97-4b5b-8c6f-1db110e61d47" # Admin
+  place_id: "a8c52b0c-8f11-4b9c-9c3f-123456789abc"
+  token_id: "72a83c71-6bfb-4b19-a6ee-bf82f6496b79"
+  content: "Нормально."
+  rating: 4
+  created_at: "2023-10-03 12:00:00"

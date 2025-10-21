@@ -18,9 +18,11 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller"
+	repoAdmin "github.com/kulikovroman08/reviewlink-backend/internal/repository/admin"
 	reviewRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/review"
 	tokenRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/token"
 	"github.com/kulikovroman08/reviewlink-backend/internal/repository/user"
+	adminService "github.com/kulikovroman08/reviewlink-backend/internal/service/admin"
 	placeService "github.com/kulikovroman08/reviewlink-backend/internal/service/place"
 	reviewService "github.com/kulikovroman08/reviewlink-backend/internal/service/review"
 	tokenService "github.com/kulikovroman08/reviewlink-backend/internal/service/token"
@@ -56,13 +58,15 @@ func NewTestSetup() *TestSetup {
 	placeRepo := place.NewPostgresPlaceRepository(db)
 	reviewRepo := reviewRepo.NewPostgresReviewRepository(db)
 	tokRepo := tokenRepo.NewPostgresTokenRepository(db)
+	adminRepo := repoAdmin.NewPostgresAdminRepository(db)
 
 	tokSrv := tokenService.NewTokenService(tokRepo, &cfg)
 	userSrv := userService.NewUserService(userRepo)
 	placeSrv := placeService.NewPlaceService(placeRepo, tokSrv, &cfg)
 	reviewSrv := reviewService.NewReviewService(reviewRepo, userRepo, placeRepo, tokSrv)
+	adminSrv := adminService.NewAdminService(adminRepo)
 
-	app := controller.NewApplication(userSrv, placeSrv, reviewSrv, tokSrv)
+	app := controller.NewApplication(userSrv, placeSrv, reviewSrv, tokSrv, adminSrv)
 	r := controller.SetupRouter(app)
 
 	return &TestSetup{
