@@ -41,3 +41,8 @@ type TokenRepository interface {
 type AdminRepository interface {
 	GetAdminStats(ctx context.Context) (*model.AdminStats, error)
 }
+
+type LeaderboardRepository interface {
+	GetTopUsers(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
+	GetTopPlaces(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
+}
