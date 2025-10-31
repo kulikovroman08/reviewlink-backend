@@ -86,3 +86,11 @@ type AdminStatsResponse struct {
 	AverageRating float64 `json:"average_rating"`
 	TotalBonuses  int     `json:"total_bonuses"`
 }
+
+type LeaderboardEntry struct {
+	Rank         int     `json:"rank"`
+	ID           string  `json:"id"`
+	Name         string  `json:"name"`
+	ReviewsCount int     `json:"reviews_count"`
+	AvgRating    float64 `json:"avg_rating"`
+}

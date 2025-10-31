@@ -5,11 +5,12 @@ import (
 )
 
 type Application struct {
-	UserService   service.UserService
-	PlaceService  service.PlaceService
-	ReviewService service.ReviewService
-	TokenService  service.TokenService
-	AdminService  service.AdminService
+	UserService        service.UserService
+	PlaceService       service.PlaceService
+	ReviewService      service.ReviewService
+	TokenService       service.TokenService
+	AdminService       service.AdminService
+	LeaderboardService service.LeaderboardService
 }
 
 func NewApplication(
@@ -18,12 +19,14 @@ func NewApplication(
 	review service.ReviewService,
 	token service.TokenService,
 	admin service.AdminService,
+	leaderboard service.LeaderboardService,
 ) *Application {
 	return &Application{
-		UserService:   user,
-		PlaceService:  place,
-		ReviewService: review,
-		TokenService:  token,
-		AdminService:  admin,
+		UserService:        user,
+		PlaceService:       place,
+		ReviewService:      review,
+		TokenService:       token,
+		AdminService:       admin,
+		LeaderboardService: leaderboard,
 	}
 }

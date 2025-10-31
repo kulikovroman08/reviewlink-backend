@@ -62,3 +62,16 @@ type AdminStats struct {
 	AverageRating float64
 	TotalBonuses  int
 }
+
+type LeaderboardEntry struct {
+	ID           string
+	Name         string
+	ReviewsCount int
+	AvgRating    float64
+}
+
+type LeaderboardFilter struct {
+	SortBy     string
+	MinRating  float64
+	MinReviews int
+}
