@@ -9,11 +9,12 @@ import (
 )
 
 type Config struct {
-	HTTPPort        string
-	DBUrl           string
-	TokensAutoCount int
-	TokensThreshold int
-	TokensBatchSize int
+	HTTPPort         string
+	DBUrl            string
+	TokensAutoCount  int
+	TokensThreshold  int
+	TokensBatchSize  int
+	BonusRequiredPts int
 }
 
 func LoadConfig() Config {
@@ -28,11 +29,12 @@ func LoadConfig() Config {
 	}
 
 	cfg := Config{
-		HTTPPort:        os.Getenv("PORT"),
-		DBUrl:           dbURL,
-		TokensAutoCount: getEnvInt("TOKENS_AUTO_COUNT", 10),
-		TokensThreshold: getEnvInt("TOKENS_THRESHOLD", 5),
-		TokensBatchSize: getEnvInt("TOKENS_BATCH_SIZE", 10),
+		HTTPPort:         os.Getenv("PORT"),
+		DBUrl:            dbURL,
+		TokensAutoCount:  getEnvInt("TOKENS_AUTO_COUNT", 10),
+		TokensThreshold:  getEnvInt("TOKENS_THRESHOLD", 5),
+		TokensBatchSize:  getEnvInt("TOKENS_BATCH_SIZE", 10),
+		BonusRequiredPts: getEnvInt("BONUS_REQUIRED_POINTS", 50),
 	}
 
 	fmt.Println("APP_ENV:", os.Getenv("APP_ENV"))

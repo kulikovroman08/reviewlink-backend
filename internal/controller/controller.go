@@ -11,6 +11,7 @@ type Application struct {
 	TokenService       service.TokenService
 	AdminService       service.AdminService
 	LeaderboardService service.LeaderboardService
+	BonusService       service.BonusService
 }
 
 func NewApplication(
@@ -20,6 +21,7 @@ func NewApplication(
 	token service.TokenService,
 	admin service.AdminService,
 	leaderboard service.LeaderboardService,
+	bonus service.BonusService,
 ) *Application {
 	return &Application{
 		UserService:        user,
@@ -28,5 +30,6 @@ func NewApplication(
 		TokenService:       token,
 		AdminService:       admin,
 		LeaderboardService: leaderboard,
+		BonusService:       bonus,
 	}
 }

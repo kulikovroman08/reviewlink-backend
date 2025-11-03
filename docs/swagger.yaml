@@ -16,6 +16,23 @@ definitions:
       token:
         type: string
     type: object
+  dto.BonusResponse:
+    properties:
+      id:
+        type: string
+      is_used:
+        type: boolean
+      place_id:
+        type: string
+      qr_token:
+        type: string
+      required_points:
+        type: integer
+      reward_type:
+        type: string
+      used_at:
+        type: string
+    type: object
   dto.CreatePlaceRequest:
     properties:
       address:
@@ -83,6 +100,20 @@ definitions:
     properties:
       message:
         type: string
+    type: object
+  dto.RedeemRequest:
+    properties:
+      place_id:
+        type: string
+      reward_type:
+        enum:
+        - free_coffee
+        - free_meal
+        - discount_10
+        type: string
+    required:
+    - place_id
+    - reward_type
     type: object
   dto.ReviewResponse:
     properties:
@@ -223,6 +254,59 @@ paths:
       summary: Генерация токенов (только для админов)
       tags:
       - admins
+  /bonuses:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.BonusResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получить список бонусов пользователя
+      tags:
+      - bonuses
+  /bonuses/redeem:
+    post:
+      consumes:
+      - application/json
+      description: Пользователь может обменять баллы на одно из доступных вознаграждений
+      parameters:
+      - description: 'Данные для получения бонуса (reward_type: free_coffee, free_meal,
+          discount_10)'
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RedeemRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.BonusResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обмен баллов на бонус
+      tags:
+      - bonuses
   /leaderboard/places:
     get:
       consumes:

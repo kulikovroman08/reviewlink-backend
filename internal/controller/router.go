@@ -40,6 +40,8 @@ func SetupRouter(app *Application) *gin.Engine {
 		protected.POST("/admin/tokens", app.GenerateTokens)
 		protected.DELETE("/reviews/:id", app.DeleteReview)
 		protected.GET("/admin/stats", app.GetStats)
+		protected.POST("/bonuses/redeem", app.RedeemBonus)
+		protected.GET("/bonuses", app.GetUserBonuses)
 	}
 
 	return r

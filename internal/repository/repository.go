@@ -46,3 +46,9 @@ type LeaderboardRepository interface {
 	GetTopUsers(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
 	GetTopPlaces(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
 }
+
+type BonusRepository interface {
+	CreateBonus(ctx context.Context, bonus *model.BonusReward) error
+	GetBonusesByUser(ctx context.Context, userID string) ([]model.BonusReward, error)
+	MarkBonusUsed(ctx context.Context, qrToken string) error
+}
