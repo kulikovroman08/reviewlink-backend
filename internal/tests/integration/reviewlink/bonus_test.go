@@ -73,7 +73,7 @@ func (s *BonusTestSuite) TestRedeemBonusSuccess() {
 
 	body := map[string]any{
 		"place_id":    "a8c52b0c-8f11-4b9c-9c3f-123456789abc",
-		"reward_type": "free_lunch",
+		"reward_type": "free_meal",
 	}
 	data, _ := json.Marshal(body)
 
@@ -84,11 +84,12 @@ func (s *BonusTestSuite) TestRedeemBonusSuccess() {
 	rec := httptest.NewRecorder()
 	s.TS.App.ServeHTTP(rec, req)
 
+	// ✅ ожидаем успех, 201
 	require.Equal(s.T(), http.StatusCreated, rec.Code)
 
 	var resp map[string]any
 	require.NoError(s.T(), json.Unmarshal(rec.Body.Bytes(), &resp))
-	require.Equal(s.T(), "free_lunch", resp["reward_type"])
+	require.Equal(s.T(), "free_meal", resp["reward_type"])
 	require.NotEmpty(s.T(), resp["qr_token"])
 }
 
@@ -101,7 +102,7 @@ func (s *BonusTestSuite) TestRedeemBonusNotEnoughPoints() {
 
 	body := map[string]any{
 		"place_id":    "a8c52b0c-8f11-4b9c-9c3f-123456789abc",
-		"reward_type": "free_lunch",
+		"reward_type": "free_coffee",
 	}
 	data, _ := json.Marshal(body)
 
@@ -116,5 +117,5 @@ func (s *BonusTestSuite) TestRedeemBonusNotEnoughPoints() {
 
 	var resp map[string]any
 	require.NoError(s.T(), json.Unmarshal(rec.Body.Bytes(), &resp))
-	require.Equal(s.T(), "invalid input", resp["error"])
+	require.Equal(s.T(), "not enough points", resp["error"])
 }

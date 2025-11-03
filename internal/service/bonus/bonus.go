@@ -63,7 +63,7 @@ func (s *bonusService) RedeemBonus(ctx context.Context, userID, placeID, rewardT
 	}
 
 	if err := s.userRepo.AddPoints(ctx, userID, -required); err != nil {
-		return nil, fmt.Errorf("update user points: %v", err)
+		return nil, fmt.Errorf("update user points: %w", err)
 	}
 
 	return bonus, nil
