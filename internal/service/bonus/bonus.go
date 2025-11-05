@@ -3,6 +3,8 @@ package bonus
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -11,6 +13,8 @@ import (
 	"github.com/kulikovroman08/reviewlink-backend/internal/repository"
 	srvErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
 )
+
+var localRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 type bonusService struct {
 	userRepo  repository.UserRepository
@@ -62,8 +66,8 @@ func (s *bonusService) RedeemBonus(ctx context.Context, userID, placeID, rewardT
 		return nil, srvErrors.ErrBonusCreateFail
 	}
 
-	if err := s.userRepo.AddPoints(ctx, userID, -required); err != nil {
-		return nil, fmt.Errorf("update user points: %w", err)
+	if err := s.userRepo.RedeemPoints(ctx, userID, required); err != nil {
+		return nil, fmt.Errorf("redeem user points: %w", err)
 	}
 
 	return bonus, nil
@@ -78,5 +82,10 @@ func (s *bonusService) GetUserBonuses(ctx context.Context, userID string) ([]mod
 }
 
 func generateQRToken() string {
-	return uuid.NewString()[:12]
+	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, 6)
+	for i := range b {
+		b[i] = charset[localRand.Intn(len(charset))]
+	}
+	return string(b)
 }

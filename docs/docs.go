@@ -167,7 +167,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.RedeemRequest"
+                            "$ref": "#/definitions/dto.BonusRedeemRequest"
                         }
                     }
                 ],
@@ -175,7 +175,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.BonusResponse"
+                            "$ref": "#/definitions/dto.BonusRedeemResponse"
                         }
                     },
                     "400": {
@@ -896,6 +896,52 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.BonusRedeemRequest": {
+            "type": "object",
+            "required": [
+                "place_id",
+                "reward_type"
+            ],
+            "properties": {
+                "place_id": {
+                    "type": "string"
+                },
+                "reward_type": {
+                    "type": "string",
+                    "enum": [
+                        "free_coffee",
+                        "free_meal",
+                        "discount_10"
+                    ]
+                }
+            }
+        },
+        "dto.BonusRedeemResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "is_used": {
+                    "type": "boolean"
+                },
+                "place_id": {
+                    "type": "string"
+                },
+                "qr_token": {
+                    "type": "string"
+                },
+                "required_points": {
+                    "type": "integer"
+                },
+                "reward_type": {
+                    "type": "string"
+                },
+                "used_at": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.BonusResponse": {
             "type": "object",
             "properties": {
@@ -1022,26 +1068,6 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "type": "string"
-                }
-            }
-        },
-        "dto.RedeemRequest": {
-            "type": "object",
-            "required": [
-                "place_id",
-                "reward_type"
-            ],
-            "properties": {
-                "place_id": {
-                    "type": "string"
-                },
-                "reward_type": {
-                    "type": "string",
-                    "enum": [
-                        "free_coffee",
-                        "free_meal",
-                        "discount_10"
-                    ]
                 }
             }
         },

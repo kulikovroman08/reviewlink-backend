@@ -95,7 +95,7 @@ type LeaderboardEntry struct {
 	AvgRating    float64 `json:"avg_rating"`
 }
 
-type BonusResponse struct {
+type BonusRedeemResponse struct {
 	ID             string     `json:"id"`
 	PlaceID        string     `json:"place_id"`
 	RewardType     string     `json:"reward_type"`
@@ -105,7 +105,17 @@ type BonusResponse struct {
 	UsedAt         *time.Time `json:"used_at,omitempty"`
 }
 
-type RedeemRequest struct {
+type BonusRedeemRequest struct {
 	PlaceID    string `json:"place_id" binding:"required,uuid"`
 	RewardType string `json:"reward_type" binding:"required,oneof=free_coffee free_meal discount_10"`
+}
+
+type BonusResponse struct {
+	ID             string     `json:"id"`
+	PlaceID        string     `json:"place_id"`
+	RewardType     string     `json:"reward_type"`
+	RequiredPoints int        `json:"required_points"`
+	QRToken        string     `json:"qr_token"`
+	IsUsed         bool       `json:"is_used"`
+	UsedAt         *time.Time `json:"used_at,omitempty"`
 }

@@ -16,6 +16,7 @@ type UserRepository interface {
 	UpdateUser(ctx context.Context, user *model.User) error
 	SoftDeleteUser(ctx context.Context, userID string) error
 	AddPoints(ctx context.Context, userID string, points int) error
+	RedeemPoints(ctx context.Context, userID string, points int) error
 }
 
 type PlaceRepository interface {

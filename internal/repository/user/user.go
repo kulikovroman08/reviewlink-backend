@@ -277,3 +277,33 @@ func (r *PostgresUserRepository) AddPoints(ctx context.Context, userID string, p
 
 	return nil
 }
+
+func (r *PostgresUserRepository) RedeemPoints(ctx context.Context, userID string, points int) error {
+	uuidID, err := uuid.Parse(userID)
+	if err != nil {
+		return fmt.Errorf("invalid user ID: %w", err)
+	}
+
+	query, args, err := r.builder.
+		Update(userTable).
+		Set(userPointsColumn, sq.Expr("points - ?", points)).
+		Where(sq.And{
+			sq.Eq{userIDColumn: uuidID},
+			sq.GtOrEq{userPointsColumn: points},
+		}).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("build RedeemPoints query: %w", err)
+	}
+
+	result, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("exec RedeemPoints: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("not enough points")
+	}
+
+	return nil
+}

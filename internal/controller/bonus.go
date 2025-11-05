@@ -18,15 +18,15 @@ import (
 // @Tags bonuses
 // @Accept json
 // @Produce json
-// @Param request body dto.RedeemRequest true "Данные для получения бонуса (reward_type: free_coffee, free_meal, discount_10)"
-// @Success 201 {object} dto.BonusResponse
+// @Param request body dto.BonusRedeemRequest true "Данные для получения бонуса (reward_type: free_coffee, free_meal, discount_10)"
+// @Success 201 {object} dto.BonusRedeemResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 409 {object} dto.ErrorResponse
 // @Router /bonuses/redeem [post]
 func (h *Application) RedeemBonus(ctx *gin.Context) {
 	userID := ctx.GetString("user_id")
 
-	var req dto.RedeemRequest
+	var req dto.BonusRedeemRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
 		return
@@ -47,7 +47,7 @@ func (h *Application) RedeemBonus(ctx *gin.Context) {
 		return
 	}
 
-	resp := dto.BonusResponse{
+	resp := dto.BonusRedeemResponse{
 		ID:             bonus.ID.String(),
 		PlaceID:        bonus.PlaceID.String(),
 		RewardType:     bonus.RewardType,
@@ -64,7 +64,7 @@ func (h *Application) RedeemBonus(ctx *gin.Context) {
 // @Security BearerAuth
 // @Tags bonuses
 // @Produce json
-// @Success 200 {array} dto.BonusResponse
+// @Success 200 {array}  dto.BonusResponse
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /bonuses [get]
 func (h *Application) GetUserBonuses(ctx *gin.Context) {

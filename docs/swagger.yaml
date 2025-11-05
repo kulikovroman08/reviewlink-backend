@@ -16,6 +16,37 @@ definitions:
       token:
         type: string
     type: object
+  dto.BonusRedeemRequest:
+    properties:
+      place_id:
+        type: string
+      reward_type:
+        enum:
+        - free_coffee
+        - free_meal
+        - discount_10
+        type: string
+    required:
+    - place_id
+    - reward_type
+    type: object
+  dto.BonusRedeemResponse:
+    properties:
+      id:
+        type: string
+      is_used:
+        type: boolean
+      place_id:
+        type: string
+      qr_token:
+        type: string
+      required_points:
+        type: integer
+      reward_type:
+        type: string
+      used_at:
+        type: string
+    type: object
   dto.BonusResponse:
     properties:
       id:
@@ -100,20 +131,6 @@ definitions:
     properties:
       message:
         type: string
-    type: object
-  dto.RedeemRequest:
-    properties:
-      place_id:
-        type: string
-      reward_type:
-        enum:
-        - free_coffee
-        - free_meal
-        - discount_10
-        type: string
-    required:
-    - place_id
-    - reward_type
     type: object
   dto.ReviewResponse:
     properties:
@@ -286,14 +303,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.RedeemRequest'
+          $ref: '#/definitions/dto.BonusRedeemRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/dto.BonusResponse'
+            $ref: '#/definitions/dto.BonusRedeemResponse'
         "400":
           description: Bad Request
           schema:
