@@ -38,7 +38,7 @@ func (s *bonusService) RedeemBonus(ctx context.Context, userID, placeID, rewardT
 
 	uuidPlace, err := uuid.Parse(placeID)
 	if err != nil {
-		return nil, srvErrors.ErrInvalidPlaceID
+		return nil, fmt.Errorf("invalid place id: %w", err)
 	}
 
 	user, err := s.userRepo.FindByID(ctx, userID)

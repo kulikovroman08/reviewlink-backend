@@ -37,8 +37,6 @@ func (h *Application) RedeemBonus(ctx *gin.Context) {
 		switch {
 		case errors.Is(err, srvErrors.ErrNotEnoughPoints):
 			ctx.JSON(http.StatusConflict, dto.ErrorResponse{Error: response.ErrNotEnoughPoints})
-		case errors.Is(err, srvErrors.ErrInvalidPlaceID):
-			ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidPlaceData})
 		case errors.Is(err, srvErrors.ErrBonusCreateFail):
 			ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrInternalError})
 		default:
