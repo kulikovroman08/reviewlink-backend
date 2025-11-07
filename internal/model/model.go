@@ -75,3 +75,14 @@ type LeaderboardFilter struct {
 	MinRating  float64
 	MinReviews int
 }
+
+type BonusReward struct {
+	ID             uuid.UUID
+	UserID         uuid.UUID
+	PlaceID        uuid.UUID
+	RequiredPoints int
+	RewardType     string
+	QRToken        string
+	IsUsed         bool
+	UsedAt         *time.Time
+}

@@ -109,6 +109,90 @@ const docTemplate = `{
                 }
             }
         },
+        "/bonuses": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bonuses"
+                ],
+                "summary": "Получить список бонусов пользователя",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.BonusResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/bonuses/redeem": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Пользователь может обменять баллы на одно из доступных вознаграждений",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bonuses"
+                ],
+                "summary": "Обмен баллов на бонус",
+                "parameters": [
+                    {
+                        "description": "Данные для получения бонуса (reward_type: free_coffee, free_meal, discount_10)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BonusRedeemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.BonusRedeemResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/leaderboard/places": {
             "get": {
                 "description": "Returns a ranked list of places based on number of reviews and average rating.",
@@ -808,6 +892,78 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.BonusRedeemRequest": {
+            "type": "object",
+            "required": [
+                "place_id",
+                "reward_type"
+            ],
+            "properties": {
+                "place_id": {
+                    "type": "string"
+                },
+                "reward_type": {
+                    "type": "string",
+                    "enum": [
+                        "free_coffee",
+                        "free_meal",
+                        "discount_10"
+                    ]
+                }
+            }
+        },
+        "dto.BonusRedeemResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "is_used": {
+                    "type": "boolean"
+                },
+                "place_id": {
+                    "type": "string"
+                },
+                "qr_token": {
+                    "type": "string"
+                },
+                "required_points": {
+                    "type": "integer"
+                },
+                "reward_type": {
+                    "type": "string"
+                },
+                "used_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.BonusResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "is_used": {
+                    "type": "boolean"
+                },
+                "place_id": {
+                    "type": "string"
+                },
+                "qr_token": {
+                    "type": "string"
+                },
+                "required_points": {
+                    "type": "integer"
+                },
+                "reward_type": {
+                    "type": "string"
+                },
+                "used_at": {
                     "type": "string"
                 }
             }

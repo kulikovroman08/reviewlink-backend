@@ -40,3 +40,8 @@ type LeaderboardService interface {
 	GetUserLeaderboard(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
 	GetPlaceLeaderboard(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
 }
+
+type BonusService interface {
+	RedeemBonus(ctx context.Context, userID, placeID, rewardType string) (*model.BonusReward, error)
+	GetUserBonuses(ctx context.Context, userID string) ([]model.BonusReward, error)
+}

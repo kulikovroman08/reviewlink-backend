@@ -52,3 +52,9 @@ const (
 const (
 	ErrFailedLoadStats = "failed to load stats"
 )
+
+// Bonuses
+const (
+	ErrNotEnoughPoints   = "not enough points"
+	ErrFailedCreateBonus = "failed to create bonus"
+)
