@@ -57,4 +57,6 @@ const (
 const (
 	ErrNotEnoughPoints   = "not enough points"
 	ErrFailedCreateBonus = "failed to create bonus"
+	ErrBonusNotFound     = "bonus not found"
+	ErrBonusAlreadyUsed  = "bonus already used"
 )

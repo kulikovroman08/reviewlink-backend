@@ -16,4 +16,6 @@ var (
 	ErrReviewNotFound     = errors.New("review not found or access denied")
 	ErrNotEnoughPoints    = errors.New("not enough points to redeem bonus")
 	ErrBonusCreateFail    = errors.New("failed to create bonus")
+	ErrBonusNotFound      = errors.New("bonus not found")
+	ErrBonusAlreadyUsed   = errors.New("bonus already used")
 )

@@ -2,6 +2,7 @@ package bonus
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -79,6 +80,26 @@ func (s *bonusService) GetUserBonuses(ctx context.Context, userID string) ([]mod
 		return nil, fmt.Errorf("get bonuses by user: %v", err)
 	}
 	return bonuses, nil
+}
+
+func (s *bonusService) ValidateBonus(ctx context.Context, qrToken string) error {
+	bonusItem, err := s.bonusRepo.GetByQRToken(ctx, qrToken)
+	if err != nil {
+		if errors.Is(err, srvErrors.ErrBonusNotFound) {
+			return srvErrors.ErrBonusNotFound
+		}
+		return fmt.Errorf("get bonus by token: %w", err)
+	}
+
+	if bonusItem.IsUsed {
+		return srvErrors.ErrBonusAlreadyUsed
+	}
+
+	if err := s.bonusRepo.MarkBonusUsed(ctx, qrToken); err != nil {
+		return fmt.Errorf("mark bonus used: %w", err)
+	}
+
+	return nil
 }
 
 func generateQRToken() string {
