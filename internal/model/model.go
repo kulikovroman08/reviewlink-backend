@@ -86,3 +86,12 @@ type BonusReward struct {
 	IsUsed         bool
 	UsedAt         *time.Time
 }
+
+type UserRestriction struct {
+	ID              uuid.UUID
+	UserID          uuid.UUID
+	RestrictionType string
+	Reason          string
+	CreatedAt       time.Time
+	ExpiresAt       time.Time
+}
