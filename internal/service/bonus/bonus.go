@@ -84,7 +84,7 @@ func (s *bonusService) GetUserBonuses(ctx context.Context, userID string) ([]mod
 func (s *bonusService) ValidateBonus(ctx context.Context, qrToken string) error {
 	bonusItem, err := s.bonusRepo.GetByQRToken(ctx, qrToken)
 	if err != nil {
-		return fmt.Errorf("get bonus by token: %w", err)
+		return err
 	}
 
 	if bonusItem.IsUsed {
@@ -92,7 +92,7 @@ func (s *bonusService) ValidateBonus(ctx context.Context, qrToken string) error 
 	}
 
 	if err := s.bonusRepo.MarkBonusUsed(ctx, qrToken); err != nil {
-		return fmt.Errorf("mark bonus used: %w", err)
+		return err
 	}
 
 	return nil
