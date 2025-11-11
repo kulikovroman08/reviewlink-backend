@@ -128,7 +128,7 @@ func (s *BonusTestSuite) TestValidateBonusSuccess() {
 	}
 	data, _ := json.Marshal(body)
 
-	req := httptest.NewRequest(http.MethodPost, "/bonus/validate", bytes.NewReader(data))
+	req := httptest.NewRequest(http.MethodPost, "/bonuses/validate", bytes.NewReader(data))
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 

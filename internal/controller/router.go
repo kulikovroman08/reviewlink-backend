@@ -42,7 +42,7 @@ func SetupRouter(app *Application) *gin.Engine {
 		protected.GET("/admin/stats", app.GetStats)
 		protected.POST("/bonuses/redeem", app.RedeemBonus)
 		protected.GET("/bonuses", app.GetUserBonuses)
-		protected.POST("/bonus/validate", app.ValidateBonus)
+		protected.POST("/bonuses/validate", app.ValidateBonus)
 	}
 
 	return r

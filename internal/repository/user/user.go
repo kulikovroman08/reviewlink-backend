@@ -11,7 +11,6 @@ import (
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	sq "github.com/Masterminds/squirrel"
@@ -76,9 +75,6 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, userID string) (*
 		&u.CreatedAt,
 		&u.IsDeleted,
 	)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, pgx.ErrNoRows
-	}
 	if err != nil {
 		return nil, fmt.Errorf("scan FindByID: %w", err)
 	}
@@ -121,9 +117,6 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 		&u.CreatedAt,
 		&u.IsDeleted,
 	)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, pgx.ErrNoRows
-	}
 	if err != nil {
 		return nil, fmt.Errorf("scan FindByEmail: %w", err)
 	}
@@ -163,9 +156,6 @@ func (r *PostgresUserRepository) FindAnyByEmail(ctx context.Context, email strin
 		&u.CreatedAt,
 		&u.IsDeleted,
 	)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, pgx.ErrNoRows
-	}
 	if err != nil {
 		return nil, fmt.Errorf("scan FindAnyByEmail: %w", err)
 	}

@@ -2,7 +2,6 @@ package bonus
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -85,9 +84,6 @@ func (s *bonusService) GetUserBonuses(ctx context.Context, userID string) ([]mod
 func (s *bonusService) ValidateBonus(ctx context.Context, qrToken string) error {
 	bonusItem, err := s.bonusRepo.GetByQRToken(ctx, qrToken)
 	if err != nil {
-		if errors.Is(err, srvErrors.ErrBonusNotFound) {
-			return srvErrors.ErrBonusNotFound
-		}
 		return fmt.Errorf("get bonus by token: %w", err)
 	}
 

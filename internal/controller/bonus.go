@@ -102,7 +102,7 @@ func (h *Application) GetUserBonuses(ctx *gin.Context) {
 // @Failure 400 {object} dto.ErrorResponse "Некорректный запрос"
 // @Failure 404 {object} dto.ErrorResponse "QR не найден"
 // @Failure 409 {object} dto.ErrorResponse "Бонус уже использован"
-// @Router /bonus/validate [post]
+// @Router /bonuses/validate [post]
 func (h *Application) ValidateBonus(ctx *gin.Context) {
 	var req dto.BonusValidateRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
