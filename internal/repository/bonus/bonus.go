@@ -2,14 +2,17 @@ package bonus
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
+	srvErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
 )
 
 const (
@@ -142,4 +145,48 @@ func (r *PostgresBonusRepository) MarkBonusUsed(ctx context.Context, qrToken str
 	}
 
 	return nil
+}
+
+func (r *PostgresBonusRepository) GetByQRToken(ctx context.Context, qrToken string) (*model.BonusReward, error) {
+	query, args, err := r.builder.
+		Select(
+			bonusIDColumn,
+			bonusUserIDColumn,
+			bonusPlaceIDColumn,
+			bonusRequiredPtsColumn,
+			bonusRewardTypeColumn,
+			bonusQRTokenColumn,
+			bonusIsUsedColumn,
+			bonusUsedAtColumn,
+		).
+		From(bonusTable).
+		Where(sq.Eq{bonusQRTokenColumn: qrToken}).
+		Limit(1).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("build GetByQRToken query: %w", err)
+	}
+
+	row := r.db.QueryRow(ctx, query, args...)
+
+	var b model.BonusReward
+	err = row.Scan(
+		&b.ID,
+		&b.UserID,
+		&b.PlaceID,
+		&b.RequiredPoints,
+		&b.RewardType,
+		&b.QRToken,
+		&b.IsUsed,
+		&b.UsedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, srvErrors.ErrBonusNotFound
+		}
+		return nil, fmt.Errorf("scan GetByQRToken: %w", err)
+	}
+
+	return &b, nil
 }

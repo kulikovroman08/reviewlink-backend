@@ -81,6 +81,23 @@ func (s *bonusService) GetUserBonuses(ctx context.Context, userID string) ([]mod
 	return bonuses, nil
 }
 
+func (s *bonusService) ValidateBonus(ctx context.Context, qrToken string) error {
+	bonusItem, err := s.bonusRepo.GetByQRToken(ctx, qrToken)
+	if err != nil {
+		return err
+	}
+
+	if bonusItem.IsUsed {
+		return srvErrors.ErrBonusAlreadyUsed
+	}
+
+	if err := s.bonusRepo.MarkBonusUsed(ctx, qrToken); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func generateQRToken() string {
 	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, 6)

@@ -119,3 +119,25 @@ func (s *BonusTestSuite) TestRedeemBonusNotEnoughPoints() {
 	require.NoError(s.T(), json.Unmarshal(rec.Body.Bytes(), &resp))
 	require.Equal(s.T(), "not enough points", resp["error"])
 }
+
+func (s *BonusTestSuite) TestValidateBonusSuccess() {
+	token := s.TS.Login("admin@example.com", "securepass")
+
+	body := map[string]any{
+		"qr_token": "bonus123qr",
+	}
+	data, _ := json.Marshal(body)
+
+	req := httptest.NewRequest(http.MethodPost, "/bonuses/validate", bytes.NewReader(data))
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	rec := httptest.NewRecorder()
+	s.TS.App.ServeHTTP(rec, req)
+
+	require.Equal(s.T(), http.StatusOK, rec.Code)
+
+	var resp map[string]any
+	require.NoError(s.T(), json.Unmarshal(rec.Body.Bytes(), &resp))
+	require.Equal(s.T(), "bonus redeemed", resp["status"])
+}

@@ -193,6 +193,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/bonuses/validate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Администратор активирует бонус по QR-токену",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bonuses"
+                ],
+                "summary": "Валидация бонусного QR-кода",
+                "parameters": [
+                    {
+                        "description": "QR токен для активации бонуса",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BonusValidateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.BonusValidateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "QR не найден",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Бонус уже использован",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/leaderboard/places": {
             "get": {
                 "description": "Returns a ranked list of places based on number of reviews and average rating.",
@@ -964,6 +1021,25 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "used_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.BonusValidateRequest": {
+            "type": "object",
+            "required": [
+                "qr_token"
+            ],
+            "properties": {
+                "qr_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.BonusValidateResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
                     "type": "string"
                 }
             }

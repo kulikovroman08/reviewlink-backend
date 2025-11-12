@@ -89,3 +89,39 @@ func (h *Application) GetUserBonuses(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, resp)
 }
+
+// ValidateBonus godoc
+// @Summary Валидация бонусного QR-кода
+// @Description Администратор активирует бонус по QR-токену
+// @Tags bonuses
+// @Accept json
+// @Produce json
+// @Param request body dto.BonusValidateRequest true "QR токен для активации бонуса"
+// @Security BearerAuth
+// @Success 200 {object} dto.BonusValidateResponse
+// @Failure 400 {object} dto.ErrorResponse "Некорректный запрос"
+// @Failure 404 {object} dto.ErrorResponse "QR не найден"
+// @Failure 409 {object} dto.ErrorResponse "Бонус уже использован"
+// @Router /bonuses/validate [post]
+func (h *Application) ValidateBonus(ctx *gin.Context) {
+	var req dto.BonusValidateRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
+		return
+	}
+
+	err := h.BonusService.ValidateBonus(ctx, req.QRToken)
+	if err != nil {
+		switch {
+		case errors.Is(err, srvErrors.ErrBonusNotFound):
+			ctx.JSON(http.StatusNotFound, dto.ErrorResponse{Error: response.ErrBonusNotFound})
+		case errors.Is(err, srvErrors.ErrBonusAlreadyUsed):
+			ctx.JSON(http.StatusConflict, dto.ErrorResponse{Error: response.ErrBonusAlreadyUsed})
+		default:
+			ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrInternalError})
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusOK, dto.BonusValidateResponse{Status: "bonus redeemed"})
+}

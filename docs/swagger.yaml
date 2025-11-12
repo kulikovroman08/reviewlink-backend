@@ -64,6 +64,18 @@ definitions:
       used_at:
         type: string
     type: object
+  dto.BonusValidateRequest:
+    properties:
+      qr_token:
+        type: string
+    required:
+    - qr_token
+    type: object
+  dto.BonusValidateResponse:
+    properties:
+      status:
+        type: string
+    type: object
   dto.CreatePlaceRequest:
     properties:
       address:
@@ -322,6 +334,42 @@ paths:
       security:
       - BearerAuth: []
       summary: Обмен баллов на бонус
+      tags:
+      - bonuses
+  /bonuses/validate:
+    post:
+      consumes:
+      - application/json
+      description: Администратор активирует бонус по QR-токену
+      parameters:
+      - description: QR токен для активации бонуса
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BonusValidateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.BonusValidateResponse'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: QR не найден
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Бонус уже использован
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Валидация бонусного QR-кода
       tags:
       - bonuses
   /leaderboard/places:

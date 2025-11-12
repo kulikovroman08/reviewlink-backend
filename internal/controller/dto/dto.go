@@ -119,3 +119,11 @@ type BonusResponse struct {
 	IsUsed         bool       `json:"is_used"`
 	UsedAt         *time.Time `json:"used_at,omitempty"`
 }
+
+type BonusValidateRequest struct {
+	QRToken string `json:"qr_token" binding:"required"`
+}
+
+type BonusValidateResponse struct {
+	Status string `json:"status"`
+}

@@ -44,4 +44,5 @@ type LeaderboardService interface {
 type BonusService interface {
 	RedeemBonus(ctx context.Context, userID, placeID, rewardType string) (*model.BonusReward, error)
 	GetUserBonuses(ctx context.Context, userID string) ([]model.BonusReward, error)
+	ValidateBonus(ctx context.Context, qrToken string) error
 }
