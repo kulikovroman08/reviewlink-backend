@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -17,11 +18,20 @@ import (
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 )
 
+const (
+	RestrictionTypePointsFreeze = "review_points_freeze"
+	LowRatingRestrictionReason  = "Too many negative reviews in 7 days"
+	FreezeDurationDays          = 7
+	LowRatingThreshold          = 3
+	ReviewPeriodDays            = 7
+)
+
 type reviewService struct {
-	reviewRepo   repository.ReviewRepository
-	userRepo     repository.UserRepository
-	placeRepo    repository.PlaceRepository
-	tokenService *token.Service
+	reviewRepo      repository.ReviewRepository
+	userRepo        repository.UserRepository
+	placeRepo       repository.PlaceRepository
+	tokenService    *token.Service
+	restrictionRepo repository.UserRestrictionRepository
 }
 
 func NewReviewService(
@@ -29,12 +39,14 @@ func NewReviewService(
 	userRepo repository.UserRepository,
 	placeRepo repository.PlaceRepository,
 	tokenService *token.Service,
+	restrictionRepo repository.UserRestrictionRepository,
 ) *reviewService {
 	return &reviewService{
-		reviewRepo:   reviewRepo,
-		userRepo:     userRepo,
-		placeRepo:    placeRepo,
-		tokenService: tokenService,
+		reviewRepo:      reviewRepo,
+		userRepo:        userRepo,
+		placeRepo:       placeRepo,
+		tokenService:    tokenService,
+		restrictionRepo: restrictionRepo,
 	}
 }
 
@@ -59,16 +71,54 @@ func (s *reviewService) SubmitReview(ctx context.Context, review model.Review, t
 		return serviceErrors.ErrTokenExpired
 	}
 
-	hashToday, err := s.reviewRepo.HasReviewToday(ctx, review.UserID.String(), token.PlaceID.String())
+	hasToday, err := s.reviewRepo.HasReviewToday(ctx, review.UserID.String(), token.PlaceID.String())
 	if err != nil {
 		return fmt.Errorf("check existing review: %w", err)
 	}
-	if hashToday {
-		return serviceErrors.ErrInvalidCredentials
+	if hasToday {
+		return serviceErrors.ErrTooManyReviews
+	}
+
+	isRestricted, err := s.restrictionRepo.HasActiveRestriction(
+		ctx, review.UserID.String(), RestrictionTypePointsFreeze)
+	if err != nil {
+		return fmt.Errorf("check restriction: %w", err)
+	}
+
+	if !isRestricted && review.Rating == 1 {
+		count, err := s.reviewRepo.CountLowRatingReviews(
+			ctx, review.UserID.String(), ReviewPeriodDays)
+		if err != nil {
+			return fmt.Errorf("count low ratings: %w", err)
+		}
+
+		if count >= LowRatingThreshold {
+			restriction := model.UserRestriction{
+				ID:              uuid.New(),
+				UserID:          review.UserID,
+				RestrictionType: RestrictionTypePointsFreeze,
+				Reason:          LowRatingRestrictionReason,
+				CreatedAt:       time.Now(),
+				ExpiresAt:       time.Now().AddDate(0, 0, FreezeDurationDays),
+			}
+			if err := s.restrictionRepo.CreateRestriction(ctx, &restriction); err != nil {
+				return fmt.Errorf("create restriction: %w", err)
+			}
+
+			slog.Info("created user restriction",
+				"user_id", review.UserID,
+				"type", RestrictionTypePointsFreeze,
+				"reason", restriction.Reason,
+				"expires_at", restriction.ExpiresAt,
+			)
+
+			isRestricted = true
+		}
 	}
 
 	review.ID = uuid.New()
 	review.TokenID = token.ID
+	review.CreatedAt = time.Now()
 
 	if err := s.reviewRepo.CreateReview(ctx, review); err != nil {
 		return fmt.Errorf("create review: %w", err)
@@ -80,6 +130,11 @@ func (s *reviewService) SubmitReview(ctx context.Context, review model.Review, t
 
 	if err := s.tokenService.CheckAndRefillTokens(ctx, token.PlaceID.String()); err != nil {
 		fmt.Printf("auto-refill tokens failed for place %s: %v\n", token.PlaceID, err)
+	}
+
+	if isRestricted {
+		fmt.Printf("User %s has active restriction: skip points\n", review.UserID)
+		return nil
 	}
 
 	var points int

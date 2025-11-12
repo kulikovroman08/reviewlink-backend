@@ -110,8 +110,8 @@ func (s *SubmitReviewTestSuite) TestSubmitReviewAlreadyToday() {
 	rec := httptest.NewRecorder()
 	s.TS.App.ServeHTTP(rec, req)
 
-	require.Equal(s.T(), http.StatusBadRequest, rec.Code)
-	require.Contains(s.T(), rec.Body.String(), "invalid credentials")
+	require.Equal(s.T(), http.StatusTooManyRequests, rec.Code)
+	require.Contains(s.T(), rec.Body.String(), "too many reviews today")
 }
 
 func (s *SubmitReviewTestSuite) TestSubmitReviewExpiredToken() {

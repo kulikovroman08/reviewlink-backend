@@ -1,0 +1,11 @@
+- id: "b8c52b0c-8f11-4b9c-9c3f-123456789def"
+  name: "Test Place 2"
+  address: "456 Oak St"
+
+- id: "c8c52b0c-8f11-4b9c-9c3f-123456789abc"
+  name: "Test Place 3"
+  address: "789 Pine St"
+
+- id: "d8c52b0c-8f11-4b9c-9c3f-123456789bcd"
+  name: "Test Place 4"
+  address: "101 Maple St"

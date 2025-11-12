@@ -21,6 +21,7 @@ import (
 	repoAdmin "github.com/kulikovroman08/reviewlink-backend/internal/repository/admin"
 	bonusRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/bonus"
 	repoLeaderboard "github.com/kulikovroman08/reviewlink-backend/internal/repository/leaderboard"
+	restrictionRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/restriction"
 	reviewRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/review"
 	tokenRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/token"
 	"github.com/kulikovroman08/reviewlink-backend/internal/repository/user"
@@ -65,11 +66,12 @@ func NewTestSetup() *TestSetup {
 	adminRepo := repoAdmin.NewPostgresAdminRepository(db)
 	leaderboardRepo := repoLeaderboard.NewRepository(db)
 	bonusRepo := bonusRepo.NewPostgresBonusRepository(db)
+	restrictionRepo := restrictionRepo.NewPostgresUserRestrictionRepository(db)
 
 	tokSrv := tokenService.NewTokenService(tokRepo, &cfg)
 	userSrv := userService.NewUserService(userRepo)
 	placeSrv := placeService.NewPlaceService(placeRepo, tokSrv, &cfg)
-	reviewSrv := reviewService.NewReviewService(reviewRepo, userRepo, placeRepo, tokSrv)
+	reviewSrv := reviewService.NewReviewService(reviewRepo, userRepo, placeRepo, tokSrv, restrictionRepo)
 	adminSrv := adminService.NewAdminService(adminRepo)
 	leaderboardService := svcLeaderboard.NewService(leaderboardRepo)
 	bonusService := svcBonus.NewBonusService(userRepo, bonusRepo, &cfg)

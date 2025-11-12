@@ -25,6 +25,7 @@ import (
 // @Param        request  body      dto.SubmitReviewRequest  true  "Данные отзыва"
 // @Success      201
 // @Failure 400 {object} dto.ErrorResponse "invalid input"
+// @Failure 429 {object}  dto.ErrorResponse "too many reviews today"
 // @Failure 401 {object} dto.ErrorResponse "invalid user_id / invalid token"
 // @Failure 403 {object} dto.ErrorResponse "token expired / token already used"
 // @Failure 500 {object} dto.ErrorResponse "internal error"
@@ -53,6 +54,9 @@ func (h *Application) SubmitReview(c *gin.Context) {
 	err = h.ReviewService.SubmitReview(c.Request.Context(), review, req.Token)
 	if err != nil {
 		switch {
+		case errors.Is(err, serviceErrors.ErrTooManyReviews):
+			c.JSON(http.StatusTooManyRequests, dto.ErrorResponse{Error: response.ErrTooManyReviews})
+
 		case errors.Is(err, serviceErrors.ErrTokenExpired):
 			c.JSON(http.StatusForbidden, dto.ErrorResponse{Error: response.ErrTokenExpired})
 

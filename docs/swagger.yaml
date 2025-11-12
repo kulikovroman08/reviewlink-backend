@@ -376,22 +376,23 @@ paths:
     get:
       consumes:
       - application/json
-      description: Returns a ranked list of places based on number of reviews and
-        average rating.
+      description: Возвращает список заведений, отсортированных по количеству отзывов
+        и среднему рейтингу.
       parameters:
-      - description: Maximum number of results (default 10, max 100)
+      - description: Максимальное количество результатов (по умолчанию 10, максимум
+          100)
         in: query
         name: limit
         type: integer
-      - description: 'Sorting method: ''reviews'' or ''rating'' (default ''reviews'')'
+      - description: 'Сортировка: ''reviews'' или ''rating'' (по умолчанию ''reviews'')'
         in: query
         name: sort_by
         type: string
-      - description: Minimum average rating filter (default 0)
+      - description: Минимальный средний рейтинг (по умолчанию 0)
         in: query
         name: min_rating
         type: number
-      - description: Minimum number of reviews filter (default 0)
+      - description: Минимальное количество отзывов (по умолчанию 0)
         in: query
         name: min_reviews
         type: integer
@@ -399,38 +400,39 @@ paths:
       - application/json
       responses:
         "200":
-          description: List of place leaderboard entries
+          description: Список заведений
           schema:
             items:
               $ref: '#/definitions/dto.LeaderboardEntry'
             type: array
         "500":
-          description: Internal server error
+          description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Get top places leaderboard
+      summary: Получить топ заведений
       tags:
       - leaderboard
   /leaderboard/users:
     get:
       consumes:
       - application/json
-      description: Returns a ranked list of users based on number of reviews and average
-        rating.
+      description: Возвращает список пользователей, отсортированных по количеству
+        отзывов и среднему рейтингу.
       parameters:
-      - description: Maximum number of results (default 10, max 100)
+      - description: Максимальное количество результатов (по умолчанию 10, максимум
+          100)
         in: query
         name: limit
         type: integer
-      - description: 'Sorting method: ''reviews'' or ''rating'' (default ''reviews'')'
+      - description: 'Сортировка: ''reviews'' или ''rating'' (по умолчанию ''reviews'')'
         in: query
         name: sort_by
         type: string
-      - description: Minimum average rating filter (default 0)
+      - description: Минимальный средний рейтинг (по умолчанию 0)
         in: query
         name: min_rating
         type: number
-      - description: Minimum number of reviews filter (default 0)
+      - description: Минимальное количество отзывов (по умолчанию 0)
         in: query
         name: min_reviews
         type: integer
@@ -438,16 +440,16 @@ paths:
       - application/json
       responses:
         "200":
-          description: List of user leaderboard entries
+          description: Список пользователей
           schema:
             items:
               $ref: '#/definitions/dto.LeaderboardEntry'
             type: array
         "500":
-          description: Internal server error
+          description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Get top users leaderboard
+      summary: Получить топ пользователей
       tags:
       - leaderboard
   /login:
@@ -595,6 +597,10 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
         "403":
           description: token expired / token already used
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: too many reviews today
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "500":

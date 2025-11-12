@@ -18,4 +18,5 @@ var (
 	ErrBonusCreateFail    = errors.New("failed to create bonus")
 	ErrBonusNotFound      = errors.New("bonus not found")
 	ErrBonusAlreadyUsed   = errors.New("bonus already used")
+	ErrTooManyReviews     = errors.New("too many reviews today")
 )

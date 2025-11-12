@@ -7,5 +7,8 @@ CREATE TABLE IF NOT EXISTS user_restrictions (
     expires_at TIMESTAMP NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_restrictions_user_id_expires
-    ON user_restrictions(user_id, expires_at);
+ALTER TABLE user_restrictions
+    ADD CONSTRAINT uniq_user_restriction UNIQUE (user_id, restriction_type);
+
+CREATE INDEX IF NOT EXISTS idx_user_restrictions_user_type
+    ON user_restrictions(user_id, restriction_type);

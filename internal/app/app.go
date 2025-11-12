@@ -13,6 +13,7 @@ import (
 	bonusRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/bonus"
 	repoLeaderboard "github.com/kulikovroman08/reviewlink-backend/internal/repository/leaderboard"
 	repoPlace "github.com/kulikovroman08/reviewlink-backend/internal/repository/place"
+	restrictionRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/restriction"
 	repoReview "github.com/kulikovroman08/reviewlink-backend/internal/repository/review"
 	repoToken "github.com/kulikovroman08/reviewlink-backend/internal/repository/token"
 	repoUser "github.com/kulikovroman08/reviewlink-backend/internal/repository/user"
@@ -38,11 +39,12 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 	adminRepo := repoAdmin.NewPostgresAdminRepository(dbpool)
 	leaderboardRepo := repoLeaderboard.NewRepository(dbpool)
 	bonusRepo := bonusRepo.NewPostgresBonusRepository(dbpool)
+	restrictionRepo := restrictionRepo.NewPostgresUserRestrictionRepository(dbpool)
 
 	tokenService := svcToken.NewTokenService(tokenRepo, cfg)
 	userService := svcUser.NewUserService(userRepo)
 	placeService := svcPlace.NewPlaceService(placeRepo, tokenService, cfg)
-	reviewService := svcReview.NewReviewService(reviewRepo, userRepo, placeRepo, tokenService)
+	reviewService := svcReview.NewReviewService(reviewRepo, userRepo, placeRepo, tokenService, restrictionRepo)
 	adminService := svcAdmin.NewAdminService(adminRepo)
 	leaderboardService := svcLeaderboard.NewService(leaderboardRepo)
 	bonusService := svcBonus.NewBonusService(userRepo, bonusRepo, cfg)
