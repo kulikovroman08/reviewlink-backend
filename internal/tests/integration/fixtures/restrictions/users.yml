@@ -1,0 +1,26 @@
+- id: "11111111-1111-1111-1111-111111111111"
+  name: "Restricted User"
+  email: "restricted_user@example.com"
+  password_hash: "$2a$10$m4SBThJI3xeJPH89s7Oud.BxTGxnGzGqMSWWXfC8/T.foPTO754d."
+  role: "user"
+  points: 100
+  created_at: "2023-01-20 12:00:00"
+  is_deleted: false
+
+- id: "22222222-2222-2222-2222-222222222222"
+  name: "Normal User"  
+  email: "normal_user@example.com"
+  password_hash: "$2a$10$m4SBThJI3xeJPH89s7Oud.BxTGxnGzGqMSWWXfC8/T.foPTO754d."
+  role: "user"
+  points: 50
+  created_at: "2023-02-10 09:00:00"
+  is_deleted: false
+
+- id: "33333333-3333-3333-3333-333333333333"
+  name: "Limited User"
+  email: "limited_user@example.com"
+  password_hash: "$2a$10$m4SBThJI3xeJPH89s7Oud.BxTGxnGzGqMSWWXfC8/T.foPTO754d."
+  role: "user"
+  points: 100
+  created_at: "2023-02-20 09:00:00"
+  is_deleted: false

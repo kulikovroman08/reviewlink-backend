@@ -11,17 +11,17 @@ import (
 )
 
 // GetUserLeaderboard godoc
-// @Summary      Get top users leaderboard
-// @Description  Returns a ranked list of users based on number of reviews and average rating.
+// @Summary      Получить топ пользователей
+// @Description  Возвращает список пользователей, отсортированных по количеству отзывов и среднему рейтингу.
 // @Tags         leaderboard
 // @Accept       json
 // @Produce      json
-// @Param        limit        query     int     false  "Maximum number of results (default 10, max 100)"
-// @Param        sort_by      query     string  false  "Sorting method: 'reviews' or 'rating' (default 'reviews')"
-// @Param        min_rating   query     number  false  "Minimum average rating filter (default 0)"
-// @Param        min_reviews  query     int     false  "Minimum number of reviews filter (default 0)"
-// @Success      200  {array}   dto.LeaderboardEntry  "List of user leaderboard entries"
-// @Failure      500  {object}  dto.ErrorResponse      "Internal server error"
+// @Param        limit        query     int     false  "Максимальное количество результатов (по умолчанию 10, максимум 100)"
+// @Param        sort_by      query     string  false  "Сортировка: 'reviews' или 'rating' (по умолчанию 'reviews')"
+// @Param        min_rating   query     number  false  "Минимальный средний рейтинг (по умолчанию 0)"
+// @Param        min_reviews  query     int     false  "Минимальное количество отзывов (по умолчанию 0)"
+// @Success      200  {array}   dto.LeaderboardEntry  "Список пользователей"
+// @Failure      500  {object}  dto.ErrorResponse      "Внутренняя ошибка сервера"
 // @Router       /leaderboard/users [get]
 func (a *Application) GetUserLeaderboard(c *gin.Context) {
 	limitStr := parseQueryParam(c, "limit", "10")
@@ -80,17 +80,17 @@ func (a *Application) GetUserLeaderboard(c *gin.Context) {
 }
 
 // GetPlaceLeaderboard godoc
-// @Summary      Get top places leaderboard
-// @Description  Returns a ranked list of places based on number of reviews and average rating.
+// @Summary      Получить топ заведений
+// @Description  Возвращает список заведений, отсортированных по количеству отзывов и среднему рейтингу.
 // @Tags         leaderboard
 // @Accept       json
 // @Produce      json
-// @Param        limit        query     int     false  "Maximum number of results (default 10, max 100)"
-// @Param        sort_by      query     string  false  "Sorting method: 'reviews' or 'rating' (default 'reviews')"
-// @Param        min_rating   query     number  false  "Minimum average rating filter (default 0)"
-// @Param        min_reviews  query     int     false  "Minimum number of reviews filter (default 0)"
-// @Success      200  {array}   dto.LeaderboardEntry  "List of place leaderboard entries"
-// @Failure      500  {object}  dto.ErrorResponse      "Internal server error"
+// @Param        limit        query     int     false  "Максимальное количество результатов (по умолчанию 10, максимум 100)"
+// @Param        sort_by      query     string  false  "Сортировка: 'reviews' или 'rating' (по умолчанию 'reviews')"
+// @Param        min_rating   query     number  false  "Минимальный средний рейтинг (по умолчанию 0)"
+// @Param        min_reviews  query     int     false  "Минимальное количество отзывов (по умолчанию 0)"
+// @Success      200  {array}   dto.LeaderboardEntry  "Список заведений"
+// @Failure      500  {object}  dto.ErrorResponse      "Внутренняя ошибка сервера"
 // @Router       /leaderboard/places [get]
 func (a *Application) GetPlaceLeaderboard(c *gin.Context) {
 	limitStr := parseQueryParam(c, "limit", "10")

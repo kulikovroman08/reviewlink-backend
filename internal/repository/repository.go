@@ -32,6 +32,7 @@ type ReviewRepository interface {
 	FindReviews(ctx context.Context, placeID string, filter model.ReviewFilter) ([]model.Review, error)
 	UpdateReview(ctx context.Context, reviewID, userID string, content string, rating int) error
 	DeleteReview(ctx context.Context, reviewID, userID string) error
+	CountLowRatingReviews(ctx context.Context, userID string, days int) (int, error)
 }
 
 type TokenRepository interface {
@@ -53,4 +54,9 @@ type BonusRepository interface {
 	GetBonusesByUser(ctx context.Context, userID string) ([]model.BonusReward, error)
 	MarkBonusUsed(ctx context.Context, qrToken string) error
 	GetByQRToken(ctx context.Context, qrToken string) (*model.BonusReward, error)
+}
+
+type UserRestrictionRepository interface {
+	HasActiveRestriction(ctx context.Context, userID, restrictionType string) (bool, error)
+	CreateRestriction(ctx context.Context, restriction *model.UserRestriction) error
 }

@@ -46,6 +46,7 @@ const (
 	ErrInvalidRating      = "invalid rating"
 	ErrReviewNotFound     = "review not found"
 	ErrFailedUpdateReview = "failed to update review"
+	ErrTooManyReviews     = "too many reviews today"
 )
 
 // Admin

@@ -295,3 +295,17 @@ func (r *PostgresReviewRepository) DeleteReview(ctx context.Context, reviewID, u
 
 	return nil
 }
+
+func (r *PostgresReviewRepository) CountLowRatingReviews(ctx context.Context, userID string, days int) (int, error) {
+	query := `
+        SELECT COUNT(*)
+        FROM reviews
+        WHERE user_id = $1
+          AND rating = 1
+          AND created_at > NOW() - INTERVAL '1 day' * $2
+          AND is_deleted = false`
+
+	var count int
+	err := r.db.QueryRow(ctx, query, userID, days).Scan(&count)
+	return count, err
+}

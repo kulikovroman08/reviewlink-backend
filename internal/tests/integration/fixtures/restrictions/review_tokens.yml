@@ -1,0 +1,17 @@
+- id: "ddddddd2-4444-4444-4444-444444444444"
+  place_id: "b8c52b0c-8f11-4b9c-9c3f-123456789def"
+  token_value: "TOKEN987654321"
+  is_used: false
+  expires_at: "2099-12-31 23:59:59"
+
+- id: "ccccccc1-3333-3333-3333-333333333333"
+  place_id: "c8c52b0c-8f11-4b9c-9c3f-123456789abc"
+  token_value: "FRESHTOKEN123"
+  is_used: false
+  expires_at: "2099-12-31 23:59:59"
+
+- id: "eeeeeee3-5555-5555-5555-555555555555"
+  place_id: "d8c52b0c-8f11-4b9c-9c3f-123456789bcd"  # Test Place 4
+  token_value: "LIMITEDTOKEN999"
+  is_used: false
+  expires_at: "2099-12-31 23:59:59"

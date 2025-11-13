@@ -252,7 +252,7 @@ const docTemplate = `{
         },
         "/leaderboard/places": {
             "get": {
-                "description": "Returns a ranked list of places based on number of reviews and average rating.",
+                "description": "Возвращает список заведений, отсортированных по количеству отзывов и среднему рейтингу.",
                 "consumes": [
                     "application/json"
                 ],
@@ -262,36 +262,36 @@ const docTemplate = `{
                 "tags": [
                     "leaderboard"
                 ],
-                "summary": "Get top places leaderboard",
+                "summary": "Получить топ заведений",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Maximum number of results (default 10, max 100)",
+                        "description": "Максимальное количество результатов (по умолчанию 10, максимум 100)",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Sorting method: 'reviews' or 'rating' (default 'reviews')",
+                        "description": "Сортировка: 'reviews' или 'rating' (по умолчанию 'reviews')",
                         "name": "sort_by",
                         "in": "query"
                     },
                     {
                         "type": "number",
-                        "description": "Minimum average rating filter (default 0)",
+                        "description": "Минимальный средний рейтинг (по умолчанию 0)",
                         "name": "min_rating",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "Minimum number of reviews filter (default 0)",
+                        "description": "Минимальное количество отзывов (по умолчанию 0)",
                         "name": "min_reviews",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of place leaderboard entries",
+                        "description": "Список заведений",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -300,7 +300,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Внутренняя ошибка сервера",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -310,7 +310,7 @@ const docTemplate = `{
         },
         "/leaderboard/users": {
             "get": {
-                "description": "Returns a ranked list of users based on number of reviews and average rating.",
+                "description": "Возвращает список пользователей, отсортированных по количеству отзывов и среднему рейтингу.",
                 "consumes": [
                     "application/json"
                 ],
@@ -320,36 +320,36 @@ const docTemplate = `{
                 "tags": [
                     "leaderboard"
                 ],
-                "summary": "Get top users leaderboard",
+                "summary": "Получить топ пользователей",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Maximum number of results (default 10, max 100)",
+                        "description": "Максимальное количество результатов (по умолчанию 10, максимум 100)",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Sorting method: 'reviews' or 'rating' (default 'reviews')",
+                        "description": "Сортировка: 'reviews' или 'rating' (по умолчанию 'reviews')",
                         "name": "sort_by",
                         "in": "query"
                     },
                     {
                         "type": "number",
-                        "description": "Minimum average rating filter (default 0)",
+                        "description": "Минимальный средний рейтинг (по умолчанию 0)",
                         "name": "min_rating",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "Minimum number of reviews filter (default 0)",
+                        "description": "Минимальное количество отзывов (по умолчанию 0)",
                         "name": "min_reviews",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of user leaderboard entries",
+                        "description": "Список пользователей",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -358,7 +358,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Внутренняя ошибка сервера",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -593,6 +593,12 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "token expired / token already used",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "too many reviews today",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }

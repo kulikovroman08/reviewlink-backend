@@ -127,3 +127,9 @@ type BonusValidateRequest struct {
 type BonusValidateResponse struct {
 	Status string `json:"status"`
 }
+
+type UserRestrictionResponse struct {
+	RestrictionType string    `json:"restriction_type"`
+	Reason          string    `json:"reason"`
+	ExpiresAt       time.Time `json:"expires_at"`
+}
