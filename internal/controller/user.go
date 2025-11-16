@@ -225,3 +225,36 @@ func (h *Application) DeleteUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, dto.MessageResponse{Message: response.ErrUserDeleted})
 }
+
+// GetUserStats godoc
+// @Summary      Получение статистики пользователя
+// @Description  Возвращает статистику активности текущего пользователя (user_id берётся из токена)
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} dto.UserStatsResponse
+// @Failure      401 {object} dto.ErrorResponse "authentication required"
+// @Failure      500 {object} dto.ErrorResponse "failed to get user stats"
+// @Router       /users/stats [get]
+func (h *Application) GetUserStats(c *gin.Context) {
+	userID := c.MustGet("user_id").(string)
+
+	stats, err := h.UserService.GetUserStats(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+			Error: response.ErrFailedGetUserStats,
+		})
+		return
+	}
+
+	resp := dto.UserStatsResponse{
+		TotalReviews:  stats.TotalReviews,
+		AvgRating:     stats.AvgRating,
+		Points:        stats.Points,
+		BonusesActive: stats.BonusesActive,
+		BonusesUsed:   stats.BonusesUsed,
+	}
+
+	c.JSON(http.StatusOK, resp)
+}

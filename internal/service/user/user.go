@@ -21,11 +21,21 @@ import (
 )
 
 type userService struct {
-	userRepo repository.UserRepository
+	userRepo   repository.UserRepository
+	reviewRepo repository.ReviewRepository
+	bonusRepo  repository.BonusRepository
 }
 
-func NewUserService(userRepo repository.UserRepository) *userService {
-	return &userService{userRepo: userRepo}
+func NewUserService(
+	userRepo repository.UserRepository,
+	reviewRepo repository.ReviewRepository,
+	bonusRepo repository.BonusRepository,
+) *userService {
+	return &userService{
+		userRepo:   userRepo,
+		reviewRepo: reviewRepo,
+		bonusRepo:  bonusRepo,
+	}
 }
 
 func (s *userService) GetUser(ctx context.Context, userID string) (*model.User, error) {
@@ -158,6 +168,51 @@ func (s *userService) DeleteUser(ctx context.Context, userID string) error {
 	}
 
 	return nil
+}
+
+func (s *userService) GetUserStats(ctx context.Context, userID string) (*model.UserStats, error) {
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("GetUserStats: find user: %w", err)
+	}
+	if user == nil || user.IsDeleted {
+		return nil, fmt.Errorf("GetUserStats: user not found or deleted")
+	}
+
+	totalReviews, err := s.reviewRepo.CountUserReviews(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("GetUserStats: count reviews: %w", err)
+	}
+
+	avgRating, err := s.reviewRepo.AvgUserRating(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("GetUserStats: avg rating: %w", err)
+	}
+
+	bonuses, err := s.bonusRepo.GetBonusesByUser(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("GetUserStats: get bonuses: %w", err)
+	}
+
+	active := 0
+	used := 0
+	for _, b := range bonuses {
+		if b.IsUsed {
+			used++
+		} else {
+			active++
+		}
+	}
+
+	stats := &model.UserStats{
+		TotalReviews:  totalReviews,
+		AvgRating:     avgRating,
+		Points:        user.Points,
+		BonusesActive: active,
+		BonusesUsed:   used,
+	}
+
+	return stats, nil
 }
 
 func (s *userService) generateJWT(user *model.User) (string, error) {

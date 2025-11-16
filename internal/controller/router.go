@@ -34,12 +34,17 @@ func SetupRouter(app *Application) *gin.Engine {
 		protected.GET("/users", app.GetUser)
 		protected.PUT("/users", app.UpdateUser)
 		protected.DELETE("/users", app.DeleteUser)
+		protected.GET("/users/stats", app.GetUserStats)
+
 		protected.POST("/places", app.CreatePlace)
+
 		protected.POST("/reviews", app.SubmitReview)
 		protected.PATCH("/reviews/:id", app.UpdateReview)
-		protected.POST("/admin/tokens", app.GenerateTokens)
 		protected.DELETE("/reviews/:id", app.DeleteReview)
+
+		protected.POST("/admin/tokens", app.GenerateTokens)
 		protected.GET("/admin/stats", app.GetStats)
+
 		protected.POST("/bonuses/redeem", app.RedeemBonus)
 		protected.GET("/bonuses", app.GetUserBonuses)
 		protected.POST("/bonuses/validate", app.ValidateBonus)

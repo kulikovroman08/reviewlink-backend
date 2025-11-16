@@ -42,7 +42,7 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 	restrictionRepo := restrictionRepo.NewPostgresUserRestrictionRepository(dbpool)
 
 	tokenService := svcToken.NewTokenService(tokenRepo, cfg)
-	userService := svcUser.NewUserService(userRepo)
+	userService := svcUser.NewUserService(userRepo, reviewRepo, bonusRepo)
 	placeService := svcPlace.NewPlaceService(placeRepo, tokenService, cfg)
 	reviewService := svcReview.NewReviewService(reviewRepo, userRepo, placeRepo, tokenService, restrictionRepo)
 	adminService := svcAdmin.NewAdminService(adminRepo)

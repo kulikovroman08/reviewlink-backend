@@ -14,6 +14,7 @@ type UserService interface {
 	GetUser(ctx context.Context, userID string) (*model.User, error)
 	UpdateUser(ctx context.Context, user model.User, password string) (*model.User, error)
 	DeleteUser(ctx context.Context, userID string) error
+	GetUserStats(ctx context.Context, userID string) (*model.UserStats, error)
 }
 
 type PlaceService interface {

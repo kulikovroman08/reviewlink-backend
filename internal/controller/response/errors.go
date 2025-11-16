@@ -19,6 +19,7 @@ const (
 	ErrFailedUpdateUser   = "failed to update user"
 	ErrFailedDeleteUser   = "failed to delete user"
 	ErrUserDeleted        = "user deleted"
+	ErrFailedGetUserStats = "failed to get user stats"
 )
 
 // Tokens
