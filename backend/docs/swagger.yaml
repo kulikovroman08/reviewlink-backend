@@ -16,6 +16,17 @@ definitions:
       token:
         type: string
     type: object
+  dto.BonusLeaderboardEntry:
+    properties:
+      bonuses_count:
+        type: integer
+      name:
+        type: string
+      points_spent:
+        type: integer
+      rank:
+        type: integer
+    type: object
   dto.BonusRedeemRequest:
     properties:
       place_id:
@@ -385,6 +396,28 @@ paths:
       summary: Валидация бонусного QR-кода
       tags:
       - bonuses
+  /leaderboard/bonuses:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список пользователей, отсортированных по количеству
+        полученных бонусов.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список пользователей
+          schema:
+            items:
+              $ref: '#/definitions/dto.BonusLeaderboardEntry'
+            type: array
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Получить топ пользователей по бонусам
+      tags:
+      - leaderboard
   /leaderboard/places:
     get:
       consumes:

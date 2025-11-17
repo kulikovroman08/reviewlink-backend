@@ -250,6 +250,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/leaderboard/bonuses": {
+            "get": {
+                "description": "Возвращает список пользователей, отсортированных по количеству полученных бонусов.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "leaderboard"
+                ],
+                "summary": "Получить топ пользователей по бонусам",
+                "responses": {
+                    "200": {
+                        "description": "Список пользователей",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.BonusLeaderboardEntry"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/leaderboard/places": {
             "get": {
                 "description": "Возвращает список заведений, отсортированных по количеству отзывов и среднему рейтингу.",
@@ -996,6 +1028,23 @@ const docTemplate = `{
             "properties": {
                 "token": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.BonusLeaderboardEntry": {
+            "type": "object",
+            "properties": {
+                "bonuses_count": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "points_spent": {
+                    "type": "integer"
+                },
+                "rank": {
+                    "type": "integer"
                 }
             }
         },

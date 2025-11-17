@@ -141,3 +141,10 @@ type UserStatsResponse struct {
 	BonusesActive int     `json:"bonuses_active"`
 	BonusesUsed   int     `json:"bonuses_used"`
 }
+
+type BonusLeaderboardEntry struct {
+	Rank         int    `json:"rank"`
+	Name         string `json:"name"`
+	BonusesCount int    `json:"bonuses_count"`
+	PointsSpent  int    `json:"points_spent"`
+}
