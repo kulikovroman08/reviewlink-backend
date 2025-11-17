@@ -49,6 +49,7 @@ type AdminRepository interface {
 type LeaderboardRepository interface {
 	GetTopUsers(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
 	GetTopPlaces(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
+	GetTopBonusUsers(ctx context.Context) ([]model.BonusLeaderboardEntry, error)
 }
 
 type BonusRepository interface {

@@ -40,6 +40,7 @@ type AdminService interface {
 type LeaderboardService interface {
 	GetUserLeaderboard(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
 	GetPlaceLeaderboard(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
+	GetBonusLeaderboard(ctx context.Context) ([]model.BonusLeaderboardEntry, error)
 }
 
 type BonusService interface {

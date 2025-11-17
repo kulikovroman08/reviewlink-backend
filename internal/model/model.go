@@ -103,3 +103,9 @@ type UserStats struct {
 	BonusesActive int
 	BonusesUsed   int
 }
+
+type BonusLeaderboardEntry struct {
+	Name         string
+	BonusesCount int
+	PointsSpent  int
+}
