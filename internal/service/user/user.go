@@ -194,15 +194,7 @@ func (s *userService) GetUserStats(ctx context.Context, userID string) (*model.U
 		return nil, fmt.Errorf("GetUserStats: get bonuses: %w", err)
 	}
 
-	active := 0
-	used := 0
-	for _, b := range bonuses {
-		if b.IsUsed {
-			used++
-		} else {
-			active++
-		}
-	}
+	active, used := countBonuses(bonuses)
 
 	stats := &model.UserStats{
 		TotalReviews:  totalReviews,
@@ -241,4 +233,15 @@ func (s *userService) shouldUpdateEmail(newEmail *string, currentEmail string) b
 
 func isUnexpectedErr(err error) bool {
 	return !errors.Is(err, pgx.ErrNoRows)
+}
+
+func countBonuses(bonuses []model.BonusReward) (active, used int) {
+	for _, b := range bonuses {
+		if b.IsUsed {
+			used++
+		} else {
+			active++
+		}
+	}
+	return
 }
