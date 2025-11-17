@@ -154,3 +154,34 @@ func parseQueryParam(c *gin.Context, key string, defaultValue string) string {
 	}
 	return defaultValue
 }
+
+// GetBonusLeaderboard godoc
+// @Summary      Получить топ пользователей по бонусам
+// @Description  Возвращает список пользователей, отсортированных по количеству полученных бонусов.
+// @Tags         leaderboard
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}   dto.BonusLeaderboardEntry  "Список пользователей"
+// @Failure      500  {object}  dto.ErrorResponse          "Внутренняя ошибка сервера"
+// @Router       /leaderboard/bonuses [get]
+func (a *Application) GetBonusLeaderboard(c *gin.Context) {
+	entries, err := a.LeaderboardService.GetBonusLeaderboard(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+			Error: response.ErrInternalError,
+		})
+		return
+	}
+
+	result := make([]dto.BonusLeaderboardEntry, len(entries))
+	for i, entry := range entries {
+		result[i] = dto.BonusLeaderboardEntry{
+			Rank:         i + 1,
+			Name:         entry.Name,
+			BonusesCount: entry.BonusesCount,
+			PointsSpent:  entry.PointsSpent,
+		}
+	}
+
+	c.JSON(http.StatusOK, result)
+}

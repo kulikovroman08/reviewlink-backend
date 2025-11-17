@@ -24,6 +24,7 @@ func SetupRouter(app *Application) *gin.Engine {
 
 		public.GET("/leaderboard/users", app.GetUserLeaderboard)
 		public.GET("/leaderboard/places", app.GetPlaceLeaderboard)
+		public.GET("/leaderboard/bonuses", app.GetBonusLeaderboard)
 
 	}
 
