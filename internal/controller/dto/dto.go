@@ -133,3 +133,11 @@ type UserRestrictionResponse struct {
 	Reason          string    `json:"reason"`
 	ExpiresAt       time.Time `json:"expires_at"`
 }
+
+type UserStatsResponse struct {
+	TotalReviews  int     `json:"total_reviews"`
+	AvgRating     float64 `json:"avg_rating"`
+	Points        int     `json:"points"`
+	BonusesActive int     `json:"bonuses_active"`
+	BonusesUsed   int     `json:"bonuses_used"`
+}

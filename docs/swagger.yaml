@@ -216,6 +216,19 @@ definitions:
       role:
         type: string
     type: object
+  dto.UserStatsResponse:
+    properties:
+      avg_rating:
+        type: number
+      bonuses_active:
+        type: integer
+      bonuses_used:
+        type: integer
+      points:
+        type: integer
+      total_reviews:
+        type: integer
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -815,6 +828,32 @@ paths:
       security:
       - BearerAuth: []
       summary: Обновление пользователя
+      tags:
+      - users
+  /users/stats:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает статистику активности текущего пользователя (user_id
+        берётся из токена)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserStatsResponse'
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to get user stats
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение статистики пользователя
       tags:
       - users
 securityDefinitions:

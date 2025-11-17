@@ -309,3 +309,49 @@ func (r *PostgresReviewRepository) CountLowRatingReviews(ctx context.Context, us
 	err := r.db.QueryRow(ctx, query, userID, days).Scan(&count)
 	return count, err
 }
+
+func (r *PostgresReviewRepository) CountUserReviews(ctx context.Context, userID string) (int, error) {
+	query, args, err := r.builder.
+		Select("COUNT(*)").
+		From(reviewTable).
+		Where(sq.Eq{
+			reviewUserID:       userID,
+			reviewIsDeletedCol: false,
+		}).
+		ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("build CountUserReviews query: %w", err)
+	}
+
+	row := r.db.QueryRow(ctx, query, args...)
+
+	var count int
+	if err := row.Scan(&count); err != nil {
+		return 0, fmt.Errorf("exec CountUserReviews: %w", err)
+	}
+
+	return count, nil
+}
+
+func (r *PostgresReviewRepository) AvgUserRating(ctx context.Context, userID string) (float64, error) {
+	query, args, err := r.builder.
+		Select(fmt.Sprintf("COALESCE(AVG(%s), 0)", reviewRating)).
+		From(reviewTable).
+		Where(sq.Eq{
+			reviewUserID:       userID,
+			reviewIsDeletedCol: false,
+		}).
+		ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("build AvgUserRating query: %w", err)
+	}
+
+	row := r.db.QueryRow(ctx, query, args...)
+
+	var avg float64
+	if err := row.Scan(&avg); err != nil {
+		return 0, fmt.Errorf("exec AvgUserRating: %w", err)
+	}
+
+	return avg, nil
+}

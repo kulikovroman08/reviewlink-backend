@@ -925,6 +925,46 @@
                     }
                 }
             }
+        },
+        "/users/stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает статистику активности текущего пользователя (user_id берётся из токена)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Получение статистики пользователя",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserStatsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "authentication required",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "failed to get user stats",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1250,6 +1290,26 @@
                 },
                 "role": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.UserStatsResponse": {
+            "type": "object",
+            "properties": {
+                "avg_rating": {
+                    "type": "number"
+                },
+                "bonuses_active": {
+                    "type": "integer"
+                },
+                "bonuses_used": {
+                    "type": "integer"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "total_reviews": {
+                    "type": "integer"
                 }
             }
         }

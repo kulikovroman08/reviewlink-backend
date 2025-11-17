@@ -69,7 +69,7 @@ func NewTestSetup() *TestSetup {
 	restrictionRepo := restrictionRepo.NewPostgresUserRestrictionRepository(db)
 
 	tokSrv := tokenService.NewTokenService(tokRepo, &cfg)
-	userSrv := userService.NewUserService(userRepo)
+	userSrv := userService.NewUserService(userRepo, reviewRepo, bonusRepo)
 	placeSrv := placeService.NewPlaceService(placeRepo, tokSrv, &cfg)
 	reviewSrv := reviewService.NewReviewService(reviewRepo, userRepo, placeRepo, tokSrv, restrictionRepo)
 	adminSrv := adminService.NewAdminService(adminRepo)

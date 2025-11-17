@@ -33,6 +33,8 @@ type ReviewRepository interface {
 	UpdateReview(ctx context.Context, reviewID, userID string, content string, rating int) error
 	DeleteReview(ctx context.Context, reviewID, userID string) error
 	CountLowRatingReviews(ctx context.Context, userID string, days int) (int, error)
+	CountUserReviews(ctx context.Context, userID string) (int, error)
+	AvgUserRating(ctx context.Context, userID string) (float64, error)
 }
 
 type TokenRepository interface {

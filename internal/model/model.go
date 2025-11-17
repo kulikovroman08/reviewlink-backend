@@ -95,3 +95,11 @@ type UserRestriction struct {
 	CreatedAt       time.Time
 	ExpiresAt       time.Time
 }
+
+type UserStats struct {
+	TotalReviews  int
+	AvgRating     float64
+	Points        int
+	BonusesActive int
+	BonusesUsed   int
+}
