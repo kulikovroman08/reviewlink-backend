@@ -20,12 +20,12 @@ jobs:
           go-version: '1.24.1'
 
       - name: Download dependencies
+        working-directory: ./backend
         run: go mod download
 
-      - name: Install golangci-lint
+      - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.64.8
-
-      - name: Run golangci-lint
-        run: golangci-lint run ./...
+          working-directory: ./backend
+          args: ./...

@@ -150,3 +150,44 @@ func (r *Repository) GetTopPlaces(ctx context.Context, limit int, filter model.L
 
 	return result, rows.Err()
 }
+
+func (r *Repository) GetTopBonusUsers(ctx context.Context) ([]model.BonusLeaderboardEntry, error) {
+	builder := r.builder.
+		Select(
+			"users.name",
+			"COUNT(bonus_rewards.id) AS bonuses_count",
+			"COALESCE(SUM(bonus_rewards.required_points), 0) AS points_spent",
+		).
+		From("bonus_rewards").
+		Join("users ON users.id = bonus_rewards.user_id").
+		GroupBy("users.id", "users.name").
+		OrderBy("bonuses_count DESC")
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("build bonus leaderboard SQL: %w", err)
+	}
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("exec bonus leaderboard: %w", err)
+	}
+	defer rows.Close()
+
+	var result []model.BonusLeaderboardEntry
+
+	for rows.Next() {
+		var entry model.BonusLeaderboardEntry
+		if err := rows.Scan(
+			&entry.Name,
+			&entry.BonusesCount,
+			&entry.PointsSpent,
+		); err != nil {
+			return nil, fmt.Errorf("scan bonus leaderboard: %w", err)
+		}
+
+		result = append(result, entry)
+	}
+
+	return result, rows.Err()
+}

@@ -10,6 +10,20 @@ import (
 func SetupRouter(app *Application) *gin.Engine {
 	r := gin.Default()
 
+	r.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	})
+
 	// Публичные маршруты
 	public := r.Group("/")
 	{
@@ -24,6 +38,7 @@ func SetupRouter(app *Application) *gin.Engine {
 
 		public.GET("/leaderboard/users", app.GetUserLeaderboard)
 		public.GET("/leaderboard/places", app.GetPlaceLeaderboard)
+		public.GET("/leaderboard/bonuses", app.GetBonusLeaderboard)
 
 	}
 
