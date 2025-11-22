@@ -155,6 +155,17 @@ definitions:
       message:
         type: string
     type: object
+  dto.PlaceResponse:
+    properties:
+      address:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
   dto.ReviewResponse:
     properties:
       content:
@@ -533,6 +544,30 @@ paths:
       tags:
       - auth
   /places:
+    get:
+      description: Возвращает список всех заведений. Доступ только для роли **admin**.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.PlaceResponse'
+            type: array
+        "403":
+          description: access denied
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to load places
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение списка мест (только для админов)
+      tags:
+      - admins
     post:
       consumes:
       - application/json

@@ -65,3 +65,43 @@ func (h *Application) CreatePlace(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, resp)
 }
+
+// GetPlaces godoc
+// @Summary      Получение списка мест (только для админов)
+// @Description  Возвращает список всех заведений. Доступ только для роли **admin**.
+// @Tags         admins
+// @Produce      json
+// @Success 200 {array} dto.PlaceResponse
+// @Failure 403 {object} dto.ErrorResponse "access denied"
+// @Failure 500 {object} dto.ErrorResponse "failed to load places"
+// @Router /places [get]
+// @Security     BearerAuth
+func (h *Application) GetPlaces(c *gin.Context) {
+	role := c.GetString("role")
+	if role != "admin" {
+		c.JSON(http.StatusForbidden, dto.ErrorResponse{
+			Error: response.ErrAccessDenied,
+		})
+		return
+	}
+
+	places, err := h.PlaceService.GetAllPlaces(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+			Error: response.ErrFailedGetPlaces,
+		})
+		return
+	}
+
+	resp := make([]dto.PlaceResponse, 0, len(places))
+	for _, p := range places {
+		resp = append(resp, dto.PlaceResponse{
+			ID:        p.ID.String(),
+			Name:      p.Name,
+			Address:   p.Address,
+			CreatedAt: p.CreatedAt,
+		})
+	}
+
+	c.JSON(http.StatusOK, resp)
+}

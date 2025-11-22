@@ -39,6 +39,7 @@ const (
 	ErrInvalidPlaceData   = "invalid place data"
 	ErrFailedCreatePlace  = "failed to create place"
 	ErrPlaceNotFound      = "place not found"
+	ErrFailedGetPlaces    = "failed to get places"
 )
 
 // Reviews

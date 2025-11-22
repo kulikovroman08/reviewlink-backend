@@ -18,3 +18,4 @@ debug/
 scratch/
 checkenv/
 .vscode/
+.go-version

@@ -22,6 +22,7 @@ type UserRepository interface {
 type PlaceRepository interface {
 	CreatePlace(ctx context.Context, place *model.Place) error
 	GetByID(ctx context.Context, placeID string) (*model.Place, error)
+	GetAllPlaces(ctx context.Context) ([]model.Place, error)
 }
 
 type ReviewRepository interface {

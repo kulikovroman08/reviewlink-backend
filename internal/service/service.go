@@ -19,6 +19,7 @@ type UserService interface {
 
 type PlaceService interface {
 	CreatePlace(ctx context.Context, place model.Place) (*model.Place, error)
+	GetAllPlaces(ctx context.Context) ([]model.Place, error)
 }
 
 type ReviewService interface {

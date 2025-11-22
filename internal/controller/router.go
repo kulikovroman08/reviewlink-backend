@@ -38,6 +38,7 @@ func SetupRouter(app *Application) *gin.Engine {
 		protected.GET("/users/stats", app.GetUserStats)
 
 		protected.POST("/places", app.CreatePlace)
+		protected.GET("/places", app.GetPlaces)
 
 		protected.POST("/reviews", app.SubmitReview)
 		protected.PATCH("/reviews/:id", app.UpdateReview)

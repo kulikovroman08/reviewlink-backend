@@ -93,3 +93,45 @@ func (r *PostgresPlaceRepository) GetByID(ctx context.Context, placeID string) (
 
 	return p, nil
 }
+
+func (r *PostgresPlaceRepository) GetAllPlaces(ctx context.Context) ([]model.Place, error) {
+	query, args, err := r.builder.
+		Select(
+			placeIDColumn,
+			placeNameColumn,
+			placeAddressColumn,
+			placeCreatedAtColumn,
+			placeIsDeletedColumn,
+		).
+		From(placeTable).
+		Where(sq.Eq{placeIsDeletedColumn: false}).
+		OrderBy(placeNameColumn + " ASC").
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("build GetAllPlaces query: %w", err)
+	}
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("exec GetAllPlaces: %w", err)
+	}
+	defer rows.Close()
+
+	var places []model.Place
+
+	for rows.Next() {
+		var p model.Place
+		if err := rows.Scan(
+			&p.ID,
+			&p.Name,
+			&p.Address,
+			&p.CreatedAt,
+			&p.IsDeleted,
+		); err != nil {
+			return nil, fmt.Errorf("scan GetAllPlaces: %w", err)
+		}
+		places = append(places, p)
+	}
+
+	return places, nil
+}
