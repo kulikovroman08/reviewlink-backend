@@ -250,6 +250,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/leaderboard/bonuses": {
+            "get": {
+                "description": "Возвращает список пользователей, отсортированных по количеству полученных бонусов.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "leaderboard"
+                ],
+                "summary": "Получить топ пользователей по бонусам",
+                "responses": {
+                    "200": {
+                        "description": "Список пользователей",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.BonusLeaderboardEntry"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/leaderboard/places": {
             "get": {
                 "description": "Возвращает список заведений, отсортированных по количеству отзывов и среднему рейтингу.",
@@ -419,6 +451,44 @@ const docTemplate = `{
             }
         },
         "/places": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список всех заведений. Доступ только для роли **admin**.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admins"
+                ],
+                "summary": "Получение списка мест (только для админов)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.PlaceResponse"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "access denied",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "failed to load places",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -999,6 +1069,23 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.BonusLeaderboardEntry": {
+            "type": "object",
+            "properties": {
+                "bonuses_count": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "points_spent": {
+                    "type": "integer"
+                },
+                "rank": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.BonusRedeemRequest": {
             "type": "object",
             "required": [
@@ -1189,6 +1276,23 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PlaceResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

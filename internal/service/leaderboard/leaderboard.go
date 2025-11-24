@@ -22,3 +22,7 @@ func (s *LeaderboardService) GetUserLeaderboard(ctx context.Context, limit int, 
 func (s *LeaderboardService) GetPlaceLeaderboard(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error) {
 	return s.repo.GetTopPlaces(ctx, limit, filter)
 }
+
+func (s *LeaderboardService) GetBonusLeaderboard(ctx context.Context) ([]model.BonusLeaderboardEntry, error) {
+	return s.repo.GetTopBonusUsers(ctx)
+}

@@ -36,6 +36,7 @@ type UserResponse struct {
 	Role   string `json:"role"`
 	Points int    `json:"points"`
 }
+
 type CreatePlaceRequest struct {
 	Name    string `json:"name" binding:"required"`
 	Address string `json:"address" binding:"required"`
@@ -43,6 +44,13 @@ type CreatePlaceRequest struct {
 
 type CreatePlaceResponse struct {
 	ID string `json:"id"`
+}
+
+type PlaceResponse struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Address   string    `json:"address"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type SubmitReviewRequest struct {
@@ -140,4 +148,11 @@ type UserStatsResponse struct {
 	Points        int     `json:"points"`
 	BonusesActive int     `json:"bonuses_active"`
 	BonusesUsed   int     `json:"bonuses_used"`
+}
+
+type BonusLeaderboardEntry struct {
+	Rank         int    `json:"rank"`
+	Name         string `json:"name"`
+	BonusesCount int    `json:"bonuses_count"`
+	PointsSpent  int    `json:"points_spent"`
 }

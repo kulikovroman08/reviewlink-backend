@@ -48,3 +48,7 @@ func (s *placeService) CreatePlace(ctx context.Context, place model.Place) (*mod
 
 	return &place, nil
 }
+
+func (s *placeService) GetAllPlaces(ctx context.Context) ([]model.Place, error) {
+	return s.placeRepo.GetAllPlaces(ctx)
+}

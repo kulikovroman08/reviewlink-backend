@@ -19,6 +19,7 @@ type UserService interface {
 
 type PlaceService interface {
 	CreatePlace(ctx context.Context, place model.Place) (*model.Place, error)
+	GetAllPlaces(ctx context.Context) ([]model.Place, error)
 }
 
 type ReviewService interface {
@@ -40,6 +41,7 @@ type AdminService interface {
 type LeaderboardService interface {
 	GetUserLeaderboard(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
 	GetPlaceLeaderboard(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
+	GetBonusLeaderboard(ctx context.Context) ([]model.BonusLeaderboardEntry, error)
 }
 
 type BonusService interface {

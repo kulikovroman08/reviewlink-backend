@@ -22,6 +22,7 @@ type UserRepository interface {
 type PlaceRepository interface {
 	CreatePlace(ctx context.Context, place *model.Place) error
 	GetByID(ctx context.Context, placeID string) (*model.Place, error)
+	GetAllPlaces(ctx context.Context) ([]model.Place, error)
 }
 
 type ReviewRepository interface {
@@ -49,6 +50,7 @@ type AdminRepository interface {
 type LeaderboardRepository interface {
 	GetTopUsers(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
 	GetTopPlaces(ctx context.Context, limit int, filter model.LeaderboardFilter) ([]model.LeaderboardEntry, error)
+	GetTopBonusUsers(ctx context.Context) ([]model.BonusLeaderboardEntry, error)
 }
 
 type BonusRepository interface {

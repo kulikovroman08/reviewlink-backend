@@ -16,6 +16,17 @@ definitions:
       token:
         type: string
     type: object
+  dto.BonusLeaderboardEntry:
+    properties:
+      bonuses_count:
+        type: integer
+      name:
+        type: string
+      points_spent:
+        type: integer
+      rank:
+        type: integer
+    type: object
   dto.BonusRedeemRequest:
     properties:
       place_id:
@@ -142,6 +153,17 @@ definitions:
   dto.MessageResponse:
     properties:
       message:
+        type: string
+    type: object
+  dto.PlaceResponse:
+    properties:
+      address:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
         type: string
     type: object
   dto.ReviewResponse:
@@ -385,6 +407,28 @@ paths:
       summary: Валидация бонусного QR-кода
       tags:
       - bonuses
+  /leaderboard/bonuses:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список пользователей, отсортированных по количеству
+        полученных бонусов.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список пользователей
+          schema:
+            items:
+              $ref: '#/definitions/dto.BonusLeaderboardEntry'
+            type: array
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Получить топ пользователей по бонусам
+      tags:
+      - leaderboard
   /leaderboard/places:
     get:
       consumes:
@@ -500,6 +544,30 @@ paths:
       tags:
       - auth
   /places:
+    get:
+      description: Возвращает список всех заведений. Доступ только для роли **admin**.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.PlaceResponse'
+            type: array
+        "403":
+          description: access denied
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to load places
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение списка мест (только для админов)
+      tags:
+      - admins
     post:
       consumes:
       - application/json
