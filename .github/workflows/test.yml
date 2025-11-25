@@ -35,6 +35,7 @@ jobs:
           go-version: '1.24.1'
 
       - name: Download dependencies
+        working-directory: ./backend
         run: go mod download
 
       - name: Install golang-migrate
@@ -45,9 +46,10 @@ jobs:
       - name: Run DB migrations
         env:
           DB_URL_TEST: postgres://app:secret@localhost:5432/reviewlink_test?sslmode=disable
-        run: migrate -path ./migrations -database "$DB_URL_TEST" up
+        run: migrate -path ./backend/migrations -database "$DB_URL_TEST" up
 
       - name: Run integration tests
+        working-directory: ./backend
         env:
           APP_ENV: test
           DB_URL_TEST: postgres://app:secret@localhost:5432/reviewlink_test?sslmode=disable
@@ -57,10 +59,12 @@ jobs:
             -coverpkg=./internal/... \
             -coverprofile=coverage.out \
             ./internal/tests/integration/...
+
       - name: Show coverage summary
+        working-directory: ./backend
         run: go tool cover -func=coverage.out
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          file: coverage.out
+          file: backend/coverage.out
