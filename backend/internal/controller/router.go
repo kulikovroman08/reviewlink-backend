@@ -24,6 +24,8 @@ func SetupRouter(app *Application) *gin.Engine {
 		c.Next()
 	})
 
+	r.Static("/frontend", "./frontend")
+
 	// Публичные маршруты
 	public := r.Group("/")
 	{

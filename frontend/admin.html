@@ -39,14 +39,20 @@
                         <h5 class="mb-0">Генерация токенов для отзывов</h5>
                     </div>
                     <div class="card-body">
+
+                        <!-- Новый выбор заведения -->
                         <div class="mb-3">
-                            <label class="form-label">ID заведения:</label>
-                            <input id="placeId" class="form-control" placeholder="Введите ID заведения">
+                            <label class="form-label">Выберите заведение:</label>
+                            <select id="placeSelect" class="form-select">
+                                <option value="">Загрузка...</option>
+                            </select>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Количество токенов:</label>
                             <input id="countInput" type="number" class="form-control" value="10" min="1" max="100">
                         </div>
+
                         <button id="generateBtn" class="btn btn-success w-100" disabled>
                             Сгенерировать токены
                         </button>
@@ -59,7 +65,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="admin.js"></script>
 </body>
 
 </html>

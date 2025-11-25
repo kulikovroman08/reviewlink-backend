@@ -1,16 +1,20 @@
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://172.27.78.199:8080'
-    : 'http://localhost:8080';
+const API_BASE = (window.location.port === "5500" || window.location.port === "8000")
+    ? "http://localhost:8080"
+    : window.location.origin;
+
+console.log("🌐 Порт:", window.location.port);
+console.log("🌐 API_BASE:", API_BASE);
 
 let BEARER_TOKEN = "";
 
-// Генерация QR кода со ссылкой на форму отзыва
+
 function generateQRCode(token) {
-    const reviewUrl = `${window.location.origin}/review-form.html?token=${token}`;
+    const reviewUrl = `${API_BASE}/frontend/review-form.html?token=${token}`;
     return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(reviewUrl)}`;
 }
 
-document.getElementById("loginBtn").onclick = async function() {
+
+document.getElementById("loginBtn").onclick = async function () {
     const email = document.getElementById("emailInput").value.trim();
     const password = document.getElementById("passwordInput").value;
     const statusDiv = document.getElementById("loginStatus");
@@ -25,13 +29,8 @@ document.getElementById("loginBtn").onclick = async function() {
     try {
         const response = await fetch(`${API_BASE}/login`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ 
-                email: email, 
-                password: password 
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
         });
 
         if (!response.ok) {
@@ -40,37 +39,79 @@ document.getElementById("loginBtn").onclick = async function() {
         }
 
         const data = await response.json();
-        
+
         BEARER_TOKEN = data.token;
+        localStorage.setItem("adminToken", BEARER_TOKEN);
+        localStorage.setItem("adminEmail", email);
+
         statusDiv.innerHTML = '<div class="text-success">✅ Успешный вход!</div>';
         document.getElementById("generateBtn").disabled = false;
-        
-        localStorage.setItem('adminToken', BEARER_TOKEN);
-        localStorage.setItem('adminEmail', email);
+
+        // Загружаем список мест
+        await loadPlaces();
 
     } catch (error) {
         statusDiv.innerHTML = `<div class="text-danger">❌ ${error.message}</div>`;
     }
 };
 
-document.addEventListener('DOMContentLoaded', function() {
-    const savedToken = localStorage.getItem('adminToken');
-    const savedEmail = localStorage.getItem('adminEmail');
-    
+
+document.addEventListener("DOMContentLoaded", async function () {
+    const savedToken = localStorage.getItem("adminToken");
+    const savedEmail = localStorage.getItem("adminEmail");
+
     if (savedToken && savedEmail) {
         BEARER_TOKEN = savedToken;
         document.getElementById("emailInput").value = savedEmail;
         document.getElementById("loginStatus").innerHTML = '<div class="text-success">✅ Авторизован</div>';
         document.getElementById("generateBtn").disabled = false;
+
+        await loadPlaces();
     }
 });
 
-document.getElementById("generateBtn").onclick = async function() {
-    const placeId = document.getElementById("placeId").value.trim();
+
+async function loadPlaces() {
+    const select = document.getElementById("placeSelect");
+    select.innerHTML = `<option>Загрузка...</option>`;
+
+    try {
+        const response = await fetch(`${API_BASE}/places`, {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + BEARER_TOKEN,
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error("Не удалось загрузить список мест");
+        }
+
+        const places = await response.json();
+
+        select.innerHTML = "";
+
+        places.forEach(place => {
+            const option = document.createElement("option");
+            option.value = place.id;
+            option.textContent = `${place.name} (${place.address})`;
+            select.appendChild(option);
+        });
+
+    } catch (error) {
+        console.error(error);
+        select.innerHTML = `<option value="">Ошибка загрузки</option>`;
+    }
+}
+
+
+document.getElementById("generateBtn").onclick = async function () {
+    const placeId = document.getElementById("placeSelect").value;
     const count = document.getElementById("countInput").value;
 
     if (!placeId) {
-        alert("Введите ID заведения");
+        alert("Выберите заведение");
         return;
     }
 
@@ -89,9 +130,9 @@ document.getElementById("generateBtn").onclick = async function() {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + BEARER_TOKEN
             },
-            body: JSON.stringify({ 
-                place_id: placeId, 
-                count: parseInt(count) 
+            body: JSON.stringify({
+                place_id: placeId,
+                count: Number(count)
             })
         });
 
@@ -112,9 +153,10 @@ document.getElementById("generateBtn").onclick = async function() {
     }
 };
 
+
 function showResults(data, container) {
-    const tokens = data.Tokens || data.tokens || [];
-    
+    const tokens = data.tokens || data.Tokens || [];
+
     if (tokens.length === 0) {
         container.innerHTML = '<div class="alert alert-warning">Токены не сгенерированы</div>';
         return;
@@ -129,6 +171,9 @@ function showResults(data, container) {
     `;
 
     tokens.forEach((token, index) => {
+        const url = `${API_BASE}/frontend/review-form.html?token=${token}`;
+        const qr = generateQRCode(token);
+
         html += `
             <div class="mb-4 p-3 border rounded">
                 <div class="row">
@@ -138,12 +183,12 @@ function showResults(data, container) {
                         <div class="mt-2">
                             <small class="text-muted">Ссылка для клиента:</small>
                             <div class="bg-light p-2 rounded small mt-1">
-                                ${window.location.origin}/review-form.html?token=${token}
+                                ${url}
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4 text-center">
-                        <img src="${generateQRCode(token)}" alt="QR Code" class="img-fluid border rounded">
+                        <img src="${qr}" alt="QR Code" class="img-fluid border rounded">
                         <div class="mt-1">
                             <small class="text-muted">QR код для чека</small>
                         </div>
@@ -159,10 +204,4 @@ function showResults(data, container) {
     `;
 
     container.innerHTML = html;
-}
-
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        // Можно добавить уведомление
-    });
 }
