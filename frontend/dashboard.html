@@ -87,7 +87,14 @@
                         <div class="row align-items-center">
                             <div class="col-md-6">
                                 <h4>Ваши баллы: <span id="currentPoints" class="text-warning">0</span></h4>
-                                <p class="text-muted">Для получения бонуса нужно 100 баллов</p>
+                                <div class="mb-3">
+                                    <select id="rewardType" class="form-select">
+                                        <option value="free_coffee">Бесплатный кофе</option>
+                                        <option value="free_meal">Бесплатное блюдо</option>
+                                        <option value="discount_10">Скидка 10%</option>
+                                    </select>
+                                </div>
+                                <p class="text-muted">Для получения бонуса нужно 50 баллов</p>
                             </div>
                             <div class="col-md-6">
                                 <button id="redeemBtn" class="btn btn-success btn-lg" disabled>
@@ -102,27 +109,44 @@
         </div>
 
         <!-- Мои бонусы -->
-        <div class="row">
+        <div class="row mt-4">
             <div class="col-12">
-                <div class="card">
+                <h3 class="mb-3">
+                    <i class="bi bi-gift-fill me-2"></i>Мои бонусы
+                </h3>
+            </div>
+
+            <!-- Левая колонка — активные бонусы -->
+            <div class="col-md-6">
+                <div class="card mb-4">
                     <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">
-                            <i class="bi bi-gift me-2"></i>Мои бонусы
-                        </h5>
+                        <i class="bi bi-stars me-2"></i>Активные бонусы
                     </div>
-                    <div class="card-body">
-                        <div id="bonusesContainer">
-                            <div class="text-center">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Загрузка...</span>
-                                </div>
-                                <p class="mt-2">Загрузка бонусов...</p>
-                            </div>
+                    <div class="card-body" id="activeBonuses">
+                        <div class="text-center text-muted py-4">
+                            <div class="spinner-border text-primary"></div>
+                            <p class="mt-2">Загрузка...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка — использованные бонусы -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <i class="bi bi-clock-history me-2"></i>Использованные бонусы
+                    </div>
+                    <div class="card-body" id="usedBonuses">
+                        <div class="text-center text-muted py-4">
+                            <div class="spinner-border text-secondary"></div>
+                            <p class="mt-2">Загрузка...</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Модальное окно для QR кода -->

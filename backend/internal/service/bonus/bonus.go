@@ -30,15 +30,10 @@ func NewBonusService(userRepo repository.UserRepository, bonusRepo repository.Bo
 	}
 }
 
-func (s *bonusService) RedeemBonus(ctx context.Context, userID, placeID, rewardType string) (*model.BonusReward, error) {
+func (s *bonusService) RedeemBonus(ctx context.Context, userID, rewardType string) (*model.BonusReward, error) {
 	uuidUser, err := uuid.Parse(userID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid user id: %w", err)
-	}
-
-	uuidPlace, err := uuid.Parse(placeID)
-	if err != nil {
-		return nil, fmt.Errorf("invalid place id: %w", err)
 	}
 
 	user, err := s.userRepo.FindByID(ctx, userID)
@@ -54,7 +49,7 @@ func (s *bonusService) RedeemBonus(ctx context.Context, userID, placeID, rewardT
 	bonus := &model.BonusReward{
 		ID:             uuid.New(),
 		UserID:         uuidUser,
-		PlaceID:        uuidPlace,
+		PlaceID:        nil,
 		RequiredPoints: required,
 		RewardType:     rewardType,
 		QRToken:        generateQRToken(),

@@ -73,8 +73,9 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('currentPoints').textContent = stats.points || 0;
 
         // Активируем кнопку если достаточно баллов
-        const redeemBtn = document.getElementById('redeemBtn');
-        if (stats.points >= 100) {
+        const REQUIRED_POINTS = 50;
+
+        if (stats.points >= REQUIRED_POINTS) {
             redeemBtn.disabled = false;
             redeemBtn.innerHTML = '<i class="bi bi-gift me-2"></i>Получить бонус';
         } else {
@@ -117,81 +118,84 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Отображение бонусов
     function displayBonuses(bonuses) {
-        const container = document.getElementById('bonusesContainer');
+        const activeContainer = document.getElementById("activeBonuses");
+        const usedContainer = document.getElementById("usedBonuses");
 
         if (!bonuses || bonuses.length === 0) {
-            container.innerHTML = `
-                <div class="text-center text-muted py-4">
-                    <i class="bi bi-gift fs-1"></i>
-                    <p class="mt-2">У вас пока нет бонусов</p>
-                </div>
-            `;
+            activeContainer.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-gift fs-1"></i>
+                <p class="mt-2">У вас пока нет бонусов</p>
+            </div>
+        `;
+            usedContainer.innerHTML = `
+            <div class="text-center text-muted py-4">
+                Использованных бонусов нет
+            </div>
+        `;
             return;
         }
 
-        let html = '<div class="row">';
+        let activeHTML = "";
+        let usedHTML = "";
 
         bonuses.forEach(bonus => {
-            const isActive = bonus.status === 'active';
-            const isUsed = bonus.status === 'used';
-            const isExpired = bonus.status === 'expired';
+            const isUsed = bonus.is_used === true;
 
-            html += `
-                <div class="col-md-6 mb-3">
-                    <div class="card h-100 ${isUsed ? 'border-secondary' : 'border-success'}">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h5 class="card-title">${bonus.title || 'Бонус'}</h5>
-                                    <p class="card-text">${bonus.description || ''}</p>
-                                    <small class="text-muted">
-                                        Создан: ${new Date(bonus.created_at).toLocaleDateString()}
-                                    </small>
-                                    ${bonus.expires_at ? `
-                                        <br><small class="text-muted">
-                                            Действует до: ${new Date(bonus.expires_at).toLocaleDateString()}
-                                        </small>
-                                    ` : ''}
-                                </div>
-                                <span class="badge ${isActive ? 'bg-success' : isUsed ? 'bg-secondary' : 'bg-danger'}">
-                                    ${isActive ? 'Активен' : isUsed ? 'Использован' : 'Просрочен'}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-transparent">
-                            ${isActive ? `
-                                <button class="btn btn-outline-primary btn-sm show-qr-btn" data-bonus-id="${bonus.id}">
-                                    <i class="bi bi-qr-code me-1"></i>Показать QR
-                                </button>
-                            ` : ''}
-                            ${isUsed ? `
-                                <small class="text-muted">
-                                    <i class="bi bi-check-circle me-1"></i>Использован
-                                </small>
-                            ` : ''}
-                        </div>
+            const cardHTML = `
+            <div class="col-md-6 mb-3">
+                <div class="card h-100 border-${isUsed ? 'secondary' : 'success'}">
+                    <div class="card-body">
+                        <h5 class="card-title">${bonus.reward_type}</h5>
+                        <p class="card-text">Списано баллов: <strong>${bonus.required_points}</strong></p>
+                        <p class="card-text">QR токен: ${bonus.qr_token}</p>
+
+                        <span class="badge ${isUsed ? 'bg-secondary' : 'bg-success'}">
+                            ${isUsed ? 'Использован' : 'Активен'}
+                        </span>
+                    </div>
+
+                    <div class="card-footer bg-transparent">
+                        ${!isUsed
+                    ? `<button class="btn btn-outline-primary btn-sm show-qr-btn"
+                                     data-bonus-token="${bonus.qr_token}">
+                                        <i class="bi bi-qr-code me-1"></i>Показать QR
+                                   </button>`
+                    : `<small class="text-muted">
+                                        <i class="bi bi-check-circle me-1"></i>Использован
+                                   </small>`
+                }
                     </div>
                 </div>
-            `;
+            </div>
+        `;
+
+            // Разделение
+            if (isUsed) {
+                usedHTML += cardHTML;
+            } else {
+                activeHTML += cardHTML;
+            }
         });
 
-        html += '</div>';
-        container.innerHTML = html;
+        // Рендер
+        activeContainer.innerHTML = `<div class="row">${activeHTML}</div>`;
+        usedContainer.innerHTML = `<div class="row">${usedHTML}</div>`;
 
-        // Навешиваем обработчики для QR кнопок
-        document.querySelectorAll('.show-qr-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                showBonusQR(this.getAttribute('data-bonus-id'));
+        // Навешиваем обработчики
+        document.querySelectorAll(".show-qr-btn").forEach(btn => {
+            btn.addEventListener("click", function () {
+                showBonusQR(this.getAttribute("data-bonus-token"));
             });
         });
     }
 
     // Показ QR кода бонуса
-    function showBonusQR(bonusId) {
-        const qrUrl = generateQRCode(`BONUS_${bonusId}`);
+    function showBonusQR(qrToken) {
+        const qrUrl = generateQRCode(qrToken);
 
         document.getElementById('qrCodeImage').src = qrUrl;
-        document.getElementById('bonusDescription').textContent = `Бонус ID: ${bonusId}`;
+        document.getElementById('bonusDescription').textContent = `QR токен: ${qrToken}`;
 
         const modal = new bootstrap.Modal(document.getElementById('qrModal'));
         modal.show();
@@ -201,6 +205,8 @@ document.addEventListener('DOMContentLoaded', function () {
     async function redeemBonus() {
         const button = document.getElementById('redeemBtn');
         const messageDiv = document.getElementById('redeemMessage');
+
+        const rewardType = document.getElementById("rewardType").value;
 
         button.disabled = true;
         button.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Обмен...';
@@ -213,7 +219,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     "Authorization": "Bearer " + USER_TOKEN,
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({})  // ← ДОБАВЬ ПУСТОЙ ОБЪЕКТ
+                body: JSON.stringify({
+                    reward_type: rewardType
+                })
             });
 
             if (!response.ok) {
@@ -221,12 +229,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 throw new Error(errorData.error || `Ошибка: ${response.status}`);
             }
 
-            const result = await response.json();
-
-            // Показываем успех
             showSuccess('Бонус успешно получен!', messageDiv);
 
-            // Обновляем данные
             setTimeout(() => {
                 loadUserStats();
                 loadBonuses();

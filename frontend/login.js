@@ -44,20 +44,22 @@ document.addEventListener('DOMContentLoaded', function () {
             if (response.ok) {
                 const data = await response.json();
 
-                // Сохраняем токен и email
                 localStorage.setItem('userToken', data.token);
                 localStorage.setItem('userEmail', email);
 
-                // Показываем успех
+                // Показываем сообщение
                 showSuccess('Успешный вход! Перенаправление...', messageDiv);
 
-                // Переходим в личный кабинет
                 setTimeout(() => {
-                    // Убираем /frontend/ из пути если он есть
-                    const currentUrl = window.location.href;
-                    const newUrl = currentUrl.replace('/frontend/login.html', '/frontend/dashboard.html');
-                    window.location.href = newUrl;
-                }, 1000);
+                    const params = new URLSearchParams(window.location.search);
+                    const redirectUrl = params.get("redirect");
+
+                    if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                    } else {
+                        window.location.href = "dashboard.html";
+                    }
+                }, 500);
 
             } else {
                 const errorData = await response.json();

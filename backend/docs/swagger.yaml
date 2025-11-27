@@ -29,8 +29,6 @@ definitions:
     type: object
   dto.BonusRedeemRequest:
     properties:
-      place_id:
-        type: string
       reward_type:
         enum:
         - free_coffee
@@ -38,7 +36,6 @@ definitions:
         - discount_10
         type: string
     required:
-    - place_id
     - reward_type
     type: object
   dto.BonusRedeemResponse:
@@ -47,8 +44,6 @@ definitions:
         type: string
       is_used:
         type: boolean
-      place_id:
-        type: string
       qr_token:
         type: string
       required_points:

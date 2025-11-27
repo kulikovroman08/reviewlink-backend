@@ -79,7 +79,7 @@ type LeaderboardFilter struct {
 type BonusReward struct {
 	ID             uuid.UUID
 	UserID         uuid.UUID
-	PlaceID        uuid.UUID
+	PlaceID        *uuid.UUID
 	RequiredPoints int
 	RewardType     string
 	QRToken        string
