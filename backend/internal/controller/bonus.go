@@ -32,7 +32,7 @@ func (h *Application) RedeemBonus(ctx *gin.Context) {
 		return
 	}
 
-	bonus, err := h.BonusService.RedeemBonus(ctx, userID, req.PlaceID, req.RewardType)
+	bonus, err := h.BonusService.RedeemBonus(ctx, userID, req.RewardType)
 	if err != nil {
 		switch {
 		case errors.Is(err, srvErrors.ErrNotEnoughPoints):
@@ -47,7 +47,6 @@ func (h *Application) RedeemBonus(ctx *gin.Context) {
 
 	resp := dto.BonusRedeemResponse{
 		ID:             bonus.ID.String(),
-		PlaceID:        bonus.PlaceID.String(),
 		RewardType:     bonus.RewardType,
 		RequiredPoints: bonus.RequiredPoints,
 		QRToken:        bonus.QRToken,
@@ -78,7 +77,6 @@ func (h *Application) GetUserBonuses(ctx *gin.Context) {
 	for _, b := range bonuses {
 		resp = append(resp, dto.BonusResponse{
 			ID:             b.ID.String(),
-			PlaceID:        b.PlaceID.String(),
 			RewardType:     b.RewardType,
 			RequiredPoints: b.RequiredPoints,
 			QRToken:        b.QRToken,

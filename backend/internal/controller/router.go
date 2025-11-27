@@ -24,11 +24,11 @@ func SetupRouter(app *Application) *gin.Engine {
 		c.Next()
 	})
 
-	r.Static("/frontend", "./frontend")
-
 	// Публичные маршруты
 	public := r.Group("/")
 	{
+		public.Static("/frontend", "../frontend")
+
 		public.GET("/health", func(c *gin.Context) {
 			c.JSON(200, gin.H{"status": "ok"})
 		})

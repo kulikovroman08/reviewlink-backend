@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оставить отзыв</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <div class="col-lg-6 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-chat-heart me-2"></i>Оставить отзыв
+                    </h4>
+                </div>
+
+                <div class="card-body">
+
+                    <!-- Рейтинг -->
+                    <div class="mb-3">
+                        <label class="form-label">Оценка</label>
+                        <div id="ratingStars" class="fs-3 text-warning">★★★★★</div>
+                    </div>
+
+                    <!-- Комментарий -->
+                    <div class="mb-3">
+                        <label class="form-label">Комментарий (необязательно)</label>
+                        <textarea id="reviewContent" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div id="formMessage" class="mt-3"></div>
+
+                    <button id="submitBtn" class="btn btn-success w-100 mt-2">
+                        <i class="bi bi-send me-2"></i>Отправить отзыв
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="common.js"></script>
+    <script src="review-form.js"></script>
+
+</body>
+
+</html>

@@ -1089,13 +1089,9 @@ const docTemplate = `{
         "dto.BonusRedeemRequest": {
             "type": "object",
             "required": [
-                "place_id",
                 "reward_type"
             ],
             "properties": {
-                "place_id": {
-                    "type": "string"
-                },
                 "reward_type": {
                     "type": "string",
                     "enum": [
@@ -1114,9 +1110,6 @@ const docTemplate = `{
                 },
                 "is_used": {
                     "type": "boolean"
-                },
-                "place_id": {
-                    "type": "string"
                 },
                 "qr_token": {
                     "type": "string"

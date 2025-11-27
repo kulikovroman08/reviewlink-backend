@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет - ReviewLink</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-star-fill me-2"></i>ReviewLink
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3" id="userEmail"></span>
+                <button class="btn btn-outline-light btn-sm" id="logoutBtn" type="button">
+                    <i class="bi bi-box-arrow-right"></i> Выйти
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Заголовок и статистика -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="text-center mb-4">
+                    <i class="bi bi-person-circle me-2"></i>Личный кабинет
+                </h1>
+            </div>
+        </div>
+
+        <!-- Статистика -->
+        <div class="row mb-5">
+            <div class="col-md-3 mb-3">
+                <div class="card text-center bg-primary text-white">
+                    <div class="card-body">
+                        <i class="bi bi-chat-text fs-1"></i>
+                        <h3 id="totalReviews" class="mt-2">0</h3>
+                        <p class="mb-0">Всего отзывов</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-center bg-success text-white">
+                    <div class="card-body">
+                        <i class="bi bi-star fs-1"></i>
+                        <h3 id="avgRating" class="mt-2">0.0</h3>
+                        <p class="mb-0">Средний рейтинг</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-center bg-warning text-white">
+                    <div class="card-body">
+                        <i class="bi bi-coin fs-1"></i>
+                        <h3 id="points" class="mt-2">0</h3>
+                        <p class="mb-0">Баллы</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-center bg-info text-white">
+                    <div class="card-body">
+                        <i class="bi bi-gift fs-1"></i>
+                        <h3 id="bonusesActive" class="mt-2">0</h3>
+                        <p class="mb-0">Активные бонусы</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Обмен баллов -->
+        <div class="row mb-5">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-arrow-repeat me-2"></i>Обмен баллов на бонус
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h4>Ваши баллы: <span id="currentPoints" class="text-warning">0</span></h4>
+                                <div class="mb-3">
+                                    <select id="rewardType" class="form-select">
+                                        <option value="free_coffee">Бесплатный кофе</option>
+                                        <option value="free_meal">Бесплатное блюдо</option>
+                                        <option value="discount_10">Скидка 10%</option>
+                                    </select>
+                                </div>
+                                <p class="text-muted">Для получения бонуса нужно 50 баллов</p>
+                            </div>
+                            <div class="col-md-6">
+                                <button id="redeemBtn" class="btn btn-success btn-lg" disabled>
+                                    <i class="bi bi-gift me-2"></i>Получить бонус
+                                </button>
+                                <div id="redeemMessage" class="mt-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Мои бонусы -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <h3 class="mb-3">
+                    <i class="bi bi-gift-fill me-2"></i>Мои бонусы
+                </h3>
+            </div>
+
+            <!-- Левая колонка — активные бонусы -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <i class="bi bi-stars me-2"></i>Активные бонусы
+                    </div>
+                    <div class="card-body" id="activeBonuses">
+                        <div class="text-center text-muted py-4">
+                            <div class="spinner-border text-primary"></div>
+                            <p class="mt-2">Загрузка...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка — использованные бонусы -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <i class="bi bi-clock-history me-2"></i>Использованные бонусы
+                    </div>
+                    <div class="card-body" id="usedBonuses">
+                        <div class="text-center text-muted py-4">
+                            <div class="spinner-border text-secondary"></div>
+                            <p class="mt-2">Загрузка...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Модальное окно для QR кода -->
+    <div class="modal fade" id="qrModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">QR код бонуса</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="qrCodeImage" src="" alt="QR Code" class="img-fluid">
+                    <p class="mt-2 small text-muted" id="bonusDescription"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="common.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+
+</html>
