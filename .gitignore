@@ -8,14 +8,10 @@
 *.http
 
 # Env
-.env
+backend/.env
+backend/.env.test
 
 # Logs
 *.log
 
-hashgen/
-debug/
-scratch/
-checkenv/
 .vscode/
-.go-version

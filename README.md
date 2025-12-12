@@ -1,27 +1,65 @@
 # ReviewLink — Backend
 
-**ReviewLink** — backend-сервис для сбора отзывов через QR-коды на чеках.  
-Отзывы подтверждают факт визита, а за положительные оценки (4★ и 5★) пользователям начисляются бонусы.
+ReviewLink — backend-сервис для сбора отзывов через QR-коды.  
+Пользователь сканирует QR-код, подтверждает визит и оставляет отзыв, а за оценки **4★ и 5★** получает бонусы.  
+Проект включает пользовательскую и административную части.
 
 ---
 
-## Архитектура
-Монолитная модульная структура (Go + PostgreSQL) с чётким разделением слоёв:
-- **API** (Gin HTTP handlers)
-- **Domain** (бизнес-логика в `internal/`)
-- **Storage** (PostgreSQL репозитории)
+##  Структура проекта
+
+### Backend
 
 ```text
-reviewlink/
+backend/
 ├── cmd/
-│   └── server/          # Точка входа (main.go)
-├── internal/            # Ядро системы
-│   ├── auth/            # Аутентификация
-│   ├── review/          # Логика отзывов и баллов
-│   ├── place/           # Управление заведениями
-│   └── user/            # Профили пользователей
-├── migrations/          # SQL-миграции (будут добавлены)
-├── pkg/                 # Вспомогательные утилиты
-├── configs/             # Конфигурация
-├── go.mod               # Зависимости
-└── .env.example         # Шаблон .env
+│   └── main.go                  # Точка входа в приложение
+│
+├── configs/
+│   └── config.go                # Загрузка конфигурации
+│
+├── docs/                        # Swagger документация
+│   ├── swagger.json
+│   └── swagger.yaml
+│
+├── internal/                    # Основная логика сервиса
+│   ├── app/                     # Инициализация приложения
+│   ├── controller/              # HTTP handlers (Gin)
+│   ├── model/                   # Модели и JWT claims
+│   ├── repository/              # Работа с PostgreSQL
+│   ├── service/                 # Бизнес-логика
+│   └── tests/                   # Интеграционные тесты
+│
+├── migrations/                  # SQL-миграции
+│
+├── pkg/
+│   └── middleware/
+│       └── jwt.go               # JWT middleware
+│
+├── go.mod
+├── go.sum
+└── .env.example                 # Пример окружения 
+```
+### Frontend (демо-UI)
+```text
+frontend/
+├── admin.html
+├── admin.js
+│
+├── dashboard.html
+├── dashboard.js
+│
+├── login.html
+├── login.js
+│
+├── review-form.html
+├── review-form.js
+│
+└── style.css
+```
+
+Swagger
+API-документация доступна после запуска сервера:
+```text
+/swagger/index.html
+```
