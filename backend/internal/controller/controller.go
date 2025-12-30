@@ -12,6 +12,7 @@ type Application struct {
 	AdminService       service.AdminService
 	LeaderboardService service.LeaderboardService
 	BonusService       service.BonusService
+	ReviewReplyService service.ReviewReplyService
 }
 
 func NewApplication(
@@ -22,6 +23,7 @@ func NewApplication(
 	admin service.AdminService,
 	leaderboard service.LeaderboardService,
 	bonus service.BonusService,
+	reviewReply service.ReviewReplyService,
 ) *Application {
 	return &Application{
 		UserService:        user,
@@ -31,5 +33,6 @@ func NewApplication(
 		AdminService:       admin,
 		LeaderboardService: leaderboard,
 		BonusService:       bonus,
+		ReviewReplyService: reviewReply,
 	}
 }

@@ -22,7 +22,8 @@ type UserRepository interface {
 type PlaceRepository interface {
 	CreatePlace(ctx context.Context, place *model.Place) error
 	GetByID(ctx context.Context, placeID string) (*model.Place, error)
-	GetAllPlaces(ctx context.Context) ([]model.Place, error)
+	GetPlacesByOwner(ctx context.Context, ownerID string) ([]model.Place, error)
+	IsOwner(ctx context.Context, placeID string, ownerID string) (bool, error)
 }
 
 type ReviewRepository interface {
@@ -36,6 +37,14 @@ type ReviewRepository interface {
 	CountLowRatingReviews(ctx context.Context, userID string, days int) (int, error)
 	CountUserReviews(ctx context.Context, userID string) (int, error)
 	AvgUserRating(ctx context.Context, userID string) (float64, error)
+	GetByID(ctx context.Context, reviewID string) (*model.Review, error)
+}
+
+type ReviewReplyRepository interface {
+	CreateReply(ctx context.Context, reply *model.ReviewReply) error
+	UpdateReply(ctx context.Context, reviewID string, content string) (*model.ReviewReply, error)
+	GetByReviewID(ctx context.Context, reviewID string) (*model.ReviewReply, error)
+	GetByReviewIDs(ctx context.Context, reviewIDs []string) (map[string]*model.ReviewReply, error)
 }
 
 type TokenRepository interface {

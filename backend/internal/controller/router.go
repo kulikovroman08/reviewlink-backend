@@ -66,6 +66,9 @@ func SetupRouter(app *Application) *gin.Engine {
 		protected.POST("/bonuses/redeem", app.RedeemBonus)
 		protected.GET("/bonuses", app.GetUserBonuses)
 		protected.POST("/bonuses/validate", app.ValidateBonus)
+
+		protected.POST("/admin/reviews/:id/reply", app.ReplyToReview)
+		protected.PUT("/admin/reviews/:id/reply", app.UpdateReviewReply)
 	}
 
 	return r

@@ -1,0 +1,2 @@
+ALTER TABLE places
+    ALTER COLUMN owner_id DROP NOT NULL;

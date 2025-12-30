@@ -63,3 +63,9 @@ const (
 	ErrBonusNotFound     = "bonus not found"
 	ErrBonusAlreadyUsed  = "bonus already used"
 )
+
+// Review replies
+const (
+	ErrReplyAlreadyExists = "reply already exists"
+	ErrReplyNotFound      = "reply not found"
+)

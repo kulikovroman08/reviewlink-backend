@@ -9,10 +9,8 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
-	"github.com/kulikovroman08/reviewlink-backend/internal/service/token"
-
 	"github.com/kulikovroman08/reviewlink-backend/internal/repository"
+	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
 
 	"github.com/google/uuid"
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
@@ -30,23 +28,23 @@ type reviewService struct {
 	reviewRepo      repository.ReviewRepository
 	userRepo        repository.UserRepository
 	placeRepo       repository.PlaceRepository
-	tokenService    *token.Service
 	restrictionRepo repository.UserRestrictionRepository
+	replyRepo       repository.ReviewReplyRepository
 }
 
 func NewReviewService(
 	reviewRepo repository.ReviewRepository,
 	userRepo repository.UserRepository,
 	placeRepo repository.PlaceRepository,
-	tokenService *token.Service,
 	restrictionRepo repository.UserRestrictionRepository,
+	replyRepo repository.ReviewReplyRepository,
 ) *reviewService {
 	return &reviewService{
 		reviewRepo:      reviewRepo,
 		userRepo:        userRepo,
 		placeRepo:       placeRepo,
-		tokenService:    tokenService,
 		restrictionRepo: restrictionRepo,
+		replyRepo:       replyRepo,
 	}
 }
 
@@ -128,10 +126,6 @@ func (s *reviewService) SubmitReview(ctx context.Context, review model.Review, t
 		return fmt.Errorf("mark token used: %w", err)
 	}
 
-	if err := s.tokenService.CheckAndRefillTokens(ctx, token.PlaceID.String()); err != nil {
-		fmt.Printf("auto-refill tokens failed for place %s: %v\n", token.PlaceID, err)
-	}
-
 	if isRestricted {
 		fmt.Printf("User %s has active restriction: skip points\n", review.UserID)
 		return nil
@@ -168,6 +162,22 @@ func (s *reviewService) GetReviews(ctx context.Context, placeID string, filter m
 	reviews, err := s.reviewRepo.FindReviews(ctx, placeID, filter)
 	if err != nil {
 		return nil, fmt.Errorf("find reviews: %w", err)
+	}
+
+	repliesIDs := make([]string, 0, len(reviews))
+	for _, r := range reviews {
+		repliesIDs = append(repliesIDs, r.ID.String())
+	}
+
+	replies, err := s.replyRepo.GetByReviewIDs(ctx, repliesIDs)
+	if err != nil {
+		return nil, fmt.Errorf("get replies: %w", err)
+	}
+
+	for i := range reviews {
+		if rr := replies[reviews[i].ID.String()]; rr != nil {
+			reviews[i].Reply = rr
+		}
 	}
 
 	return reviews, nil

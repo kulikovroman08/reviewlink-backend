@@ -19,4 +19,7 @@ var (
 	ErrBonusNotFound      = errors.New("bonus not found")
 	ErrBonusAlreadyUsed   = errors.New("bonus already used")
 	ErrTooManyReviews     = errors.New("too many reviews today")
+	ErrAccessDenied       = errors.New("access denied")
+	ErrReplyAlreadyExists = errors.New("reply already exists")
+	ErrReplyNotFound      = errors.New("reply not found")
 )
