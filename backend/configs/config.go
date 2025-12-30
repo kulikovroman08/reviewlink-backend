@@ -4,17 +4,22 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	HTTPPort         string
-	DBUrl            string
-	TokensAutoCount  int
-	TokensThreshold  int
-	TokensBatchSize  int
-	BonusRequiredPts int
+	HTTPPort            string
+	DBUrl               string
+	RedisAddr           string
+	RedisPassword       string
+	RedisDB             int
+	LeaderboardCacheTTL time.Duration
+	TokensAutoCount     int
+	TokensThreshold     int
+	TokensBatchSize     int
+	BonusRequiredPts    int
 }
 
 func LoadConfig() Config {
@@ -27,14 +32,19 @@ func LoadConfig() Config {
 			dbURL = val
 		}
 	}
+	ttlSeconds := getEnvInt("LEADERBOARD_CACHE_TTL_SECONDS", 60)
 
 	cfg := Config{
-		HTTPPort:         os.Getenv("PORT"),
-		DBUrl:            dbURL,
-		TokensAutoCount:  getEnvInt("TOKENS_AUTO_COUNT", 10),
-		TokensThreshold:  getEnvInt("TOKENS_THRESHOLD", 5),
-		TokensBatchSize:  getEnvInt("TOKENS_BATCH_SIZE", 10),
-		BonusRequiredPts: getEnvInt("BONUS_REQUIRED_POINTS", 50),
+		HTTPPort:            os.Getenv("PORT"),
+		DBUrl:               dbURL,
+		RedisAddr:           os.Getenv("REDIS_ADDR"),
+		RedisPassword:       os.Getenv("REDIS_PASSWORD"),
+		RedisDB:             getEnvInt("REDIS_DB", 0),
+		LeaderboardCacheTTL: time.Second * time.Duration(ttlSeconds),
+		TokensAutoCount:     getEnvInt("TOKENS_AUTO_COUNT", 10),
+		TokensThreshold:     getEnvInt("TOKENS_THRESHOLD", 5),
+		TokensBatchSize:     getEnvInt("TOKENS_BATCH_SIZE", 10),
+		BonusRequiredPts:    getEnvInt("BONUS_REQUIRED_POINTS", 50),
 	}
 
 	fmt.Println("APP_ENV:", os.Getenv("APP_ENV"))

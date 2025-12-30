@@ -3,6 +3,9 @@ package app
 import (
 	"context"
 	"log"
+	"time"
+
+	"github.com/redis/go-redis/v9"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -27,9 +30,18 @@ import (
 )
 
 func InitApp(cfg *configs.Config) *gin.Engine {
-	dbpool, err := pgxpool.New(context.Background(), cfg.DBUrl)
+	ctx := context.Background()
+
+	dbpool, err := pgxpool.New(ctx, cfg.DBUrl)
 	if err != nil {
 		log.Fatalf("error connecting to db: %v", err)
+	}
+
+	rdb := initRedis(ctx, cfg)
+
+	var lbCache svcLeaderboard.LeaderboardCache
+	if rdb != nil {
+		lbCache = svcLeaderboard.NewRedisLeaderboardCache(rdb, 60*time.Second)
 	}
 
 	userRepo := repoUser.NewPostgresUserRepository(dbpool)
@@ -46,7 +58,7 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 	placeService := svcPlace.NewPlaceService(placeRepo, tokenService, cfg)
 	reviewService := svcReview.NewReviewService(reviewRepo, userRepo, placeRepo, tokenService, restrictionRepo)
 	adminService := svcAdmin.NewAdminService(adminRepo)
-	leaderboardService := svcLeaderboard.NewService(leaderboardRepo)
+	leaderboardService := svcLeaderboard.NewService(leaderboardRepo, lbCache)
 	bonusService := svcBonus.NewBonusService(userRepo, bonusRepo, cfg)
 
 	app := controller.NewApplication(userService,
@@ -59,4 +71,28 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 	)
 
 	return controller.SetupRouter(app)
+}
+
+func initRedis(ctx context.Context, cfg *configs.Config) *redis.Client {
+	if cfg.RedisAddr == "" {
+		log.Printf("redis disabled (REDIS_ADDR is empty)")
+		return nil
+	}
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.RedisAddr,
+		Password: cfg.RedisPassword,
+		DB:       cfg.RedisDB,
+	})
+
+	pingCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	defer cancel()
+
+	if err := rdb.Ping(pingCtx).Err(); err != nil {
+		log.Printf("redis disabled (can't connect to %s): %v", cfg.RedisAddr, err)
+		return nil
+	}
+
+	log.Printf("redis enabled: %s", cfg.RedisAddr)
+	return rdb
 }

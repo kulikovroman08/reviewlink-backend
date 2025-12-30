@@ -73,7 +73,7 @@ func NewTestSetup() *TestSetup {
 	placeSrv := placeService.NewPlaceService(placeRepo, tokSrv, &cfg)
 	reviewSrv := reviewService.NewReviewService(reviewRepo, userRepo, placeRepo, tokSrv, restrictionRepo)
 	adminSrv := adminService.NewAdminService(adminRepo)
-	leaderboardService := svcLeaderboard.NewService(leaderboardRepo)
+	leaderboardService := svcLeaderboard.NewService(leaderboardRepo, nil)
 	bonusService := svcBonus.NewBonusService(userRepo, bonusRepo, &cfg)
 
 	app := controller.NewApplication(userSrv,
