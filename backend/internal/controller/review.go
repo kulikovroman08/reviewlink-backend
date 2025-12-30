@@ -84,7 +84,7 @@ func (h *Application) SubmitReview(c *gin.Context) {
 // @Param        id     path      string  true   "Place ID"
 // @Param        rating query     int     false  "Фильтр по рейтингу (1-5)"
 // @Param        sort   query     string  false  "Сортировка: date_asc или date_desc"
-// @Success 200 {array} dto.ReviewResponse
+// @Success 200 {array} dto.ReviewWithReplyResponse
 // @Failure 400 {object} dto.ErrorResponse "invalid input"
 // @Failure 404 {object} dto.ErrorResponse "place not found"
 // @Failure 500 {object} dto.ErrorResponse "internal error"
@@ -109,12 +109,23 @@ func (h *Application) GetReviews(c *gin.Context) {
 		return
 	}
 
-	resp := make([]dto.ReviewResponse, 0, len(reviews))
+	resp := make([]dto.ReviewWithReplyResponse, 0, len(reviews))
 	for _, r := range reviews {
-		resp = append(resp, dto.ReviewResponse{
+		var reply *dto.ReviewReplyResponse
+		if r.Reply != nil {
+			reply = &dto.ReviewReplyResponse{
+				Content:   r.Reply.Content,
+				CreatedAt: r.Reply.CreatedAt,
+				UpdatedAt: r.Reply.UpdatedAt,
+			}
+		}
+
+		resp = append(resp, dto.ReviewWithReplyResponse{
+			ID:        r.ID.String(),
 			Rating:    r.Rating,
 			Content:   r.Content,
 			CreatedAt: r.CreatedAt,
+			Reply:     reply,
 		})
 	}
 

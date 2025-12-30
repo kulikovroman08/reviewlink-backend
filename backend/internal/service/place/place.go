@@ -27,6 +27,10 @@ func NewPlaceService(placeRepo repository.PlaceRepository, tokenService *token.S
 }
 
 func (s *placeService) CreatePlace(ctx context.Context, place model.Place) (*model.Place, error) {
+	if place.OwnerID == uuid.Nil {
+		return nil, fmt.Errorf("owner_id is required")
+	}
+
 	if place.Name == "" {
 		return nil, fmt.Errorf("name is required")
 	}
@@ -42,13 +46,13 @@ func (s *placeService) CreatePlace(ctx context.Context, place model.Place) (*mod
 	}
 
 	count := s.cfg.TokensAutoCount
-	if _, err := s.tokenService.GenerateTokens(ctx, place.ID.String(), count); err != nil {
+	if _, err := s.tokenService.GenerateTokens(ctx, place.OwnerID.String(), place.ID.String(), count); err != nil {
 		fmt.Printf("failed to auto-generate tokens for place %s: %v\n", place.ID, err)
 	}
 
 	return &place, nil
 }
 
-func (s *placeService) GetAllPlaces(ctx context.Context) ([]model.Place, error) {
-	return s.placeRepo.GetAllPlaces(ctx)
+func (s *placeService) GetPlacesByOwner(ctx context.Context, ownerID string) ([]model.Place, error) {
+	return s.placeRepo.GetPlacesByOwner(ctx, ownerID)
 }

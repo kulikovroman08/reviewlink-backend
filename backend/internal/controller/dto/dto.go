@@ -71,6 +71,24 @@ type ReviewResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+type ReplyToReviewRequest struct {
+	Content string `json:"content" binding:"required,max=1000"`
+}
+
+type ReviewReplyResponse struct {
+	Content   string     `json:"content"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+}
+
+type ReviewWithReplyResponse struct {
+	ID        string               `json:"id"`
+	Rating    int                  `json:"rating"`
+	Content   string               `json:"content"`
+	CreatedAt time.Time            `json:"created_at"`
+	Reply     *ReviewReplyResponse `json:"reply,omitempty"`
+}
+
 type GenerateTokensRequest struct {
 	PlaceID string `json:"place_id" binding:"required,uuid"`
 	Count   int    `json:"count" binding:"required,min=1,max=100"`

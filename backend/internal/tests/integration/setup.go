@@ -23,6 +23,7 @@ import (
 	repoLeaderboard "github.com/kulikovroman08/reviewlink-backend/internal/repository/leaderboard"
 	restrictionRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/restriction"
 	reviewRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/review"
+	repoReply "github.com/kulikovroman08/reviewlink-backend/internal/repository/review_reply"
 	tokenRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/token"
 	"github.com/kulikovroman08/reviewlink-backend/internal/repository/user"
 	adminService "github.com/kulikovroman08/reviewlink-backend/internal/service/admin"
@@ -30,6 +31,7 @@ import (
 	svcLeaderboard "github.com/kulikovroman08/reviewlink-backend/internal/service/leaderboard"
 	placeService "github.com/kulikovroman08/reviewlink-backend/internal/service/place"
 	reviewService "github.com/kulikovroman08/reviewlink-backend/internal/service/review"
+	svcReply "github.com/kulikovroman08/reviewlink-backend/internal/service/review_reply"
 	tokenService "github.com/kulikovroman08/reviewlink-backend/internal/service/token"
 	userService "github.com/kulikovroman08/reviewlink-backend/internal/service/user"
 )
@@ -67,22 +69,25 @@ func NewTestSetup() *TestSetup {
 	leaderboardRepo := repoLeaderboard.NewRepository(db)
 	bonusRepo := bonusRepo.NewPostgresBonusRepository(db)
 	restrictionRepo := restrictionRepo.NewPostgresUserRestrictionRepository(db)
+	replyRepo := repoReply.NewPostgresReviewReplyRepository(db)
 
-	tokSrv := tokenService.NewTokenService(tokRepo, &cfg)
+	tokSrv := tokenService.NewTokenService(tokRepo, placeRepo, &cfg)
 	userSrv := userService.NewUserService(userRepo, reviewRepo, bonusRepo)
 	placeSrv := placeService.NewPlaceService(placeRepo, tokSrv, &cfg)
-	reviewSrv := reviewService.NewReviewService(reviewRepo, userRepo, placeRepo, tokSrv, restrictionRepo)
+	reviewSrv := reviewService.NewReviewService(reviewRepo, userRepo, placeRepo, restrictionRepo, replyRepo)
 	adminSrv := adminService.NewAdminService(adminRepo)
-	leaderboardService := svcLeaderboard.NewService(leaderboardRepo, nil)
-	bonusService := svcBonus.NewBonusService(userRepo, bonusRepo, &cfg)
+	leaderboardSrv := svcLeaderboard.NewService(leaderboardRepo, nil)
+	bonusSrv := svcBonus.NewBonusService(userRepo, bonusRepo, &cfg)
+	reviewReplySrv := svcReply.NewReviewReplyService(reviewRepo, placeRepo, replyRepo)
 
 	app := controller.NewApplication(userSrv,
 		placeSrv,
 		reviewSrv,
 		tokSrv,
 		adminSrv,
-		leaderboardService,
-		bonusService,
+		leaderboardSrv,
+		bonusSrv,
+		reviewReplySrv,
 	)
 
 	r := controller.SetupRouter(app)

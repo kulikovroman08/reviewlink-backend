@@ -19,7 +19,7 @@ type UserService interface {
 
 type PlaceService interface {
 	CreatePlace(ctx context.Context, place model.Place) (*model.Place, error)
-	GetAllPlaces(ctx context.Context) ([]model.Place, error)
+	GetPlacesByOwner(ctx context.Context, ownerID string) ([]model.Place, error)
 }
 
 type ReviewService interface {
@@ -29,9 +29,14 @@ type ReviewService interface {
 	DeleteReview(ctx context.Context, reviewID, userID string) error
 }
 
+type ReviewReplyService interface {
+	ReplyToReview(ctx context.Context, adminID string, reviewID string, content string) (*model.ReviewReply, error)
+	UpdateReply(ctx context.Context, adminID string, reviewID string, content string) (*model.ReviewReply, error)
+}
+
 type TokenService interface {
-	GenerateTokens(ctx context.Context, placeID string, count int) (*model.GenerateTokensResult, error)
-	CheckAndRefillTokens(ctx context.Context, placeID string) error
+	GenerateTokens(ctx context.Context, adminID string, placeID string, count int) (*model.GenerateTokensResult, error)
+	CheckAndRefillTokens(ctx context.Context, adminID string, placeID string) error
 }
 
 type AdminService interface {

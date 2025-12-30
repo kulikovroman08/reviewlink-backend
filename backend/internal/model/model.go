@@ -19,6 +19,7 @@ type User struct {
 
 type Place struct {
 	ID        uuid.UUID
+	OwnerID   uuid.UUID
 	Name      string
 	Address   string
 	CreatedAt time.Time
@@ -40,6 +41,16 @@ type Review struct {
 	TokenID   uuid.UUID
 	Content   string
 	Rating    int
+	CreatedAt time.Time
+	UpdatedAt *time.Time
+	Reply     *ReviewReply
+}
+
+type ReviewReply struct {
+	ID        uuid.UUID
+	ReviewID  uuid.UUID
+	AdminID   uuid.UUID
+	Content   string
 	CreatedAt time.Time
 	UpdatedAt *time.Time
 }

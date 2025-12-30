@@ -15,6 +15,160 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/reviews/{id}/reply": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admins"
+                ],
+                "summary": "Обновить ответ на отзыв (только для админов)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Review ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reply content",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ReplyToReviewRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ReviewReplyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "access denied",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "reply or review not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admins"
+                ],
+                "summary": "Ответ на отзыв (только для админов)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Review ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reply content",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ReplyToReviewRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ReviewReplyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "access denied",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "review not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "reply already exists",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/stats": {
             "get": {
                 "security": [
@@ -457,7 +611,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Возвращает список всех заведений. Доступ только для роли **admin**.",
+                "description": "Возвращает список заведений, принадлежащих текущему администратору",
                 "produces": [
                     "application/json"
                 ],
@@ -473,6 +627,12 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/dto.PlaceResponse"
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "403": {
@@ -495,7 +655,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Эндпоинт доступен только пользователям с ролью **admin**.",
+                "description": "Создаёт заведение и привязывает его к текущему администратору",
                 "consumes": [
                     "application/json"
                 ],
@@ -591,7 +751,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.ReviewResponse"
+                                "$ref": "#/definitions/dto.ReviewWithReplyResponse"
                             }
                         }
                     },
@@ -1290,7 +1450,19 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ReviewResponse": {
+        "dto.ReplyToReviewRequest": {
+            "type": "object",
+            "required": [
+                "content"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "maxLength": 1000
+                }
+            }
+        },
+        "dto.ReviewReplyResponse": {
             "type": "object",
             "properties": {
                 "content": {
@@ -1299,8 +1471,28 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ReviewWithReplyResponse": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
                 "rating": {
                     "type": "integer"
+                },
+                "reply": {
+                    "$ref": "#/definitions/dto.ReviewReplyResponse"
                 }
             }
         },
@@ -1436,6 +1628,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "API для пользователей, мест, отзывов и токенов",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {

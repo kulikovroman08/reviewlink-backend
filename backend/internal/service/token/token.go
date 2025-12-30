@@ -10,21 +10,36 @@ import (
 	"github.com/kulikovroman08/reviewlink-backend/configs"
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 	repo "github.com/kulikovroman08/reviewlink-backend/internal/repository"
+	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
 )
 
 type Service struct {
-	repo repo.TokenRepository
-	cfg  *configs.Config
+	repo      repo.TokenRepository
+	placeRepo repo.PlaceRepository
+	cfg       *configs.Config
 }
 
-func NewTokenService(repo repo.TokenRepository, cfg *configs.Config) *Service {
+func NewTokenService(repo repo.TokenRepository, placeRepo repo.PlaceRepository, cfg *configs.Config) *Service {
 	return &Service{
-		repo: repo,
-		cfg:  cfg,
+		repo:      repo,
+		placeRepo: placeRepo,
+		cfg:       cfg,
 	}
 }
 
-func (s *Service) GenerateTokens(ctx context.Context, placeID string, count int) (*model.GenerateTokensResult, error) {
+func (s *Service) GenerateTokens(ctx context.Context, adminID string, placeID string, count int) (*model.GenerateTokensResult, error) {
+	if _, err := uuid.Parse(placeID); err != nil {
+		return nil, serviceErrors.ErrInvalidPlaceID // см. ниже про errors
+	}
+
+	// 2) ownership check
+	ok, err := s.placeRepo.IsOwner(ctx, placeID, adminID)
+	if err != nil {
+		return nil, fmt.Errorf("check place ownership: %w", err)
+	}
+	if !ok {
+		return nil, serviceErrors.ErrAccessDenied
+	}
 
 	tokens, values, err := generateTokens(placeID, count)
 	if err != nil {
@@ -38,7 +53,7 @@ func (s *Service) GenerateTokens(ctx context.Context, placeID string, count int)
 	return &model.GenerateTokensResult{Tokens: values}, nil
 }
 
-func (s *Service) CheckAndRefillTokens(ctx context.Context, placeID string) error {
+func (s *Service) CheckAndRefillTokens(ctx context.Context, adminID string, placeID string) error {
 	activeCount, err := s.repo.CountActiveTokens(ctx, placeID)
 	if err != nil {
 		return fmt.Errorf("count active tokens: %w", err)
@@ -48,7 +63,7 @@ func (s *Service) CheckAndRefillTokens(ctx context.Context, placeID string) erro
 		log.Printf("[auto-refill] active tokens for %s = %d, generating +%d",
 			placeID, activeCount, s.cfg.TokensBatchSize)
 
-		if _, err := s.GenerateTokens(ctx, placeID, s.cfg.TokensBatchSize); err != nil {
+		if _, err := s.GenerateTokens(ctx, adminID, placeID, s.cfg.TokensBatchSize); err != nil {
 			log.Printf("[auto-refill] failed for %s: %v", placeID, err)
 			return err
 		}

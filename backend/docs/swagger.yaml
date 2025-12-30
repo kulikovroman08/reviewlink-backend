@@ -161,14 +161,35 @@ definitions:
       name:
         type: string
     type: object
-  dto.ReviewResponse:
+  dto.ReplyToReviewRequest:
+    properties:
+      content:
+        maxLength: 1000
+        type: string
+    required:
+    - content
+    type: object
+  dto.ReviewReplyResponse:
     properties:
       content:
         type: string
       created_at:
         type: string
+      updated_at:
+        type: string
+    type: object
+  dto.ReviewWithReplyResponse:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
       rating:
         type: integer
+      reply:
+        $ref: '#/definitions/dto.ReviewReplyResponse'
     type: object
   dto.SignupRequest:
     properties:
@@ -253,6 +274,105 @@ info:
   title: Reviewlink API
   version: "1.0"
 paths:
+  /admin/reviews/{id}/reply:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Reply content
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ReplyToReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.ReviewReplyResponse'
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: access denied
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: review not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: reply already exists
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ответ на отзыв (только для админов)
+      tags:
+      - admins
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Reply content
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ReplyToReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ReviewReplyResponse'
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: access denied
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: reply or review not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обновить ответ на отзыв (только для админов)
+      tags:
+      - admins
   /admin/stats:
     get:
       description: 'Возвращает агрегированные данные: количество пользователей, отзывов,
@@ -540,7 +660,7 @@ paths:
       - auth
   /places:
     get:
-      description: Возвращает список всех заведений. Доступ только для роли **admin**.
+      description: Возвращает список заведений, принадлежащих текущему администратору
       produces:
       - application/json
       responses:
@@ -550,6 +670,10 @@ paths:
             items:
               $ref: '#/definitions/dto.PlaceResponse'
             type: array
+        "401":
+          description: unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
         "403":
           description: access denied
           schema:
@@ -566,7 +690,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Эндпоинт доступен только пользователям с ролью **admin**.
+      description: Создаёт заведение и привязывает его к текущему администратору
       parameters:
       - description: Данные для создания места
         in: body
@@ -628,7 +752,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/dto.ReviewResponse'
+              $ref: '#/definitions/dto.ReviewWithReplyResponse'
             type: array
         "400":
           description: invalid input

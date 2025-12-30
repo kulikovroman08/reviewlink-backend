@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/google/uuid"
+
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 	serviceErrors "github.com/kulikovroman08/reviewlink-backend/internal/service/errors"
 
@@ -14,7 +16,7 @@ import (
 
 // CreatePlace godoc
 // @Summary      Создание места (только для админов)
-// @Description  Эндпоинт доступен только пользователям с ролью **admin**.
+// @Description  Создаёт заведение и привязывает его к текущему администратору
 // @Tags         admins
 // @Accept       json
 // @Produce      json
@@ -33,6 +35,18 @@ func (h *Application) CreatePlace(c *gin.Context) {
 		return
 	}
 
+	ownerID := c.GetString("user_id")
+	if ownerID == "" {
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: response.ErrUnauthorized})
+		return
+	}
+
+	ownerUUID, err := uuid.Parse(ownerID)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: response.ErrUnauthorized})
+		return
+	}
+
 	var req dto.CreatePlaceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
@@ -40,6 +54,7 @@ func (h *Application) CreatePlace(c *gin.Context) {
 	}
 
 	place := model.Place{
+		OwnerID: ownerUUID,
 		Name:    req.Name,
 		Address: req.Address,
 	}
@@ -68,10 +83,11 @@ func (h *Application) CreatePlace(c *gin.Context) {
 
 // GetPlaces godoc
 // @Summary      Получение списка мест (только для админов)
-// @Description  Возвращает список всех заведений. Доступ только для роли **admin**.
+// @Description  Возвращает список заведений, принадлежащих текущему администратору
 // @Tags         admins
 // @Produce      json
 // @Success 200 {array} dto.PlaceResponse
+// @Failure      401 {object} dto.ErrorResponse "unauthorized"
 // @Failure 403 {object} dto.ErrorResponse "access denied"
 // @Failure 500 {object} dto.ErrorResponse "failed to load places"
 // @Router /places [get]
@@ -85,7 +101,18 @@ func (h *Application) GetPlaces(c *gin.Context) {
 		return
 	}
 
-	places, err := h.PlaceService.GetAllPlaces(c.Request.Context())
+	adminID := c.GetString("user_id")
+	if adminID == "" {
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: response.ErrUnauthorized})
+		return
+	}
+
+	if _, err := uuid.Parse(adminID); err != nil {
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: response.ErrUnauthorized})
+		return
+	}
+
+	places, err := h.PlaceService.GetPlacesByOwner(c.Request.Context(), adminID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
 			Error: response.ErrFailedGetPlaces,

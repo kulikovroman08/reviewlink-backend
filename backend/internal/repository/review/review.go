@@ -34,6 +34,7 @@ const (
 	reviewRating       = "rating"
 	reviewCreatedAt    = "created_at"
 	reviewIsDeletedCol = "is_deleted"
+	reviewUpdatedAt    = "updated_at"
 )
 
 type PostgresReviewRepository struct {
@@ -354,4 +355,60 @@ func (r *PostgresReviewRepository) AvgUserRating(ctx context.Context, userID str
 	}
 
 	return avg, nil
+}
+
+func (r *PostgresReviewRepository) GetByID(ctx context.Context, reviewID string) (*model.Review, error) {
+	uid, err := uuid.Parse(reviewID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid review id: %w", err)
+	}
+
+	query, args, err := r.builder.
+		Select(
+			reviewIDColumn,
+			reviewUserID,
+			reviewPlaceID,
+			reviewTokenID,
+			reviewContent,
+			reviewRating,
+			reviewCreatedAt,
+			reviewUpdatedAt,
+		).
+		From(reviewTable).
+		Where(sq.Eq{
+			reviewIDColumn:     uid,
+			reviewIsDeletedCol: false,
+		}).
+		Limit(1).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("build GetByID query: %w", err)
+	}
+
+	row := r.db.QueryRow(ctx, query, args...)
+
+	var rev model.Review
+	var updatedAt sql.NullTime
+
+	if err := row.Scan(
+		&rev.ID,
+		&rev.UserID,
+		&rev.PlaceID,
+		&rev.TokenID,
+		&rev.Content,
+		&rev.Rating,
+		&rev.CreatedAt,
+		&updatedAt,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, sql.ErrNoRows
+		}
+		return nil, fmt.Errorf("scan GetByID row: %w", err)
+	}
+
+	if updatedAt.Valid {
+		rev.UpdatedAt = &updatedAt.Time
+	}
+
+	return &rev, nil
 }

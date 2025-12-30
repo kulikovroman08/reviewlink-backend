@@ -31,17 +31,26 @@ func (a *Application) GenerateTokens(c *gin.Context) {
 		return
 	}
 
+	adminID := c.GetString("user_id")
+	if adminID == "" {
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: response.ErrUnauthorized})
+		return
+	}
+
 	var req dto.GenerateTokensRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
 		return
 	}
 
-	resp, err := a.TokenService.GenerateTokens(c.Request.Context(), req.PlaceID, req.Count)
+	resp, err := a.TokenService.GenerateTokens(c.Request.Context(), adminID, req.PlaceID, req.Count)
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrInvalidPlaceID):
 			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidPlaceID})
+
+		case errors.Is(err, serviceErrors.ErrAccessDenied):
+			c.JSON(http.StatusForbidden, dto.ErrorResponse{Error: response.ErrAccessDenied})
 
 		default:
 			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrFailedGenerateTokens})

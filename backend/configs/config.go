@@ -23,11 +23,15 @@ type Config struct {
 }
 
 func LoadConfig() Config {
+	env := os.Getenv("APP_ENV")
 	_ = godotenv.Load(".env")
-	_ = godotenv.Load(".env.test")
+
+	if env == "test" {
+		_ = godotenv.Overload(".env.test")
+	}
 
 	dbURL := os.Getenv("DB_URL")
-	if os.Getenv("APP_ENV") == "test" {
+	if env == "test" {
 		if val := os.Getenv("DB_URL_TEST"); val != "" {
 			dbURL = val
 		}
