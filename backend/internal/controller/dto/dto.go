@@ -89,6 +89,10 @@ type ReviewWithReplyResponse struct {
 	Reply     *ReviewReplyResponse `json:"reply,omitempty"`
 }
 
+type VoteReviewRequest struct {
+	Value int16 `json:"value" binding:"required,oneof=1 -1"`
+}
+
 type GenerateTokensRequest struct {
 	PlaceID string `json:"place_id" binding:"required,uuid"`
 	Count   int    `json:"count" binding:"required,min=1,max=100"`

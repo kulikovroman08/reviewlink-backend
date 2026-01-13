@@ -19,6 +19,7 @@ import (
 	restrictionRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/restriction"
 	repoReview "github.com/kulikovroman08/reviewlink-backend/internal/repository/review"
 	repoReply "github.com/kulikovroman08/reviewlink-backend/internal/repository/review_reply"
+	repoVote "github.com/kulikovroman08/reviewlink-backend/internal/repository/review_vote"
 	repoToken "github.com/kulikovroman08/reviewlink-backend/internal/repository/token"
 	repoUser "github.com/kulikovroman08/reviewlink-backend/internal/repository/user"
 	svcAdmin "github.com/kulikovroman08/reviewlink-backend/internal/service/admin"
@@ -27,6 +28,7 @@ import (
 	svcPlace "github.com/kulikovroman08/reviewlink-backend/internal/service/place"
 	svcReview "github.com/kulikovroman08/reviewlink-backend/internal/service/review"
 	svcReply "github.com/kulikovroman08/reviewlink-backend/internal/service/review_reply"
+	svcVote "github.com/kulikovroman08/reviewlink-backend/internal/service/review_vote"
 	svcToken "github.com/kulikovroman08/reviewlink-backend/internal/service/token"
 	svcUser "github.com/kulikovroman08/reviewlink-backend/internal/service/user"
 )
@@ -55,6 +57,7 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 	bonusRepo := bonusRepo.NewPostgresBonusRepository(dbpool)
 	restrictionRepo := restrictionRepo.NewPostgresUserRestrictionRepository(dbpool)
 	replyRepo := repoReply.NewPostgresReviewReplyRepository(dbpool)
+	voteRepo := repoVote.NewPostgresReviewVoteRepository()
 
 	tokenService := svcToken.NewTokenService(tokenRepo, placeRepo, cfg)
 	userService := svcUser.NewUserService(userRepo, reviewRepo, bonusRepo)
@@ -64,6 +67,7 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 	leaderboardService := svcLeaderboard.NewService(leaderboardRepo, lbCache)
 	bonusService := svcBonus.NewBonusService(userRepo, bonusRepo, cfg)
 	reviewReplyService := svcReply.NewReviewReplyService(reviewRepo, placeRepo, replyRepo)
+	reviewVoteService := svcVote.NewReviewVoteService(dbpool, voteRepo, reviewRepo, userRepo)
 
 	app := controller.NewApplication(userService,
 		placeService,
@@ -73,6 +77,7 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 		leaderboardService,
 		bonusService,
 		reviewReplyService,
+		reviewVoteService,
 	)
 
 	return controller.SetupRouter(app)
