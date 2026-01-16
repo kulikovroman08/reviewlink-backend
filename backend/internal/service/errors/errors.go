@@ -22,4 +22,5 @@ var (
 	ErrAccessDenied       = errors.New("access denied")
 	ErrReplyAlreadyExists = errors.New("reply already exists")
 	ErrReplyNotFound      = errors.New("reply not found")
+	ErrInvalidVoteValue   = errors.New("invalid vote value")
 )

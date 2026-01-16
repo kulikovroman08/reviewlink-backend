@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 
+	"github.com/jackc/pgx/v5"
+
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 )
 
@@ -72,4 +74,11 @@ type BonusRepository interface {
 type UserRestrictionRepository interface {
 	HasActiveRestriction(ctx context.Context, userID, restrictionType string) (bool, error)
 	CreateRestriction(ctx context.Context, restriction *model.UserRestriction) error
+}
+
+type ReviewVoteRepository interface {
+	GetVoteForUpdate(ctx context.Context, tx pgx.Tx, reviewID, userID string) (*int16, error)
+	UpsertVote(ctx context.Context, tx pgx.Tx, reviewID, userID string, value int16) error
+	DeleteVote(ctx context.Context, tx pgx.Tx, reviewID, userID string) (bool, error)
+	UpdateCounters(ctx context.Context, tx pgx.Tx, reviewID string, deltaHelpful int32, deltaUnhelpful int32) error
 }

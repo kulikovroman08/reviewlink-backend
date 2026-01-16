@@ -54,3 +54,8 @@ type BonusService interface {
 	GetUserBonuses(ctx context.Context, userID string) ([]model.BonusReward, error)
 	ValidateBonus(ctx context.Context, qrToken string) error
 }
+
+type ReviewVoteService interface {
+	Vote(ctx context.Context, reviewID, userID string, value int16) error
+	Unvote(ctx context.Context, reviewID, userID string) error
+}

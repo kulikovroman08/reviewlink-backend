@@ -25,16 +25,18 @@ const (
 	reviewTokenIsUsed    = "is_used"
 	reviewTokenExpiresAt = "expires_at"
 
-	reviewTable        = "reviews"
-	reviewIDColumn     = "id"
-	reviewUserID       = "user_id"
-	reviewPlaceID      = "place_id"
-	reviewTokenID      = "token_id"
-	reviewContent      = "content"
-	reviewRating       = "rating"
-	reviewCreatedAt    = "created_at"
-	reviewIsDeletedCol = "is_deleted"
-	reviewUpdatedAt    = "updated_at"
+	reviewTable          = "reviews"
+	reviewIDColumn       = "id"
+	reviewUserID         = "user_id"
+	reviewPlaceID        = "place_id"
+	reviewTokenID        = "token_id"
+	reviewContent        = "content"
+	reviewRating         = "rating"
+	reviewCreatedAt      = "created_at"
+	reviewIsDeletedCol   = "is_deleted"
+	reviewUpdatedAt      = "updated_at"
+	reviewHelpfulCount   = "helpful_count"
+	reviewUnhelpfulCount = "unhelpful_count"
 )
 
 type PostgresReviewRepository struct {
@@ -188,6 +190,8 @@ func (r *PostgresReviewRepository) FindReviews(ctx context.Context, placeID stri
 			reviewContent,
 			reviewRating,
 			reviewCreatedAt,
+			reviewHelpfulCount,
+			reviewUnhelpfulCount,
 		).
 		From(reviewTable).
 		Where(sq.Eq{
@@ -234,6 +238,8 @@ func (r *PostgresReviewRepository) FindReviews(ctx context.Context, placeID stri
 			&rev.Content,
 			&rev.Rating,
 			&rev.CreatedAt,
+			&rev.HelpfulCount,
+			&rev.UnhelpfulCount,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("scan FindReviews row: %w", err)
