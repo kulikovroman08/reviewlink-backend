@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -59,7 +60,11 @@ func (s *reviewVoteService) Vote(ctx context.Context, reviewID, userID string, v
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil {
+			log.Println("rollback failed:", err)
+		}
+	}()
 
 	prev, err := s.voteRepo.GetVoteForUpdate(ctx, tx, reviewID, userID)
 	if err != nil {
@@ -129,7 +134,11 @@ func (s *reviewVoteService) Unvote(ctx context.Context, reviewID, userID string)
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil {
+			log.Println("rollback failed:", err)
+		}
+	}()
 
 	prev, err := s.voteRepo.GetVoteForUpdate(ctx, tx, reviewID, userID)
 	if err != nil {

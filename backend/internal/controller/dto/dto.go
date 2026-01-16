@@ -82,11 +82,13 @@ type ReviewReplyResponse struct {
 }
 
 type ReviewWithReplyResponse struct {
-	ID        string               `json:"id"`
-	Rating    int                  `json:"rating"`
-	Content   string               `json:"content"`
-	CreatedAt time.Time            `json:"created_at"`
-	Reply     *ReviewReplyResponse `json:"reply,omitempty"`
+	ID             string               `json:"id"`
+	Rating         int                  `json:"rating"`
+	Content        string               `json:"content"`
+	CreatedAt      time.Time            `json:"created_at"`
+	HelpfulCount   int32                `json:"helpful_count"`
+	UnhelpfulCount int32                `json:"unhelpful_count"`
+	Reply          *ReviewReplyResponse `json:"reply,omitempty"`
 }
 
 type VoteReviewRequest struct {

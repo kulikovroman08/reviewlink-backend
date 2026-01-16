@@ -121,11 +121,13 @@ func (h *Application) GetReviews(c *gin.Context) {
 		}
 
 		resp = append(resp, dto.ReviewWithReplyResponse{
-			ID:        r.ID.String(),
-			Rating:    r.Rating,
-			Content:   r.Content,
-			CreatedAt: r.CreatedAt,
-			Reply:     reply,
+			ID:             r.ID.String(),
+			Rating:         r.Rating,
+			Content:        r.Content,
+			CreatedAt:      r.CreatedAt,
+			HelpfulCount:   r.HelpfulCount,
+			UnhelpfulCount: r.UnhelpfulCount,
+			Reply:          reply,
 		})
 	}
 

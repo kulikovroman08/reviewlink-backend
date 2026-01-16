@@ -10,6 +10,9 @@ import (
 	"path/filepath"
 	"time"
 
+	repoVote "github.com/kulikovroman08/reviewlink-backend/internal/repository/review_vote"
+	svcVote "github.com/kulikovroman08/reviewlink-backend/internal/service/review_vote"
+
 	"github.com/kulikovroman08/reviewlink-backend/configs"
 	"github.com/kulikovroman08/reviewlink-backend/internal/repository/place"
 
@@ -70,6 +73,7 @@ func NewTestSetup() *TestSetup {
 	bonusRepo := bonusRepo.NewPostgresBonusRepository(db)
 	restrictionRepo := restrictionRepo.NewPostgresUserRestrictionRepository(db)
 	replyRepo := repoReply.NewPostgresReviewReplyRepository(db)
+	voteRepo := repoVote.NewPostgresReviewVoteRepository()
 
 	tokSrv := tokenService.NewTokenService(tokRepo, placeRepo, &cfg)
 	userSrv := userService.NewUserService(userRepo, reviewRepo, bonusRepo)
@@ -79,6 +83,7 @@ func NewTestSetup() *TestSetup {
 	leaderboardSrv := svcLeaderboard.NewService(leaderboardRepo, nil)
 	bonusSrv := svcBonus.NewBonusService(userRepo, bonusRepo, &cfg)
 	reviewReplySrv := svcReply.NewReviewReplyService(reviewRepo, placeRepo, replyRepo)
+	reviewVoteService := svcVote.NewReviewVoteService(db, voteRepo, reviewRepo, userRepo)
 
 	app := controller.NewApplication(userSrv,
 		placeSrv,
@@ -88,6 +93,7 @@ func NewTestSetup() *TestSetup {
 		leaderboardSrv,
 		bonusSrv,
 		reviewReplySrv,
+		reviewVoteService,
 	)
 
 	r := controller.SetupRouter(app)
