@@ -1,46 +1,46 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const { API_BASE, showError, showSuccess } = window.AppCommon;
+    const { showError, showSuccess, apiFetch } = window.AppCommon;
 
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
     const placeId = urlParams.get("place_id");
 
+    // theme
+    const themeBtn = document.getElementById("themeBtn");
+    if (themeBtn) themeBtn.addEventListener("click", () => window.RL?.toggleTheme?.());
+
     if (!placeId) {
         document.body.innerHTML = `
-        <div class="container mt-5">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <h4 class="text-danger mb-3">Ошибка ссылки</h4>
-                    <p class="text-muted">
-                        В ссылке отсутствует place_id.<br>
-                        Обратитесь к продавцу или перезапустите QR-код.
-                    </p>
-                    <a href="dashboard.html" class="btn btn-primary mt-3">В личный кабинет</a>
-                </div>
+      <div class="container mt-4">
+        <div class="card" style="max-width:640px; margin:0 auto;">
+          <div class="card-header"><h5 class="section-title">Ошибка ссылки</h5></div>
+          <div class="card-body center">
+            <div class="muted">В ссылке отсутствует place_id. Обратитесь к заведению или перезапустите QR.</div>
+            <div style="margin-top: var(--space-4);">
+              <a class="btn btn-sm" href="dashboard.html">В личный кабинет</a>
             </div>
-        </div>`;
+          </div>
+        </div>
+      </div>`;
         return;
     }
 
-    // Если токена нет — показываем сообщение
     if (!token) {
         document.body.innerHTML = `
-            <div class="container mt-5">
-                <div class="card shadow-sm">
-                    <div class="card-body text-center">
-                        <h4 class="text-danger mb-3">Токен не найден</h4>
-                        <p class="text-muted">
-                            Страница доступна только при переходе через QR-код.
-                        </p>
-                        <a href="dashboard.html" class="btn btn-primary">Перейти в личный кабинет</a>
-                    </div>
-                </div>
+      <div class="container mt-4">
+        <div class="card" style="max-width:640px; margin:0 auto;">
+          <div class="card-header"><h5 class="section-title">Токен не найден</h5></div>
+          <div class="card-body center">
+            <div class="muted">Страница доступна только при переходе через QR-код.</div>
+            <div style="margin-top: var(--space-4);">
+              <a class="btn btn-sm" href="dashboard.html">Перейти в личный кабинет</a>
             </div>
-        `;
+          </div>
+        </div>
+      </div>`;
         return;
     }
 
-    // Проверка авторизации
     const userToken = localStorage.getItem("userToken");
     if (!userToken) {
         window.location.href = `login.html?redirect=${encodeURIComponent(window.location.href)}`;
@@ -54,93 +54,105 @@ document.addEventListener("DOMContentLoaded", () => {
     const submitBtn = document.getElementById("submitBtn");
     const formMessage = document.getElementById("formMessage");
 
-    // Звёздочки
-    ratingStars.addEventListener("click", (e) => {
-        if (e.target.innerText === "★" || e.target.innerText === "☆") {
-            const index = [...ratingStars.children].indexOf(e.target);
-            selectedRating = index + 1;
-            updateStars();
-        }
-    });
+    function renderStars() {
+        if (!ratingStars) return;
 
-    function updateStars() {
-        let html = "";
+        ratingStars.innerHTML = "";
         for (let i = 1; i <= 5; i++) {
-            html += `<span style="cursor:pointer;">${i <= selectedRating ? "★" : "☆"}</span>`;
+            const star = document.createElement("button");
+            star.type = "button";
+            star.className = "rl-star";
+            star.dataset.value = String(i);
+            star.setAttribute("aria-label", `Оценка ${i}`);
+            star.setAttribute("aria-pressed", i === selectedRating ? "true" : "false");
+
+            const filled = i <= selectedRating;
+            if (filled) star.classList.add("is-filled");
+
+            star.textContent = "★";
+
+            ratingStars.appendChild(star);
         }
-        ratingStars.innerHTML = html;
     }
 
-    updateStars();
+    ratingStars?.addEventListener("click", (e) => {
+        const btn = e.target.closest(".rl-star");
+        if (!btn) return;
+        const val = Number(btn.dataset.value);
+        if (!Number.isFinite(val)) return;
+        selectedRating = val;
+        renderStars();
+    });
 
-    // Отправка отзыва
-    submitBtn.addEventListener("click", submitReview);
+    // hover подсветка
+    ratingStars?.addEventListener("mouseover", (e) => {
+        const btn = e.target.closest(".rl-star");
+        if (!btn) return;
+
+        const val = Number(btn.dataset.value);
+        if (!Number.isFinite(val)) return;
+
+        ratingStars.querySelectorAll(".rl-star").forEach((s) => {
+            const v = Number(s.dataset.value);
+            s.classList.toggle("is-hover", v <= val);
+        });
+    });
+
+    ratingStars?.addEventListener("mouseout", () => {
+        ratingStars.querySelectorAll(".rl-star").forEach((s) => s.classList.remove("is-hover"));
+    });
+
+
+    renderStars();
+
+    submitBtn?.addEventListener("click", submitReview);
 
     async function submitReview() {
         if (isSubmitting) return;
         isSubmitting = true;
 
-        submitBtn.disabled = true;
-        submitBtn.innerHTML =
-            `<div class="spinner-border spinner-border-sm me-2"></div>Отправка...`;
-        formMessage.innerHTML = "";
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Отправка...";
+        }
+        if (formMessage) formMessage.innerHTML = "";
 
         try {
-            const res = await fetch(`${API_BASE}/reviews`, {
+            const contentEl = document.getElementById("reviewContent");
+            const content = contentEl ? String(contentEl.value || "").trim() : "";
+
+            await apiFetch("/reviews", {
                 method: "POST",
-                headers: {
-                    "Authorization": "Bearer " + userToken,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    token: token,
+                body: {
+                    token,
                     place_id: placeId,
                     rating: selectedRating,
-                    content: document.getElementById("reviewContent").value
-                })
+                    content,
+                },
             });
 
-            const data = await safeParseJSON(res);
-
-            if (!res.ok) {
-                if (data.error === "too many reviews today") {
-
-                    showError("Вы уже оценили это заведение сегодня. Спасибо за отзыв!", formMessage);
-
-                    // Разблокируем кнопку
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = "Отправить";
-
-                    // Через 3 секунды — переход в личный кабинет
-                    setTimeout(() => {
-                        window.location.href = "dashboard.html";
-                    }, 5000);
-
-                    return;
-                }
-
-                throw new Error(data.error || "Ошибка отправки");
-            }
-
             showSuccess("Спасибо! Ваш отзыв отправлен.", formMessage);
-            submitBtn.style.display = "none";
+
+            if (submitBtn) submitBtn.style.display = "none";
 
             setTimeout(() => {
                 window.location.href = "dashboard.html";
-            }, 3000);
-
+            }, 2000);
         } catch (err) {
-            showError(err.message, formMessage);
+            if (err && err.message === "too many reviews today") {
+                showError("Вы уже оценили это заведение сегодня. Спасибо!", formMessage);
+                setTimeout(() => (window.location.href = "dashboard.html"), 2500);
+                return;
+            }
+
+            showError(err?.message || "Ошибка отправки", formMessage);
+
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="bi bi-send"></i> Отправить отзыв`;
+            }
         } finally {
             isSubmitting = false;
-        }
-    }
-
-    async function safeParseJSON(res) {
-        try {
-            return await res.json();
-        } catch {
-            return {};
         }
     }
 });

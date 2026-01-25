@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ReviewLink — Публичная страница</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="container">
+            <a class="brand" href="explore.html">
+                <span style="font-size:18px;">⭐</span>
+                <span>ReviewLink</span>
+            </a>
+
+            <div class="nav-right">
+                <!-- статус авторизации -->
+                <span id="authPill" class="badge">Гость</span>
+
+                <button class="btn btn-sm" type="button"
+                    onclick="window.RL && window.RL.toggleTheme && window.RL.toggleTheme()">
+                    Тема
+                </button>
+
+                <a class="btn btn-sm" href="login.html">Войти</a>
+                <a class="btn btn-primary btn-sm" href="dashboard.html">Личный кабинет</a>
+            </div>
+        </div>
+    </div>
+
+    <main class="container">
+        <h1 class="page-title">Публичная страница</h1>
+
+        <div class="card" style="margin-bottom: var(--space-4);">
+            <div class="card-body">
+                <div id="topTabs" class="row">
+                    <button class="btn btn-sm nav-link active" data-tab="places" type="button">Топ заведений</button>
+                    <button class="btn btn-sm nav-link" data-tab="users" type="button">Топ пользователей</button>
+                    <button class="btn btn-sm nav-link" data-tab="bonuses" type="button">Топ по бонусам</button>
+                </div>
+                <div class="help subtle">Клик по заведению откроет список отзывов.</div>
+            </div>
+        </div>
+
+        <!-- TOP LISTS -->
+        <section id="topView" class="card">
+            <div class="card-header">
+                <div>
+                    <div class="section-title">Лидеры</div>
+                    <div id="topStatus" class="muted small">Загрузка...</div>
+                </div>
+
+                <button id="refreshTopBtn" class="btn btn-sm" type="button">Обновить</button>
+            </div>
+
+            <div class="card-body stack">
+                <div class="form-row">
+                    <div>
+                        <label>Лимит</label>
+                        <input id="limitInput" type="number" min="1" max="100" value="10" />
+                        <div class="help">От 1 до 100</div>
+                    </div>
+
+                    <div id="placesSortWrap">
+                        <label>Сортировать заведения</label>
+                        <select id="placesSort">
+                            <option value="reviews">по кол-ву отзывов</option>
+                            <option value="rating">по рейтингу</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div id="minRatingWrap">
+                        <label>Мин. рейтинг</label>
+                        <input id="minRating" type="number" min="0" max="5" step="0.1" value="0" />
+                    </div>
+
+                    <div id="minReviewsWrap">
+                        <label>Мин. отзывов</label>
+                        <input id="minReviews" type="number" min="0" value="0" />
+                    </div>
+                </div>
+
+                <div id="topContainer" class="stack"></div>
+            </div>
+        </section>
+
+        <!-- PLACE REVIEWS -->
+        <section id="placeView" class="d-none">
+            <div class="row" style="margin: var(--space-5) 0;">
+                <button id="backToTopBtn" class="btn btn-sm" type="button">← Назад к топу</button>
+
+                <div class="right row">
+                    <button id="refreshReviewsBtn" class="btn btn-sm" type="button">Обновить отзывы</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div id="placeTitle" class="section-title">Отзывы заведения</div>
+                        <!-- placeMeta убрали, чтобы не светить ID -->
+                    </div>
+                    <div id="reviewsStatus" class="muted small">Загрузка...</div>
+                </div>
+
+                <div class="card-body stack">
+                    <div class="form-row">
+                        <div>
+                            <label>Сортировка</label>
+                            <select id="sortSelect">
+                                <option value="date_desc">Сначала новые</option>
+                                <option value="date_asc">Сначала старые</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Фильтр по рейтингу</label>
+                            <select id="ratingSelect">
+                                <option value="">Все</option>
+                                <option value="5">5</option>
+                                <option value="4">4</option>
+                                <option value="3">3</option>
+                                <option value="2">2</option>
+                                <option value="1">1</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- подсказка по авторизации -->
+                    <div id="voteHint" class="help subtle"></div>
+
+                    <div id="reviewsContainer" class="stack"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="common.js"></script>
+    <script src="explore.js"></script>
+</body>
+
+</html>

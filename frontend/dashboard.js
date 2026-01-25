@@ -1,249 +1,281 @@
-// dashboard.js - логика личного кабинета
-document.addEventListener('DOMContentLoaded', function () {
-    const { API_BASE, checkAuth, showError, showSuccess, logout, generateQRCode } = window.AppCommon;
+document.addEventListener("DOMContentLoaded", () => {
+    const { requireUser, showError, showSuccess, logout, generateQRCode, apiFetch } = window.AppCommon;
 
-    let USER_TOKEN = checkAuth();
-    if (!USER_TOKEN) return;
+    const token = requireUser();
+    if (!token) return;
 
-    // Инициализация
     initDashboard();
 
     function initDashboard() {
-        // Показываем email пользователя
-        const userEmail = localStorage.getItem('userEmail');
-        if (userEmail) {
-            const emailElement = document.getElementById('userEmail');
-            if (emailElement) {
-                emailElement.textContent = userEmail;
-            }
+        // email
+        const userEmail =
+            localStorage.getItem("userEmail") ||
+            localStorage.getItem("adminEmail") ||
+            "";
+
+        const emailElement = document.getElementById("userEmail");
+        if (emailElement) {
+            emailElement.textContent = userEmail; // покажет email или пусто, но без "пропуска"
         }
 
-        // Обработчик для кнопки выхода
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', function () {
-                window.AppCommon.logout();
+        // logout
+        const logoutBtn = document.getElementById("logoutBtn");
+        if (logoutBtn) logoutBtn.addEventListener("click", logout);
+
+        // theme
+        const themeBtn = document.getElementById("themeBtn");
+        if (themeBtn) {
+            themeBtn.addEventListener("click", () => {
+                window.RL?.toggleTheme?.();
             });
         }
 
-        const redeemBtn = document.getElementById('redeemBtn');
-        if (redeemBtn) {
-            redeemBtn.addEventListener('click', redeemBonus);
+        // redeem
+        const redeemBtn = document.getElementById("redeemBtn");
+        if (redeemBtn) redeemBtn.addEventListener("click", redeemBonus);
+
+        // ===== QR MODAL (custom, NO bootstrap) =====
+        function openQrModal({ qrToken, title }) {
+            const modalEl = document.getElementById("qrModal");
+            if (!modalEl) return;
+
+            const img = document.getElementById("qrCodeImage");
+            const desc = document.getElementById("bonusDescription");
+            const tokenEl = document.getElementById("bonusToken");
+
+            if (img) img.src = generateQRCode(qrToken, 240);
+            if (desc) desc.textContent = title || "Бонус";
+            if (tokenEl) tokenEl.textContent = qrToken || "";
+
+            modalEl.classList.add("show");
+            modalEl.style.display = "block";
+            modalEl.removeAttribute("aria-hidden");
+            document.body.style.overflow = "hidden";
         }
 
-        // Загружаем данные
+        function closeQrModal() {
+            const modalEl = document.getElementById("qrModal");
+            if (!modalEl) return;
+
+            modalEl.classList.remove("show");
+            modalEl.style.display = "none";
+            modalEl.setAttribute("aria-hidden", "true");
+            document.body.style.overflow = "";
+        }
+
+        // open from QR button
+        document.addEventListener("click", (e) => {
+            const btn = e.target.closest("button[data-qr]");
+            if (!btn) return;
+
+            openQrModal({
+                qrToken: btn.getAttribute("data-qr"),
+                title: btn.getAttribute("data-title") || "Бонус",
+            });
+        });
+
+        // close by X or backdrop click
+        document.addEventListener("click", (e) => {
+            const modalEl = document.getElementById("qrModal");
+            if (!modalEl || !modalEl.classList.contains("show")) return;
+
+            if (e.target.closest(".rl-modal__close")) {
+                closeQrModal();
+                return;
+            }
+
+            if (e.target === modalEl) {
+                closeQrModal();
+            }
+        });
+
+        // close by Esc
+        document.addEventListener("keydown", (e) => {
+            if (e.key !== "Escape") return;
+            const modalEl = document.getElementById("qrModal");
+            if (modalEl && modalEl.classList.contains("show")) closeQrModal();
+        });
+
+
+
         loadUserStats();
         loadBonuses();
-    }
 
-    // Загрузка статистики
-    async function loadUserStats() {
-        try {
-            const response = await fetch(`${API_BASE}/users/stats`, {
-                method: "GET",
-                headers: {
-                    "Authorization": "Bearer " + USER_TOKEN,
-                    "Content-Type": "application/json"
-                }
-            });
 
-            if (!response.ok) {
-                if (response.status === 401) {
-                    logout();
-                    return;
-                }
-                throw new Error(`Ошибка: ${response.status}`);
+        async function loadUserStats() {
+            try {
+                const stats = await apiFetch("/users/stats", { method: "GET" });
+                updateStatsUI(stats);
+            } catch (e) {
+                showError(`Не удалось загрузить статистику: ${e.message}`);
+            }
+        }
+
+        function updateStatsUI(stats) {
+            const totalReviewsEl = document.getElementById("totalReviews");
+            const avgRatingEl = document.getElementById("avgRating");
+            const pointsEl = document.getElementById("points");
+            const currentPointsEl = document.getElementById("currentPoints");
+            const redeemBtn = document.getElementById("redeemBtn");
+
+            if (totalReviewsEl) totalReviewsEl.textContent = stats.total_reviews || 0;
+            if (avgRatingEl) avgRatingEl.textContent = (stats.avg_rating || 0).toFixed(1);
+
+            const points = stats.points || 0;
+            if (pointsEl) pointsEl.textContent = points;
+            if (currentPointsEl) currentPointsEl.textContent = points;
+
+            const REQUIRED_POINTS = 50;
+            if (redeemBtn) redeemBtn.disabled = points < REQUIRED_POINTS;
+        }
+
+        async function loadBonuses() {
+            try {
+                const bonuses = await apiFetch("/bonuses", { method: "GET" });
+                displayBonuses(bonuses);
+            } catch (e) {
+                console.error("loadBonuses error:", e);
+                showError(`Не удалось загрузить бонусы: ${e.message}`);
+            }
+        }
+
+        function displayBonuses(bonuses) {
+            const activeEl = document.getElementById("activeBonuses");
+            const usedEl = document.getElementById("usedBonuses");
+            const activeCountEl = document.getElementById("bonusesActive");
+
+            if (!activeEl || !usedEl) return;
+
+            const list = Array.isArray(bonuses) ? bonuses : [];
+
+            const active = list.filter((b) => b && b.is_used === false);
+            const used = list.filter((b) => b && b.is_used === true);
+
+            if (activeCountEl) activeCountEl.textContent = active.length;
+
+            activeEl.innerHTML = renderBonusesList(active, true);
+            usedEl.innerHTML = renderBonusesList(used, false);
+        }
+
+        function renderBonusesList(items, isActive) {
+            if (!Array.isArray(items) || items.length === 0) {
+                return `
+        <div class="center subtle" style="padding: var(--space-5);">
+          ${isActive ? "Нет активных бонусов" : "Нет использованных бонусов"}
+        </div>
+      `;
             }
 
-            const stats = await response.json();
-            updateStatsUI(stats);
-
-        } catch (error) {
-            console.error('Ошибка загрузки статистики:', error);
-            showError('Не удалось загрузить статистику');
+            return `
+      <div class="stack">
+        ${items.map((b) => renderBonusItem(b, isActive)).join("")}
+      </div>
+    `;
         }
-    }
 
-    // Обновление UI статистики
-    function updateStatsUI(stats) {
-        document.getElementById('totalReviews').textContent = stats.total_reviews || 0;
-        document.getElementById('avgRating').textContent = (stats.avg_rating || 0).toFixed(1);
-        document.getElementById('points').textContent = stats.points || 0;
-        document.getElementById('bonusesActive').textContent = stats.bonuses_active || 0;
-        document.getElementById('currentPoints').textContent = stats.points || 0;
+        function renderBonusItem(b, isActive) {
+            const title = rewardTypeLabel(b.reward_type);
+            const req = typeof b.required_points === "number" ? b.required_points : null;
 
-        // Активируем кнопку если достаточно баллов
-        const REQUIRED_POINTS = 50;
+            const metaLeft = req != null ? `<span class="badge">${req} баллов</span>` : "";
+            const metaRight = isActive ? `<span class="badge ok">Активен</span>` : `<span class="badge">Использован</span>`;
 
-        if (stats.points >= REQUIRED_POINTS) {
-            redeemBtn.disabled = false;
-            redeemBtn.innerHTML = '<i class="bi bi-gift me-2"></i>Получить бонус';
-        } else {
-            redeemBtn.disabled = true;
-            redeemBtn.innerHTML = '<i class="bi bi-lock me-2"></i>Недостаточно баллов';
-        }
-    }
+            const usedAt =
+                !isActive && b.used_at
+                    ? `<div class="subtle" style="font-size:12px; margin-top:6px;">Использован: ${formatDateTime(b.used_at)}</div>`
+                    : "";
 
-    // Загрузка бонусов
-    async function loadBonuses() {
-        try {
-            console.log('Загрузка бонусов...');
-            const response = await fetch(`${API_BASE}/bonuses`, {
-                method: "GET",
-                headers: {
-                    "Authorization": "Bearer " + USER_TOKEN,
-                    "Content-Type": "application/json"
-                }
-            });
+            const qrBtn =
+                isActive && b.qr_token
+                    ? `<button class="btn btn-sm" type="button" data-qr="${escapeAttr(b.qr_token)}" data-title="${escapeAttr(title)}">
+             <i class="bi bi-qr-code"></i> QR
+           </button>`
+                    : "";
 
-            console.log('Статус ответа:', response.status);
-
-            if (!response.ok) {
-                throw new Error(`Ошибка: ${response.status}`);
-            }
-
-            const bonuses = await response.json();
-            console.log('Получены бонусы:', bonuses);
-            displayBonuses(bonuses);
-
-        } catch (error) {
-            console.error('Ошибка загрузки бонусов:', error);
-            document.getElementById('bonusesContainer').innerHTML = `
-                <div class="alert alert-danger">
-                    Не удалось загрузить список бонусов
-                </div>
-            `;
-        }
-    }
-
-    // Отображение бонусов
-    function displayBonuses(bonuses) {
-        const activeContainer = document.getElementById("activeBonuses");
-        const usedContainer = document.getElementById("usedBonuses");
-
-        if (!bonuses || bonuses.length === 0) {
-            activeContainer.innerHTML = `
-            <div class="text-center text-muted py-4">
-                <i class="bi bi-gift fs-1"></i>
-                <p class="mt-2">У вас пока нет бонусов</p>
+            return `
+      <div class="card">
+        <div class="card-body" style="display:flex; align-items:flex-start; justify-content:space-between; gap: var(--space-4);">
+          <div style="min-width:0;">
+            <div class="fw-semibold" style="font-size:14px; margin-bottom:6px;">${escapeHtml(title)}</div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              ${metaLeft}
+              ${metaRight}
             </div>
-        `;
-            usedContainer.innerHTML = `
-            <div class="text-center text-muted py-4">
-                Использованных бонусов нет
-            </div>
-        `;
-            return;
+            ${usedAt}
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center; flex-shrink:0;">
+            ${qrBtn}
+          </div>
+        </div>
+      </div>
+    `;
         }
 
-        let activeHTML = "";
-        let usedHTML = "";
-
-        bonuses.forEach(bonus => {
-            const isUsed = bonus.is_used === true;
-
-            const cardHTML = `
-            <div class="col-md-6 mb-3">
-                <div class="card h-100 border-${isUsed ? 'secondary' : 'success'}">
-                    <div class="card-body">
-                        <h5 class="card-title">${bonus.reward_type}</h5>
-                        <p class="card-text">Списано баллов: <strong>${bonus.required_points}</strong></p>
-                        <p class="card-text">QR токен: ${bonus.qr_token}</p>
-
-                        <span class="badge ${isUsed ? 'bg-secondary' : 'bg-success'}">
-                            ${isUsed ? 'Использован' : 'Активен'}
-                        </span>
-                    </div>
-
-                    <div class="card-footer bg-transparent">
-                        ${!isUsed
-                    ? `<button class="btn btn-outline-primary btn-sm show-qr-btn"
-                                     data-bonus-token="${bonus.qr_token}">
-                                        <i class="bi bi-qr-code me-1"></i>Показать QR
-                                   </button>`
-                    : `<small class="text-muted">
-                                        <i class="bi bi-check-circle me-1"></i>Использован
-                                   </small>`
-                }
-                    </div>
-                </div>
-            </div>
-        `;
-
-            // Разделение
-            if (isUsed) {
-                usedHTML += cardHTML;
-            } else {
-                activeHTML += cardHTML;
+        function rewardTypeLabel(rt) {
+            switch (rt) {
+                case "free_coffee":
+                    return "Бесплатный кофе";
+                case "free_meal":
+                    return "Бесплатное блюдо";
+                case "discount_10":
+                    return "Скидка 10%";
+                default:
+                    return rt || "Бонус";
             }
-        });
+        }
 
-        // Рендер
-        activeContainer.innerHTML = `<div class="row">${activeHTML}</div>`;
-        usedContainer.innerHTML = `<div class="row">${usedHTML}</div>`;
+        function formatDateTime(iso) {
+            const d = new Date(iso);
+            if (Number.isNaN(d.getTime())) return iso;
+            return d.toLocaleString();
+        }
 
-        // Навешиваем обработчики
-        document.querySelectorAll(".show-qr-btn").forEach(btn => {
-            btn.addEventListener("click", function () {
-                showBonusQR(this.getAttribute("data-bonus-token"));
-            });
-        });
-    }
+        function escapeHtml(s) {
+            return String(s)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;");
+        }
 
-    // Показ QR кода бонуса
-    function showBonusQR(qrToken) {
-        const qrUrl = generateQRCode(qrToken);
+        function escapeAttr(s) {
+            return escapeHtml(s).replaceAll("'", "&#39;");
+        }
 
-        document.getElementById('qrCodeImage').src = qrUrl;
-        document.getElementById('bonusDescription').textContent = `QR токен: ${qrToken}`;
+        async function redeemBonus() {
+            const button = document.getElementById("redeemBtn");
+            const messageDiv = document.getElementById("redeemMessage");
 
-        const modal = new bootstrap.Modal(document.getElementById('qrModal'));
-        modal.show();
-    }
+            if (!button || !messageDiv) return;
 
-    // Обмен баллов на бонус
-    async function redeemBonus() {
-        const button = document.getElementById('redeemBtn');
-        const messageDiv = document.getElementById('redeemMessage');
+            const rewardSelect = document.getElementById("rewardType");
+            const rewardType = rewardSelect ? rewardSelect.value : "free_coffee";
 
-        const rewardType = document.getElementById("rewardType").value;
+            const prevHtml = button.innerHTML;
 
-        button.disabled = true;
-        button.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Обмен...';
-        messageDiv.innerHTML = '';
+            button.disabled = true;
+            button.innerHTML = `<i class="bi bi-arrow-repeat"></i> Обмен...`;
+            messageDiv.innerHTML = "";
 
-        try {
-            const response = await fetch(`${API_BASE}/bonuses/redeem`, {
-                method: "POST",
-                headers: {
-                    "Authorization": "Bearer " + USER_TOKEN,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    reward_type: rewardType
-                })
-            });
+            try {
+                await apiFetch("/bonuses/redeem", {
+                    method: "POST",
+                    body: { reward_type: rewardType },
+                });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `Ошибка: ${response.status}`);
-            }
+                showSuccess("Бонус успешно получен!", messageDiv);
 
-            showSuccess('Бонус успешно получен!', messageDiv);
-
-            setTimeout(() => {
-                loadUserStats();
-                loadBonuses();
-            }, 1000);
-
-        } catch (error) {
-            console.error('Ошибка обмена:', error);
-            showError(error.message, messageDiv);
-        } finally {
-            setTimeout(() => {
+                // обновим данные
+                await loadUserStats();
+                await loadBonuses();
+            } catch (error) {
+                console.error("Ошибка обмена:", error);
+                showError(error.message, messageDiv);
+            } finally {
                 button.disabled = false;
-                button.innerHTML = '<i class="bi bi-gift me-2"></i>Получить бонус';
-            }, 2000);
+                button.innerHTML = prevHtml;
+            }
         }
     }
 });

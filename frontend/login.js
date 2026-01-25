@@ -2,14 +2,26 @@
 document.addEventListener('DOMContentLoaded', function () {
     const { API_BASE, showError, showSuccess } = window.AppCommon;
 
-    // Проверяем, если уже авторизован - перенаправляем
-    const token = localStorage.getItem('userToken');
-    if (token) {
-        const currentUrl = window.location.href;
-        const newUrl = currentUrl.replace('/frontend/login.html', '/frontend/dashboard.html');
-        window.location.href = newUrl;
+    function getRoleFromJwt(token) {
+        try {
+            const parts = String(token || "").split(".");
+            if (parts.length !== 3) return "";
+            const payloadB64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+            const payloadJson = decodeURIComponent(
+                atob(payloadB64)
+                    .split("")
+                    .map(c => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
+                    .join("")
+            );
+            const payload = JSON.parse(payloadJson);
+            return payload.role || "";
+        } catch {
+            return "";
+        }
     }
 
+
+    // Проверяем, если уже авторизован - перенаправляем
     document.getElementById('loginForm').addEventListener('submit', async function (e) {
         e.preventDefault();
 
@@ -26,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Показываем загрузку
         button.disabled = true;
-        button.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Вход...';
+        button.innerHTML = 'Вход...';
         messageDiv.innerHTML = '';
 
         try {
@@ -43,23 +55,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (response.ok) {
                 const data = await response.json();
+                const role = getRoleFromJwt(data.token);
+                const isAdmin = String(role).toLowerCase() === "admin";
 
-                localStorage.setItem('userToken', data.token);
-                localStorage.setItem('userEmail', email);
+                if (isAdmin) {
+                    localStorage.setItem("adminToken", data.token);
+                    localStorage.setItem("adminEmail", email);
+                } else {
+                    localStorage.setItem("userToken", data.token);
+                    localStorage.setItem("userEmail", email);
+                }
 
-                // Показываем сообщение
-                showSuccess('Успешный вход! Перенаправление...', messageDiv);
+                showSuccess("Успешный вход! Перенаправление...", messageDiv);
 
                 setTimeout(() => {
-                    const params = new URLSearchParams(window.location.search);
-                    const redirectUrl = params.get("redirect");
+                    const p = new URLSearchParams(window.location.search);
+                    const redirect = p.get("redirect");
 
-                    if (redirectUrl) {
-                        window.location.href = redirectUrl;
-                    } else {
-                        window.location.href = "dashboard.html";
+                    if (redirect) {
+                        window.location.href = redirect;
+                        return;
                     }
-                }, 500);
+
+                    window.location.href = isAdmin ? "admin.html" : "dashboard.html";
+                }, 400);
 
             } else {
                 const errorData = await response.json();
@@ -79,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } finally {
             // Восстанавливаем кнопку
             button.disabled = false;
-            button.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Войти';
+            button.innerHTML = '<i class="bi bi-box-arrow-in-right"></i>Войти';
         }
     });
 });

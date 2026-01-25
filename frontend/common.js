@@ -1,86 +1,203 @@
 // common.js - общие утилиты и константы
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://172.27.78.199:8080'
-    : 'http://localhost:8080';
+const API_BASE = window.location.origin;
 
-// Проверка авторизации
-function checkAuth() {
-    const token = localStorage.getItem('userToken');
-    console.log('Токен из localStorage:', token);
+// ===== Alerts (lightweight, no bootstrap) =====
+function _resolveContainer(container) {
+    if (container && container !== document.body) return container;
+
+    return (
+        document.querySelector(".container.mt-4") ||
+        document.querySelector("main .container") ||
+        document.querySelector(".container") ||
+        document.body
+    );
+}
+
+function _renderAlert(type, message, container, opts = {}) {
+    const {
+        autoHideMs = type === "success" ? 1600 : 5000,
+        replace = true,
+        closable = type !== "success", // ✅ успех без крестика
+    } = opts;
+
+    const host = _resolveContainer(container);
+
+    if (replace && host !== document.body && host.innerHTML != null) {
+        host.innerHTML = "";
+    }
+
+    const el = document.createElement("div");
+    el.className = `rl-alert rl-alert--${type}`;
+    el.innerHTML = `
+    <div class="rl-alert__icon">${type === "success" ? "✅" : "⚠️"}</div>
+    <div class="rl-alert__text"></div>
+    ${closable ? `<button class="rl-alert__close" type="button" aria-label="Закрыть">×</button>` : ""}
+  `;
+
+    const text = el.querySelector(".rl-alert__text");
+    if (text) text.textContent = String(message ?? "");
+
+    host.prepend(el);
+
+    if (closable) {
+        const closeBtn = el.querySelector(".rl-alert__close");
+        if (closeBtn) closeBtn.addEventListener("click", () => el.remove());
+    }
+
+    if (autoHideMs && autoHideMs > 0) {
+        window.setTimeout(() => {
+            if (el && el.parentNode) el.remove();
+        }, autoHideMs);
+    }
+
+    return el;
+}
+
+function showError(message, container = document.body) {
+    return _renderAlert("error", message, container, { autoHideMs: 6000, replace: true });
+}
+
+function showSuccess(message, container = document.body) {
+    return _renderAlert("success", message, container, { autoHideMs: 1600, replace: true, closable: false });
+}
+
+
+// Выход из системы
+function logout() {
+    localStorage.removeItem("userToken");
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("adminEmail");
+    window.location.href = "login.html";
+}
+
+function _getAnyToken() {
+    // поддержка старого adminToken + нового userToken
+    let t = localStorage.getItem("userToken") || localStorage.getItem("adminToken") || "";
+    // если вдруг сохранили "Bearer xxx"
+    if (t.startsWith("Bearer ")) t = t.slice(7).trim();
+    return t;
+}
+
+// Генерация QR кода (картинка, в QR коде лежит qr_token)
+function generateQRCode(data, size = 200) {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(data)}`;
+}
+
+async function apiFetch(path, options = {}) {
+    const token = _getAnyToken();
+
+    const headers = {
+        ...(options.headers || {}),
+        Accept: "application/json",
+    };
+
+    let body = options.body;
+    const isFormData = body instanceof FormData;
+
+    if (body && typeof body === "object" && !isFormData) {
+        headers["Content-Type"] = "application/json";
+        body = JSON.stringify(body);
+    }
+
+    if (token) headers.Authorization = token;
+
+    const res = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers,
+        body,
+    });
+
+    if (res.status === 401) {
+        logout();
+        throw new Error("Unauthorized");
+    }
+
+    const contentType = res.headers.get("content-type") || "";
+    const payload = contentType.includes("application/json")
+        ? await res.json()
+        : await res.text();
+
+    if (!res.ok) {
+        const msg =
+            (payload && payload.error) ||
+            (payload && payload.message) ||
+            (typeof payload === "string" && payload) ||
+            `Request failed: ${res.status}`;
+        throw new Error(msg);
+    }
+
+    return payload;
+}
+
+function parseJwt(token) {
+    try {
+        const base64Url = token.split(".")[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split("")
+                .map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+                .join("")
+        );
+        return JSON.parse(jsonPayload);
+    } catch {
+        return null;
+    }
+}
+
+
+// ===== AUTH HELPERS (exported) =====
+function requireUser() {
+    const token = _getAnyToken();
     if (!token) {
-        window.location.href = 'login.html';
+        window.location.href = "login.html";
         return null;
     }
     return token;
 }
 
-// Показ ошибок
-function showError(message, container = document.body) {
-    const alert = document.createElement('div');
-    alert.className = 'alert alert-danger alert-dismissible fade show';
-    alert.innerHTML = `
-        <i class="bi bi-exclamation-triangle me-2"></i>${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-
-    if (container === document.body) {
-        // Вставляем в начало контейнера
-        const mainContainer = document.querySelector('.container');
-        if (mainContainer) {
-            mainContainer.insertBefore(alert, mainContainer.firstChild);
-        } else {
-            container.prepend(alert);
-        }
-    } else {
-        container.innerHTML = alert.outerHTML;
+function requireAdmin() {
+    const token = _getAnyToken();
+    if (!token) {
+        window.location.href = "login.html";
+        return null;
     }
 
-    return alert;
-}
-
-// Показ успеха
-function showSuccess(message, container = document.body) {
-    const alert = document.createElement('div');
-    alert.className = 'alert alert-success alert-dismissible fade show';
-    alert.innerHTML = `
-        <i class="bi bi-check-circle me-2"></i>${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-
-    if (container === document.body) {
-        const mainContainer = document.querySelector('.container');
-        if (mainContainer) {
-            mainContainer.insertBefore(alert, mainContainer.firstChild);
-        } else {
-            container.prepend(alert);
-        }
-    } else {
-        container.innerHTML = alert.outerHTML;
+    const payload = parseJwt(token);
+    if (!payload || payload.role !== "admin") {
+        window.location.href = "dashboard.html";
+        return null;
     }
 
-    return alert;
+    return token;
 }
 
-// Выход из системы
-function logout() {
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('userEmail');
-    const currentUrl = window.location.href;
-    const newUrl = currentUrl.replace('/frontend/dashboard.html', '/frontend/login.html');
-    window.location.href = newUrl;
-}
+// theme init + toggle
+(function () {
+    const root = document.documentElement;
+    const saved = localStorage.getItem("rl_theme");
 
-// Генерация QR кода
-function generateQRCode(data, size = 200) {
-    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(data)}`;
-}
+    root.dataset.theme = saved === "pastel" ? "pastel" : "dark";
+    localStorage.setItem("rl_theme", root.dataset.theme);
+
+    window.RL = window.RL || {};
+    window.RL.toggleTheme = function () {
+        const next = root.dataset.theme === "pastel" ? "dark" : "pastel";
+        root.dataset.theme = next;
+        localStorage.setItem("rl_theme", next);
+    };
+})();
 
 // Экспортируем для использования в других файлах
 window.AppCommon = {
     API_BASE,
-    checkAuth,
     showError,
     showSuccess,
     logout,
-    generateQRCode
+    generateQRCode,
+    apiFetch,
+    requireUser,
+    requireAdmin,
+    parseJwt,
 };
