@@ -1,18 +1,22 @@
-# syntax=docker/dockerfile:1
-
 FROM golang:1.24-alpine3.21 AS build
 
 RUN apk update && apk add --no-cache git ca-certificates
 
-WORKDIR /build
+# Сборка бэка
+WORKDIR /build/backend
 
-COPY ./go.mod ./go.sum ./
+# go.mod лежит в backend/
+COPY backend/go.mod backend/go.sum ./
 RUN go mod download
 
-COPY . .
+# копируем исходники backend
+COPY backend/ ./
 
-# Собираем один бинарь сервера (у тебя cmd/main.go)
-RUN CGO_ENABLED=0 go build -p 1 -trimpath -ldflags="-w -s" -o ./server ./cmd
+# копируем фронт отдельно в /build/frontend
+COPY frontend/ /build/frontend/
+
+# Собираем бинарь сервера
+RUN CGO_ENABLED=0 go build -p 1 -trimpath -ldflags="-w -s" -o /build/server ./cmd
 
 # Final image
 FROM alpine:3.21
@@ -24,6 +28,7 @@ RUN adduser -D -H -u 10001 app && \
 ENV HOME=/home/app
 
 COPY --from=build /build/server /app/server
+COPY --from=build /build/frontend /app/frontend
 
 USER app
 WORKDIR /app
