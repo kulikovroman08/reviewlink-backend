@@ -26,10 +26,20 @@
 
     <div class="auth-shell">
         <div class="card auth-card">
-            <div class="auth-title">Авторизация</div>
+            <div class="auth-title" id="authTitle">Авторизация</div>
+
+            <!-- mode toggle (Вход / Регистрация) -->
+            <div class="row mb-3" style="gap:10px;">
+                <button id="modeLoginBtn" type="button" class="btn btn-sm btn-primary" aria-pressed="true">Вход</button>
+                <button id="modeSignupBtn" type="button" class="btn btn-sm" aria-pressed="false">Регистрация</button>
+            </div>
 
             <form id="loginForm" class="stack">
                 <div>
+                    <div id="nameWrap" class="mb-3" style="display:none;">
+                        <label for="nameInput">Имя</label>
+                        <input id="nameInput" type="text" placeholder="Ваше имя" autocomplete="name" />
+                    </div>
                     <label for="emailInput">Email</label>
                     <input type="email" id="emailInput" placeholder="ваш@email.com" required>
                 </div>

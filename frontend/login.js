@@ -1,6 +1,32 @@
 // login.js
 document.addEventListener('DOMContentLoaded', function () {
     const { API_BASE, showError, showSuccess } = window.AppCommon;
+    // ===== mode toggle (login/signup) =====
+    let mode = "login"; // "login" | "signup"
+
+    const modeLoginBtn = document.getElementById("modeLoginBtn");
+    const modeSignupBtn = document.getElementById("modeSignupBtn");
+    const nameWrap = document.getElementById("nameWrap");
+    const nameInput = document.getElementById("nameInput");
+
+    function setMode(next) {
+        mode = next;
+        const isSignup = mode === "signup";
+
+        if (nameWrap) nameWrap.style.display = isSignup ? "" : "none";
+
+        // подсветка активной кнопки (используем твои .btn/.btn-primary)
+        if (modeLoginBtn) modeLoginBtn.classList.toggle("btn-primary", !isSignup);
+        if (modeSignupBtn) modeSignupBtn.classList.toggle("btn-primary", isSignup);
+
+        if (modeLoginBtn) modeLoginBtn.setAttribute("aria-pressed", String(!isSignup));
+        if (modeSignupBtn) modeSignupBtn.setAttribute("aria-pressed", String(isSignup));
+    }
+
+    if (modeLoginBtn) modeLoginBtn.addEventListener("click", () => setMode("login"));
+    if (modeSignupBtn) modeSignupBtn.addEventListener("click", () => setMode("signup"));
+    setMode("login");
+
 
     function getRoleFromJwt(token) {
         try {
@@ -21,36 +47,41 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    // Проверяем, если уже авторизован - перенаправляем
+    // Проверяем, если уже авторизован
     document.getElementById('loginForm').addEventListener('submit', async function (e) {
         e.preventDefault();
 
         const email = document.getElementById('emailInput').value.trim();
         const password = document.getElementById('passwordInput').value;
+        const isSignup = mode === "signup";
+        const name = (nameInput ? nameInput.value.trim() : "");
         const messageDiv = document.getElementById('loginMessage');
         const button = e.target.querySelector('button[type="submit"]');
 
         // Валидация
-        if (!email || !password) {
-            showError('Заполните все поля', messageDiv);
+        if (!email || !password || (isSignup && !name)) {
+            showError(isSignup ? 'Заполните имя, email и пароль' : 'Заполните все поля', messageDiv);
             return;
         }
 
         // Показываем загрузку
         button.disabled = true;
-        button.innerHTML = 'Вход...';
+        button.innerHTML = isSignup ? 'Регистрация...' : 'Вход...';
         messageDiv.innerHTML = '';
 
         try {
-            const response = await fetch(`${API_BASE}/login`, {
+            const endpoint = isSignup ? "signup" : "login";
+
+            const response = await fetch(`${API_BASE}/${endpoint}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({
-                    email: email,
-                    password: password
-                })
+                body: JSON.stringify(
+                    isSignup
+                        ? { email: email, name: name, password: password }
+                        : { email: email, password: password }
+                )
             });
 
             if (response.ok) {
@@ -66,7 +97,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     localStorage.setItem("userEmail", email);
                 }
 
-                showSuccess("Успешный вход! Перенаправление...", messageDiv);
+                showSuccess(
+                    isSignup
+                        ? "Аккаунт создан!"
+                        : "Успешный вход!",
+                    messageDiv
+                );
 
                 setTimeout(() => {
                     const p = new URLSearchParams(window.location.search);
@@ -81,13 +117,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 }, 400);
 
             } else {
-                const errorData = await response.json();
+                let errorData = {};
+                try {
+                    errorData = await response.json();
+                } catch {
+                    errorData = {};
+                }
                 let errorMessage = 'Ошибка входа';
 
                 if (errorData.error) {
                     errorMessage = errorData.error;
-                } else if (response.status === 401) {
+                } else if (!isSignup && response.status === 401) {
                     errorMessage = 'Неверный email или пароль';
+                } else if (isSignup && response.status === 409) {
+                    errorMessage = 'Email уже используется';
                 }
 
                 showError(errorMessage, messageDiv);
@@ -98,7 +141,9 @@ document.addEventListener('DOMContentLoaded', function () {
         } finally {
             // Восстанавливаем кнопку
             button.disabled = false;
-            button.innerHTML = '<i class="bi bi-box-arrow-in-right"></i>Войти';
+            button.innerHTML = isSignup
+                ? '<i class="bi bi-person-plus"></i>Зарегистрироваться'
+                : '<i class="bi bi-box-arrow-in-right"></i>Войти';
         }
     });
 });
