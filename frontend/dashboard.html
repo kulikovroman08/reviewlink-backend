@@ -5,19 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Личный кабинет - ReviewLink</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
 </head>
 
-<body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<body>
+    <nav class="navbar">
         <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="bi bi-star-fill me-2"></i>ReviewLink
+            <a class="brand" href="#">
+                <i class="bi bi-star-fill"></i>ReviewLink
             </a>
-            <div class="navbar-nav ms-auto">
-                <span class="navbar-text me-3" id="userEmail"></span>
-                <button class="btn btn-outline-light btn-sm" id="logoutBtn" type="button">
+
+            <div class="nav-right">
+                <span id="userEmail" class="muted"></span>
+
+                <button class="btn btn-sm" id="themeBtn" type="button" title="Сменить тему">
+                    Тема
+                </button>
+
+                <button class="btn btn-sm" id="logoutBtn" type="button">
                     <i class="bi bi-box-arrow-right"></i> Выйти
                 </button>
             </div>
@@ -25,141 +32,123 @@
     </nav>
 
     <div class="container mt-4">
-        <!-- Заголовок и статистика -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <h1 class="text-center mb-4">
-                    <i class="bi bi-person-circle me-2"></i>Личный кабинет
-                </h1>
-            </div>
-        </div>
+        <h1 class="page-title center">Личный кабинет</h1>
+        <p class="muted center" style="margin-top: -14px; margin-bottom: var(--space-5);">
+            Управление бонусами и статистикой
+        </p>
 
         <!-- Статистика -->
-        <div class="row mb-5">
-            <div class="col-md-3 mb-3">
-                <div class="card text-center bg-primary text-white">
-                    <div class="card-body">
-                        <i class="bi bi-chat-text fs-1"></i>
-                        <h3 id="totalReviews" class="mt-2">0</h3>
-                        <p class="mb-0">Всего отзывов</p>
-                    </div>
-                </div>
+        <div class="stats-grid">
+            <div class="stat-tile">
+                <div class="icon"><i class="bi bi-chat-text"></i></div>
+                <div class="label">Всего отзывов</div>
+                <div class="value" id="totalReviews">0</div>
             </div>
-            <div class="col-md-3 mb-3">
-                <div class="card text-center bg-success text-white">
-                    <div class="card-body">
-                        <i class="bi bi-star fs-1"></i>
-                        <h3 id="avgRating" class="mt-2">0.0</h3>
-                        <p class="mb-0">Средний рейтинг</p>
-                    </div>
-                </div>
+
+            <div class="stat-tile">
+                <div class="icon"><i class="bi bi-star"></i></div>
+                <div class="label">Средний рейтинг</div>
+                <div class="value" id="avgRating">0.0</div>
             </div>
-            <div class="col-md-3 mb-3">
-                <div class="card text-center bg-warning text-white">
-                    <div class="card-body">
-                        <i class="bi bi-coin fs-1"></i>
-                        <h3 id="points" class="mt-2">0</h3>
-                        <p class="mb-0">Баллы</p>
-                    </div>
-                </div>
+
+            <div class="stat-tile">
+                <div class="icon"><i class="bi bi-coin"></i></div>
+                <div class="label">Баллы</div>
+                <div class="value" id="points">0</div>
             </div>
-            <div class="col-md-3 mb-3">
-                <div class="card text-center bg-info text-white">
-                    <div class="card-body">
-                        <i class="bi bi-gift fs-1"></i>
-                        <h3 id="bonusesActive" class="mt-2">0</h3>
-                        <p class="mb-0">Активные бонусы</p>
-                    </div>
-                </div>
+
+            <div class="stat-tile">
+                <div class="icon"><i class="bi bi-gift"></i></div>
+                <div class="label">Активные бонусы</div>
+                <div class="value" id="bonusesActive">0</div>
             </div>
         </div>
 
-        <!-- Обмен баллов -->
-        <div class="row mb-5">
-            <div class="col-md-8 mx-auto">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">
-                            <i class="bi bi-arrow-repeat me-2"></i>Обмен баллов на бонус
-                        </h5>
-                    </div>
-                    <div class="card-body text-center">
-                        <div class="row align-items-center">
-                            <div class="col-md-6">
-                                <h4>Ваши баллы: <span id="currentPoints" class="text-warning">0</span></h4>
-                                <div class="mb-3">
-                                    <select id="rewardType" class="form-select">
-                                        <option value="free_coffee">Бесплатный кофе</option>
-                                        <option value="free_meal">Бесплатное блюдо</option>
-                                        <option value="discount_10">Скидка 10%</option>
-                                    </select>
-                                </div>
-                                <p class="text-muted">Для получения бонуса нужно 50 баллов</p>
+        <div class="stack">
+            <!-- Обмен баллов -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="section-title">
+                        <i class="bi bi-arrow-repeat"></i> Обмен баллов на бонус
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="form-row">
+                        <div>
+                            <div class="muted">Ваши баллы</div>
+                            <div class="value"><span id="currentPoints">0</span></div>
+
+                            <div class="mt-3">
+                                <label for="rewardType">Тип бонуса</label>
+                                <select id="rewardType">
+                                    <option value="free_coffee">Бесплатный кофе</option>
+                                    <option value="free_meal">Бесплатное блюдо</option>
+                                    <option value="discount_10">Скидка 10%</option>
+                                </select>
+                                <div class="help">Для получения бонуса нужно 50 баллов</div>
                             </div>
-                            <div class="col-md-6">
-                                <button id="redeemBtn" class="btn btn-success btn-lg" disabled>
-                                    <i class="bi bi-gift me-2"></i>Получить бонус
-                                </button>
-                                <div id="redeemMessage" class="mt-2"></div>
-                            </div>
+                        </div>
+
+                        <div class="center">
+                            <button id="redeemBtn" class="btn btn-success btn-lg" disabled>
+                                <i class="bi bi-gift"></i> Получить бонус
+                            </button>
+                            <div id="redeemMessage" class="mt-2"></div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Мои бонусы -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <h3 class="mb-3">
-                    <i class="bi bi-gift-fill me-2"></i>Мои бонусы
-                </h3>
-            </div>
+            <!-- Мои бонусы -->
+            <h3 class="section-title" style="font-size:22px; margin: var(--space-5) 0 var(--space-3);">
+                <i class="bi bi-gift-fill"></i> Мои бонусы
+            </h3>
 
-            <!-- Левая колонка — активные бонусы -->
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <i class="bi bi-stars me-2"></i>Активные бонусы
+            <div class="bonuses-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="section-title"><i class="bi bi-stars"></i> Активные бонусы</span>
                     </div>
                     <div class="card-body" id="activeBonuses">
-                        <div class="text-center text-muted py-4">
-                            <div class="spinner-border text-primary"></div>
-                            <p class="mt-2">Загрузка...</p>
+                        <div class="center subtle" style="padding: var(--space-5);">
+                            Загрузка...
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Правая колонка — использованные бонусы -->
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-header bg-secondary text-white">
-                        <i class="bi bi-clock-history me-2"></i>Использованные бонусы
+                <div class="card">
+                    <div class="card-header">
+                        <span class="section-title"><i class="bi bi-clock-history"></i> Использованные бонусы</span>
                     </div>
                     <div class="card-body" id="usedBonuses">
-                        <div class="text-center text-muted py-4">
-                            <div class="spinner-border text-secondary"></div>
-                            <p class="mt-2">Загрузка...</p>
+                        <div class="center subtle" style="padding: var(--space-5);">
+                            Загрузка...
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
     </div>
 
     <!-- Модальное окно для QR кода -->
-    <div class="modal fade" id="qrModal" tabindex="-1">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">QR код бонуса</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal rl-modal" id="qrModal" tabindex="-1" aria-hidden="true">
+        <div class="rl-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
+            <div class="rl-modal__content">
+                <div class="rl-modal__header">
+                    <h5 class="rl-modal__title" id="qrModalTitle">QR код бонуса</h5>
+                    <button type="button" class="rl-modal__close" aria-label="Закрыть">×</button>
                 </div>
-                <div class="modal-body text-center">
-                    <img id="qrCodeImage" src="" alt="QR Code" class="img-fluid">
-                    <p class="mt-2 small text-muted" id="bonusDescription"></p>
+
+                <div class="rl-modal__body">
+                    <img id="qrCodeImage" src="" alt="QR Code" class="rl-modal__qr">
+                    <p id="bonusDescription" class="subtle" style="margin-top: var(--space-3); font-size: 13px;"></p>
+                    <div id="bonusTokenWrap" class="badge"
+                        style="margin-top: var(--space-3); max-width:100%; overflow:hidden; text-overflow:ellipsis;">
+                        <span class="muted" style="font-size:12px;">Код:</span>
+                        <span id="bonusToken" style="font-size:12px;"></span>
+                    </div>
+
                 </div>
             </div>
         </div>
