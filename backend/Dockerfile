@@ -12,13 +12,16 @@ RUN go mod download
 COPY . .
 
 # Собираем один бинарь сервера (у тебя cmd/main.go)
-RUN CGO_ENABLED=0 go build -trimpath -ldflags="-w -s" -o ./server ./cmd
+RUN CGO_ENABLED=0 go build -p 1 -trimpath -ldflags="-w -s" -o ./server ./cmd
 
 # Final image
 FROM alpine:3.21
 
 RUN adduser -D -H -u 10001 app && \
-    mkdir /app && chown -R app:app /app
+    mkdir -p /app /home/app && \
+    chown -R app:app /app /home/app
+
+ENV HOME=/home/app
 
 COPY --from=build /build/server /app/server
 
@@ -27,3 +30,4 @@ WORKDIR /app
 
 EXPOSE 8080
 CMD ["/app/server"]
+
