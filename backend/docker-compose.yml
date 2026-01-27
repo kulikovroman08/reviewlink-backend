@@ -10,6 +10,11 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U app -d reviewlink" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   redis:
     image: redis:7
@@ -23,11 +28,25 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     ports:
       - "8080:8080"
     restart: unless-stopped
+
+  migrator:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    command: [ "/app/migrator", "-migrations-path", "/app/migrations" ]
+    restart: "no"
 
 volumes:
   pgdata:

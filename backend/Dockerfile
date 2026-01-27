@@ -17,6 +17,8 @@ COPY frontend/ /build/frontend/
 
 # Собираем бинарь сервера
 RUN CGO_ENABLED=0 go build -p 1 -trimpath -ldflags="-w -s" -o /build/server ./cmd
+# Собираем мигратор
+RUN CGO_ENABLED=0 go build -p 1 -trimpath -ldflags="-w -s" -o /build/migrator ./cmd/migrator
 
 # Final image
 FROM alpine:3.21
@@ -28,7 +30,9 @@ RUN adduser -D -H -u 10001 app && \
 ENV HOME=/home/app
 
 COPY --from=build /build/server /app/server
+COPY --from=build /build/migrator /app/migrator
 COPY --from=build /build/frontend /app/frontend
+COPY backend/migrations /app/migrations
 
 USER app
 WORKDIR /app

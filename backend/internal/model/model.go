@@ -38,7 +38,7 @@ type Review struct {
 	ID             uuid.UUID
 	UserID         uuid.UUID
 	PlaceID        uuid.UUID
-	TokenID        uuid.UUID
+	TokenID        *uuid.UUID
 	Content        string
 	Rating         int
 	CreatedAt      time.Time

@@ -1,0 +1,2 @@
+ALTER TABLE reviews
+    ALTER COLUMN token_id DROP NOT NULL;

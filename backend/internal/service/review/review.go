@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -49,32 +50,36 @@ func NewReviewService(
 }
 
 func (s *reviewService) SubmitReview(ctx context.Context, review model.Review, tokenStr string) error {
-	if tokenStr == "" {
-		return serviceErrors.ErrInvalidCredentials
-	}
+	tokenStr = strings.TrimSpace(tokenStr)
 
 	if review.Rating < 1 || review.Rating > 5 {
 		return serviceErrors.ErrInvalidCredentials
 	}
 
-	token, err := s.reviewRepo.GetReviewToken(ctx, tokenStr)
-	if err != nil {
-		return fmt.Errorf("get token: %w", err)
-	}
-	if token.IsUsed {
-		return serviceErrors.ErrInvalidCredentials
-	}
-
-	if token.ExpiresAt.Before(time.Now()) {
-		return serviceErrors.ErrTokenExpired
-	}
-
-	hasToday, err := s.reviewRepo.HasReviewToday(ctx, review.UserID.String(), token.PlaceID.String())
+	hasToday, err := s.reviewRepo.HasReviewToday(ctx, review.UserID.String(), review.PlaceID.String())
 	if err != nil {
 		return fmt.Errorf("check existing review: %w", err)
 	}
 	if hasToday {
 		return serviceErrors.ErrTooManyReviews
+	}
+
+	var token *model.ReviewToken
+	if tokenStr != "" {
+		t, err := s.reviewRepo.GetReviewToken(ctx, tokenStr)
+		if err != nil {
+			return serviceErrors.ErrInvalidToken
+		}
+		if t.IsUsed {
+			return serviceErrors.ErrInvalidCredentials
+		}
+		if t.ExpiresAt.Before(time.Now()) {
+			return serviceErrors.ErrTokenExpired
+		}
+		if t.PlaceID != review.PlaceID {
+			return serviceErrors.ErrInvalidToken
+		}
+		token = t
 	}
 
 	isRestricted, err := s.restrictionRepo.HasActiveRestriction(
@@ -83,7 +88,7 @@ func (s *reviewService) SubmitReview(ctx context.Context, review model.Review, t
 		return fmt.Errorf("check restriction: %w", err)
 	}
 
-	if !isRestricted && review.Rating == 1 {
+	if token != nil && !isRestricted && review.Rating == 1 {
 		count, err := s.reviewRepo.CountLowRatingReviews(
 			ctx, review.UserID.String(), ReviewPeriodDays)
 		if err != nil {
@@ -115,11 +120,20 @@ func (s *reviewService) SubmitReview(ctx context.Context, review model.Review, t
 	}
 
 	review.ID = uuid.New()
-	review.TokenID = token.ID
-	review.CreatedAt = time.Now()
+	review.CreatedAt = time.Now().UTC()
+
+	if token != nil {
+		review.TokenID = &token.ID
+	} else {
+		review.TokenID = nil
+	}
 
 	if err := s.reviewRepo.CreateReview(ctx, review); err != nil {
 		return fmt.Errorf("create review: %w", err)
+	}
+
+	if token == nil {
+		return nil
 	}
 
 	if err := s.reviewRepo.MarkReviewTokenUsed(ctx, token.ID.String()); err != nil {
