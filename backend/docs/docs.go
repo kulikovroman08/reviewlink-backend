@@ -783,7 +783,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Авторизованный пользователь может оставить отзыв на место, используя одноразовый токен.",
+                "description": "Авторизованный пользователь может оставить отзыв на место.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1599,6 +1599,9 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
+                "helpful_count": {
+                    "type": "integer"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -1607,6 +1610,9 @@ const docTemplate = `{
                 },
                 "reply": {
                     "$ref": "#/definitions/dto.ReviewReplyResponse"
+                },
+                "unhelpful_count": {
+                    "type": "integer"
                 }
             }
         },
@@ -1635,8 +1641,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "place_id",
-                "rating",
-                "token"
+                "rating"
             ],
             "properties": {
                 "content": {

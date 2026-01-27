@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const backToTopBtn = document.getElementById("backToTopBtn");
   const refreshReviewsBtn = document.getElementById("refreshReviewsBtn");
+  const leaveReviewBtn = document.getElementById("leaveReviewBtn");
 
   const placeTitle = document.getElementById("placeTitle");
   const reviewsStatus = document.getElementById("reviewsStatus");
@@ -328,6 +329,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentPlaceId) loadReviews(currentPlaceId);
   });
 
+  leaveReviewBtn?.addEventListener("click", () => {
+    if (!currentPlaceId) return;
+
+    // если не залогинен — на логин с редиректом обратно на форму
+    if (!isLoggedIn()) {
+      const target = `review-form.html?place_id=${encodeURIComponent(currentPlaceId)}`;
+      window.location.href = `login.html?mode=login&redirect=${encodeURIComponent(target)}`;
+      return;
+    }
+
+    window.location.href = `review-form.html?place_id=${encodeURIComponent(currentPlaceId)}`;
+  });
+
   sortSelect.addEventListener("change", () => {
     if (currentPlaceId) loadReviews(currentPlaceId);
   });
@@ -347,6 +361,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function showTop() {
     placeView.classList.add("d-none");
     topView.classList.remove("d-none");
+    if (leaveReviewBtn) leaveReviewBtn.classList.add("d-none");
     loadTop();
   }
 
@@ -355,9 +370,9 @@ document.addEventListener("DOMContentLoaded", () => {
     placeView.classList.remove("d-none");
     reviewsContainer.innerHTML = "";
     reviewsStatus.textContent = "Загрузка...";
-    // ✅ не показываем ID (п.4)
     placeTitle.textContent = currentPlaceName ? `Отзывы: ${currentPlaceName}` : "Отзывы заведения";
     updateAuthUI();
+    if (leaveReviewBtn) leaveReviewBtn.classList.remove("d-none");
   }
 
   async function loadReviews(placeId) {

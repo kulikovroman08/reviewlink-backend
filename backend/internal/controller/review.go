@@ -18,7 +18,7 @@ import (
 
 // SubmitReview godoc
 // @Summary      Отправка отзыва
-// @Description  Авторизованный пользователь может оставить отзыв на место, используя одноразовый токен.
+// @Description  Авторизованный пользователь может оставить отзыв на место.
 // @Tags         users
 // @Accept       json
 // @Produce      json
@@ -51,7 +51,16 @@ func (h *Application) SubmitReview(c *gin.Context) {
 		Rating:  req.Rating,
 	}
 
-	err = h.ReviewService.SubmitReview(c.Request.Context(), review, req.Token)
+	token := ""
+	if req.Token != nil {
+		token = *req.Token
+	}
+
+	err = h.ReviewService.SubmitReview(
+		c.Request.Context(),
+		review,
+		token,
+	)
 	if err != nil {
 		switch {
 		case errors.Is(err, serviceErrors.ErrTooManyReviews):
@@ -68,10 +77,10 @@ func (h *Application) SubmitReview(c *gin.Context) {
 
 		default:
 			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrInternalError})
-
 		}
 		return
 	}
+
 	c.Status(http.StatusCreated)
 }
 

@@ -184,12 +184,16 @@ definitions:
         type: string
       created_at:
         type: string
+      helpful_count:
+        type: integer
       id:
         type: string
       rating:
         type: integer
       reply:
         $ref: '#/definitions/dto.ReviewReplyResponse'
+      unhelpful_count:
+        type: integer
     type: object
   dto.SignupRequest:
     properties:
@@ -221,7 +225,6 @@ definitions:
     required:
     - place_id
     - rating
-    - token
     type: object
   dto.UpdateReviewRequest:
     properties:
@@ -783,8 +786,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Авторизованный пользователь может оставить отзыв на место, используя
-        одноразовый токен.
+      description: Авторизованный пользователь может оставить отзыв на место.
       parameters:
       - description: Данные отзыва
         in: body

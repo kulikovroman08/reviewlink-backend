@@ -129,7 +129,7 @@ func (r *PostgresReviewRepository) CreateReview(ctx context.Context, review mode
 			review.TokenID,
 			review.Content,
 			review.Rating,
-			time.Now().UTC(),
+			review.CreatedAt,
 		).
 		ToSql()
 
