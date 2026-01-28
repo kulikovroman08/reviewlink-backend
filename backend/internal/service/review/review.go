@@ -178,6 +178,10 @@ func (s *reviewService) GetReviews(ctx context.Context, placeID string, filter m
 		return nil, fmt.Errorf("find reviews: %w", err)
 	}
 
+	if len(reviews) == 0 {
+		return reviews, nil
+	}
+
 	repliesIDs := make([]string, 0, len(reviews))
 	for _, r := range reviews {
 		repliesIDs = append(repliesIDs, r.ID.String())

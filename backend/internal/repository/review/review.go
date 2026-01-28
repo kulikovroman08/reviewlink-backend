@@ -230,11 +230,13 @@ func (r *PostgresReviewRepository) FindReviews(ctx context.Context, placeID stri
 	reviews := make([]model.Review, 0)
 	for rows.Next() {
 		var rev model.Review
+		var tokenID *uuid.UUID
+
 		err := rows.Scan(
 			&rev.ID,
 			&rev.UserID,
 			&rev.PlaceID,
-			&rev.TokenID,
+			&tokenID,
 			&rev.Content,
 			&rev.Rating,
 			&rev.CreatedAt,
@@ -244,8 +246,11 @@ func (r *PostgresReviewRepository) FindReviews(ctx context.Context, placeID stri
 		if err != nil {
 			return nil, fmt.Errorf("scan FindReviews row: %w", err)
 		}
+
+		rev.TokenID = tokenID
 		reviews = append(reviews, rev)
 	}
+
 	return reviews, nil
 }
 

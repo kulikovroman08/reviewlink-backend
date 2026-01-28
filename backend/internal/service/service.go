@@ -20,6 +20,8 @@ type UserService interface {
 type PlaceService interface {
 	CreatePlace(ctx context.Context, place model.Place) (*model.Place, error)
 	GetPlacesByOwner(ctx context.Context, ownerID string) ([]model.Place, error)
+	ListPublicPlaces(ctx context.Context, params model.PublicPlacesParams) (model.PublicPlacesResult, error)
+	EnsureFromPublic(ctx context.Context, source, sourceID, name string) (string, error)
 }
 
 type ReviewService interface {

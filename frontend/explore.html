@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html lang="ru" data-theme="dark">
-
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>ReviewLink — Публичная страница</title>
+    <title>ReviewLink</title>
+
     <link rel="stylesheet" href="style.css"/>
+
+    <!-- Leaflet -->
+    <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
 </head>
 
 <body>
@@ -17,7 +23,6 @@
         </a>
 
         <div class="nav-right">
-            <!-- статус авторизации -->
             <span id="authPill" class="badge">Гость</span>
 
             <button class="btn btn-sm" type="button"
@@ -32,57 +37,97 @@
 </div>
 
 <main class="container">
-    <h1 class="page-title">Публичная страница</h1>
+    <!-- Убрали "Публичная страница" -->
 
+    <!-- ОДНА ПЛАШКА УПРАВЛЕНИЯ -->
     <div class="card" style="margin-bottom: var(--space-4);">
-        <div class="card-body">
-            <div id="topTabs" class="row">
-                <button class="btn btn-sm nav-link active" data-tab="places" type="button">Топ заведений</button>
-                <button class="btn btn-sm nav-link" data-tab="users" type="button">Топ пользователей</button>
-                <button class="btn btn-sm nav-link" data-tab="bonuses" type="button">Топ по бонусам</button>
+        <div class="card-body stack">
+
+            <!-- ===== Главные вкладки: Каталог / Лидеры ===== -->
+            <div class="form-row" style="align-items:flex-end;">
+                <div style="flex:1;">
+                    <label>Раздел</label>
+
+                    <div class="row" style="gap:8px; flex-wrap:wrap;">
+                        <button id="tabCatalogBtn" type="button" class="btn btn-sm btn-primary">
+                            Каталог заведений
+                        </button>
+                        <button id="tabLeadersBtn" type="button" class="btn btn-sm">
+                            Лидеры
+                        </button>
+                    </div>
+
+                    <div class="help subtle" id="modeHint"></div>
+
+                    <!-- Оставляем select для совместимости с текущим explore.js -->
+                    <select id="modeSelect" class="d-none">
+                        <option value="catalog">Каталог заведений</option>
+                        <option value="places">Лидеры — Заведения</option>
+                        <option value="users">Лидеры — Пользователи</option>
+                        <option value="bonuses">Лидеры — Бонусы</option>
+                    </select>
+                </div>
+
+                <div class="right row" style="align-items:flex-end;">
+                    <button id="refreshTopBtn" class="btn btn-sm" type="button">Обновить список</button>
+                </div>
             </div>
-            <div class="help subtle">Клик по заведению откроет список отзывов.</div>
+
+            <!-- ===== Подвкладки лидеров ===== -->
+            <div id="leadersTabs" class="row d-none" style="gap:8px; flex-wrap:wrap;">
+                <button id="leadersPlacesBtn" type="button" class="btn btn-sm btn-primary">Заведения</button>
+                <button id="leadersUsersBtn" type="button" class="btn btn-sm">Пользователи</button>
+                <button id="leadersBonusesBtn" type="button" class="btn btn-sm">Бонусы</button>
+            </div>
+
+            <!-- ФИЛЬТРЫ КАТАЛОГА -->
+            <div id="catalogFilters" class="d-none">
+                <div class="form-row">
+                    <div style="flex: 1;">
+                        <label>Поиск</label>
+                        <input id="searchInput" type="text" placeholder="Напр. Седьмой континент"/>
+                        <div class="help subtle">По названию заведения</div>
+                    </div>
+
+                    <div style="flex: 1;">
+                        <label>Тип заведения</label>
+                        <select id="amenityInput">
+                            <option value="">Все</option>
+                            <option value="restaurant">Ресторан</option>
+                            <option value="cafe">Кафе</option>
+                            <option value="coffee_shop">Кофейня</option>
+                            <option value="bar">Бар</option>
+                            <option value="pub">Паб</option>
+                            <option value="fast_food">Фастфуд</option>
+                            <option value="canteen">Столовая</option>
+                            <option value="nightclub">Клуб</option>
+                        </select>
+                        <div class="help subtle">Выберите тип заведения</div>
+                    </div>
+
+                    <div style="width: 160px;">
+                        <label>Лимит</label>
+                        <input id="limitInput" type="number" min="1" max="200" value="50"/>
+                        <div class="help subtle">От 1 до 200</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- TOP LISTS -->
+    <!-- TOP LISTS / CATALOG -->
     <section id="topView" class="card">
         <div class="card-header">
             <div>
-                <div class="section-title">Лидеры</div>
+                <div class="section-title">Список</div>
                 <div id="topStatus" class="muted small">Загрузка...</div>
             </div>
-
-            <button id="refreshTopBtn" class="btn btn-sm" type="button">Обновить</button>
         </div>
 
         <div class="card-body stack">
-            <div class="form-row">
-                <div>
-                    <label>Лимит</label>
-                    <input id="limitInput" type="number" min="1" max="100" value="10"/>
-                    <div class="help">От 1 до 100</div>
-                </div>
-
-                <div id="placesSortWrap">
-                    <label>Сортировать заведения</label>
-                    <select id="placesSort">
-                        <option value="reviews">по кол-ву отзывов</option>
-                        <option value="rating">по рейтингу</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div id="minRatingWrap">
-                    <label>Мин. рейтинг</label>
-                    <input id="minRating" type="number" min="0" max="5" step="0.1" value="0"/>
-                </div>
-
-                <div id="minReviewsWrap">
-                    <label>Мин. отзывов</label>
-                    <input id="minReviews" type="number" min="0" value="0"/>
-                </div>
+            <div id="map"
+                 class="d-none"
+                 style="height:420px;width:100%;border-radius:16px;margin-bottom:16px">
             </div>
 
             <div id="topContainer" class="stack"></div>
@@ -92,7 +137,7 @@
     <!-- PLACE REVIEWS -->
     <section id="placeView" class="d-none">
         <div class="row" style="margin: var(--space-5) 0;">
-            <button id="backToTopBtn" class="btn btn-sm" type="button">← Назад к топу</button>
+            <button id="backToTopBtn" class="btn btn-sm" type="button">← Назад</button>
 
             <div class="right row">
                 <button
@@ -110,7 +155,6 @@
             <div class="card-header">
                 <div>
                     <div id="placeTitle" class="section-title">Отзывы заведения</div>
-                    <!-- placeMeta убрали, чтобы не светить ID -->
                 </div>
                 <div id="reviewsStatus" class="muted small">Загрузка...</div>
             </div>
@@ -138,17 +182,79 @@
                     </div>
                 </div>
 
-                <!-- подсказка по авторизации -->
                 <div id="voteHint" class="help subtle"></div>
 
                 <div id="reviewsContainer" class="stack"></div>
             </div>
         </div>
     </section>
+
+    <!-- Лёгкий inline-скрипт для табов (без правок common.js/style.css) -->
+    <script>
+		document.addEventListener("DOMContentLoaded", () => {
+			const modeSelect = document.getElementById("modeSelect");
+			const catalogFilters = document.getElementById("catalogFilters");
+			const leadersTabs = document.getElementById("leadersTabs");
+
+			const tabCatalogBtn = document.getElementById("tabCatalogBtn");
+			const tabLeadersBtn = document.getElementById("tabLeadersBtn");
+
+			const leadersPlacesBtn = document.getElementById("leadersPlacesBtn");
+			const leadersUsersBtn = document.getElementById("leadersUsersBtn");
+			const leadersBonusesBtn = document.getElementById("leadersBonusesBtn");
+
+			function setActiveButton(btn, active) {
+				if (!btn) return;
+				btn.classList.toggle("btn-primary", !!active);
+			}
+
+			function setMainTab(tab) {
+				// tab: "catalog" | "leaders"
+				const isCatalog = tab === "catalog";
+
+				setActiveButton(tabCatalogBtn, isCatalog);
+				setActiveButton(tabLeadersBtn, !isCatalog);
+
+				if (leadersTabs) leadersTabs.classList.toggle("d-none", isCatalog);
+				if (catalogFilters) catalogFilters.classList.toggle("d-none", !isCatalog);
+
+				if (!modeSelect) return;
+				modeSelect.value = isCatalog ? "catalog" : (modeSelect.value === "catalog" ? "places" : modeSelect.value);
+				modeSelect.dispatchEvent(new Event("change"));
+			}
+
+			function setLeadersSubTab(val) {
+				// val: "places"|"users"|"bonuses"
+				setActiveButton(leadersPlacesBtn, val === "places");
+				setActiveButton(leadersUsersBtn, val === "users");
+				setActiveButton(leadersBonusesBtn, val === "bonuses");
+
+				if (!modeSelect) return;
+				modeSelect.value = val;
+				modeSelect.dispatchEvent(new Event("change"));
+			}
+
+			tabCatalogBtn?.addEventListener("click", () => setMainTab("catalog"));
+			tabLeadersBtn?.addEventListener("click", () => setMainTab("leaders"));
+
+			leadersPlacesBtn?.addEventListener("click", () => setLeadersSubTab("places"));
+			leadersUsersBtn?.addEventListener("click", () => setLeadersSubTab("users"));
+			leadersBonusesBtn?.addEventListener("click", () => setLeadersSubTab("bonuses"));
+
+			// init from current value
+			const initial = modeSelect?.value || "places";
+			if (initial === "catalog") {
+				setMainTab("catalog");
+			} else {
+				setMainTab("leaders");
+				setLeadersSubTab(initial);
+			}
+		});
+    </script>
 </main>
 
 <script src="common.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="explore.js"></script>
 </body>
-
 </html>

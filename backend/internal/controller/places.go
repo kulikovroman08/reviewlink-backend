@@ -2,7 +2,9 @@ package controller
 
 import (
 	"errors"
+	"log"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -54,7 +56,7 @@ func (h *Application) CreatePlace(c *gin.Context) {
 	}
 
 	place := model.Place{
-		OwnerID: ownerUUID,
+		OwnerID: &ownerUUID,
 		Name:    req.Name,
 		Address: req.Address,
 	}
@@ -131,4 +133,141 @@ func (h *Application) GetPlaces(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+// ListPublicPlaces godoc
+// @Summary      Публичный каталог заведений
+// @Description  Возвращает список заведений из OSM (Overpass) и подмешивает мету из ReviewLink (rating, reviewsCount, hasOwner)
+// @Tags         places
+// @Produce      json
+// @Param        city    query     string  true   "Город (обязателен)"
+// @Param        search  query     string  false  "Поиск по имени (regex)"
+// @Param        amenity query     string  false  "Фильтр по amenity (например cafe|restaurant)"
+// @Param        limit   query     int     false  "Лимит (по умолчанию 50, максимум 200)"
+// @Param        offset  query     int     false  "Смещение (MVP может игнорироваться)"
+// @Success      200 {object} dto.PublicPlacesResponse
+// @Failure      400 {object} dto.ErrorResponse "invalid input"
+// @Failure      500 {object} dto.ErrorResponse "failed to load public places"
+// @Router       /places/public [get]
+func (h *Application) ListPublicPlaces(c *gin.Context) {
+	var q dto.PublicPlacesQuery
+	if err := c.ShouldBindQuery(&q); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
+		return
+	}
+
+	// city обязателен
+	if q.City == nil || *q.City == "" {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
+		return
+	}
+
+	limit := 50
+	if q.Limit != nil && *q.Limit > 0 {
+		limit = *q.Limit
+	}
+	if limit > 200 {
+		limit = 200
+	}
+
+	offset := 0
+	if q.Offset != nil && *q.Offset > 0 {
+		offset = *q.Offset
+	}
+
+	params := model.PublicPlacesParams{
+		City:    *q.City,
+		Search:  q.Search,
+		Amenity: q.Amenity,
+		Limit:   limit,
+		Offset:  offset,
+	}
+
+	res, err := h.PlaceService.ListPublicPlaces(c.Request.Context(), params)
+	if err != nil {
+		log.Printf("ListPublicPlaces error: %+v", err)
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: response.ErrFailedGetPlaces})
+		return
+	}
+
+	items := make([]dto.PublicPlaceResponse, 0, len(res.Items))
+	for _, it := range res.Items {
+		dtoItem := dto.PublicPlaceResponse{
+			Source:   it.Source,
+			SourceID: it.SourceID,
+			Name:     it.Name,
+			Amenity:  it.Amenity,
+			Address: dto.PublicPlaceAddress{
+				City:        it.Address.City,
+				Street:      it.Address.Street,
+				HouseNumber: it.Address.HouseNumber,
+				Postcode:    it.Address.Postcode,
+				Country:     it.Address.Country,
+				Display:     it.Address.Display,
+			},
+			Location: dto.PublicLatLon{
+				Lat: it.Location.Lat,
+				Lon: it.Location.Lon,
+			},
+		}
+
+		if it.Reviewlink != nil {
+			dtoItem.Reviewlink = &dto.PublicPlaceReviewlinkMeta{
+				PlaceID:      it.Reviewlink.PlaceID.String(),
+				Rating:       it.Reviewlink.Rating,
+				ReviewsCount: it.Reviewlink.ReviewsCount,
+				HasOwner:     it.Reviewlink.HasOwner,
+			}
+		}
+
+		items = append(items, dtoItem)
+	}
+
+	c.JSON(http.StatusOK, dto.PublicPlacesResponse{
+		Items: items,
+		Total: res.Total,
+	})
+}
+
+// EnsurePlaceFromPublic godoc
+// @Summary      Создать/получить place_id по публичному источнику (OSM)
+// @Description  По (source, source_id) находит place в ReviewLink или создаёт новый (owner_id = NULL) и возвращает place_id
+// @Tags         places
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      dto.EnsurePlaceFromPublicRequest  true  "source/source_id/name"
+// @Success      200   {object}  dto.EnsurePlaceFromPublicResponse
+// @Failure      400   {object}  dto.ErrorResponse "invalid input"
+// @Failure      500   {object}  dto.ErrorResponse "failed to ensure place"
+// @Router       /places/ensure_from_public [post]
+func (h *Application) EnsurePlaceFromPublic(c *gin.Context) {
+	var req dto.EnsurePlaceFromPublicRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
+		return
+	}
+
+	source := strings.TrimSpace(req.Source)
+
+	sourceID := strings.TrimSpace(req.SourceID)
+	if sourceID == "" {
+		sourceID = strings.TrimSpace(req.SourceId)
+	}
+
+	name := strings.TrimSpace(req.Name)
+
+	if source == "" || sourceID == "" || name == "" {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidInput})
+		return
+	}
+
+	placeID, err := h.PlaceService.EnsureFromPublic(c.Request.Context(), source, sourceID, name)
+	if err != nil {
+		log.Printf("EnsurePlaceFromPublic error: %+v", err)
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: "failed to ensure place"})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.EnsurePlaceFromPublicResponse{PlaceID: placeID})
 }

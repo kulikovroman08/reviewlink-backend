@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -19,7 +18,9 @@
 
         <div class="nav-right">
             <button class="btn btn-sm" id="themeBtn" type="button" title="Сменить тему">Тема</button>
-            <a class="btn btn-sm" href="explore.html">
+
+            <!-- ✅ исправлено: личный кабинет должен вести в dashboard -->
+            <a class="btn btn-sm" href="dashboard.html">
                 <i class="bi bi-house"></i> Личный кабинет
             </a>
         </div>
@@ -41,6 +42,10 @@
 
         <div class="card-body">
             <div id="modeBadge" class="muted center" style="margin-bottom: 10px;"></div>
+
+            <!-- ✅ добавлено: показываем название заведения (для public place / каталога) -->
+            <div id="placeName" class="muted center small" style="margin-bottom: 14px;"></div>
+
             <div class="stack">
                 <div>
                     <div class="muted" style="margin-bottom: 8px;">Оценка</div>
@@ -65,5 +70,4 @@
 <script src="common.js"></script>
 <script src="review-form.js"></script>
 </body>
-
 </html>

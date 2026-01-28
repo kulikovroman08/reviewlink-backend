@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -109,6 +110,11 @@ func (h *Application) GetReviews(c *gin.Context) {
 
 	reviews, err := h.ReviewService.GetReviews(c.Request.Context(), placeID, filter)
 	if err != nil {
+		slog.Error("GetReviews failed",
+			"place_id", placeID,
+			"filter", filter,
+			"err", err,
+		)
 		switch {
 		case errors.Is(err, serviceErrors.ErrPlaceNotFound):
 			c.JSON(http.StatusNotFound, dto.ErrorResponse{Error: response.ErrPlaceNotFound})
