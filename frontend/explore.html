@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html lang="ru" data-theme="dark">
-
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>ReviewLink — Публичная страница</title>
+
     <link rel="stylesheet" href="style.css"/>
+
+    <!-- Leaflet -->
+    <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
 </head>
 
 <body>
@@ -17,7 +23,6 @@
         </a>
 
         <div class="nav-right">
-            <!-- статус авторизации -->
             <span id="authPill" class="badge">Гость</span>
 
             <button class="btn btn-sm" type="button"
@@ -34,55 +39,64 @@
 <main class="container">
     <h1 class="page-title">Публичная страница</h1>
 
+    <!-- ОДНА ПЛАШКА УПРАВЛЕНИЯ -->
     <div class="card" style="margin-bottom: var(--space-4);">
-        <div class="card-body">
-            <div id="topTabs" class="row">
-                <button class="btn btn-sm nav-link active" data-tab="places" type="button">Топ заведений</button>
-                <button class="btn btn-sm nav-link" data-tab="users" type="button">Топ пользователей</button>
-                <button class="btn btn-sm nav-link" data-tab="bonuses" type="button">Топ по бонусам</button>
+        <div class="card-body stack">
+            <div class="form-row">
+                <div style="flex: 1;">
+                    <label>Раздел</label>
+                    <select id="modeSelect">
+                        <option value="places">Лидеры — Заведения</option>
+                        <option value="users">Лидеры — Пользователи</option>
+                        <option value="bonuses">Лидеры — Бонусы</option>
+                        <option value="catalog">Каталог заведений</option>
+                    </select>
+                    <div class="help subtle" id="modeHint"></div>
+                </div>
+
+                <div class="right row" style="align-items:flex-end;">
+                    <button id="refreshTopBtn" class="btn btn-sm" type="button">Обновить</button>
+                </div>
             </div>
-            <div class="help subtle">Клик по заведению откроет список отзывов.</div>
+
+            <!-- ФИЛЬТРЫ КАТАЛОГА -->
+            <div id="catalogFilters" class="d-none">
+                <div class="form-row">
+                    <div style="flex: 1;">
+                        <label>Поиск (search)</label>
+                        <input id="searchInput" type="text" placeholder="Напр. Паста|Пицца"/>
+                        <div class="help subtle">По имени (regex строка как в swagger)</div>
+                    </div>
+
+                    <div style="flex: 1;">
+                        <label>Amenity (amenity)</label>
+                        <input id="amenityInput" type="text" placeholder="cafe|restaurant"/>
+                        <div class="help subtle">Фильтр по amenity (regex строка)</div>
+                    </div>
+
+                    <div style="width: 160px;">
+                        <label>Лимит</label>
+                        <input id="limitInput" type="number" min="1" max="200" value="50"/>
+                        <div class="help subtle">От 1 до 200</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- TOP LISTS -->
+    <!-- TOP LISTS / CATALOG -->
     <section id="topView" class="card">
         <div class="card-header">
             <div>
-                <div class="section-title">Лидеры</div>
+                <div class="section-title">Список</div>
                 <div id="topStatus" class="muted small">Загрузка...</div>
             </div>
-
-            <button id="refreshTopBtn" class="btn btn-sm" type="button">Обновить</button>
         </div>
 
         <div class="card-body stack">
-            <div class="form-row">
-                <div>
-                    <label>Лимит</label>
-                    <input id="limitInput" type="number" min="1" max="100" value="10"/>
-                    <div class="help">От 1 до 100</div>
-                </div>
-
-                <div id="placesSortWrap">
-                    <label>Сортировать заведения</label>
-                    <select id="placesSort">
-                        <option value="reviews">по кол-ву отзывов</option>
-                        <option value="rating">по рейтингу</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div id="minRatingWrap">
-                    <label>Мин. рейтинг</label>
-                    <input id="minRating" type="number" min="0" max="5" step="0.1" value="0"/>
-                </div>
-
-                <div id="minReviewsWrap">
-                    <label>Мин. отзывов</label>
-                    <input id="minReviews" type="number" min="0" value="0"/>
-                </div>
+            <div id="map"
+                 class="d-none"
+                 style="height:420px;width:100%;border-radius:16px;margin-bottom:16px">
             </div>
 
             <div id="topContainer" class="stack"></div>
@@ -92,7 +106,7 @@
     <!-- PLACE REVIEWS -->
     <section id="placeView" class="d-none">
         <div class="row" style="margin: var(--space-5) 0;">
-            <button id="backToTopBtn" class="btn btn-sm" type="button">← Назад к топу</button>
+            <button id="backToTopBtn" class="btn btn-sm" type="button">← Назад</button>
 
             <div class="right row">
                 <button
@@ -110,7 +124,6 @@
             <div class="card-header">
                 <div>
                     <div id="placeTitle" class="section-title">Отзывы заведения</div>
-                    <!-- placeMeta убрали, чтобы не светить ID -->
                 </div>
                 <div id="reviewsStatus" class="muted small">Загрузка...</div>
             </div>
@@ -138,7 +151,6 @@
                     </div>
                 </div>
 
-                <!-- подсказка по авторизации -->
                 <div id="voteHint" class="help subtle"></div>
 
                 <div id="reviewsContainer" class="stack"></div>
@@ -148,7 +160,7 @@
 </main>
 
 <script src="common.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="explore.js"></script>
 </body>
-
 </html>

@@ -12,6 +12,7 @@ import (
 
 	"github.com/kulikovroman08/reviewlink-backend/configs"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller"
+	osm "github.com/kulikovroman08/reviewlink-backend/internal/infra/client/osm"
 	repoAdmin "github.com/kulikovroman08/reviewlink-backend/internal/repository/admin"
 	bonusRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/bonus"
 	repoLeaderboard "github.com/kulikovroman08/reviewlink-backend/internal/repository/leaderboard"
@@ -61,7 +62,9 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 
 	tokenService := svcToken.NewTokenService(tokenRepo, placeRepo, cfg)
 	userService := svcUser.NewUserService(userRepo, reviewRepo, bonusRepo)
-	placeService := svcPlace.NewPlaceService(placeRepo, tokenService, cfg)
+	baseOSM := osm.NewOverpassClient()
+	osmClient := osm.NewCachedClient(baseOSM, rdb, 60*time.Minute)
+	placeService := svcPlace.NewPlaceService(placeRepo, tokenService, osmClient, cfg)
 	reviewService := svcReview.NewReviewService(reviewRepo, userRepo, placeRepo, restrictionRepo, replyRepo)
 	adminService := svcAdmin.NewAdminService(adminRepo)
 	leaderboardService := svcLeaderboard.NewService(leaderboardRepo, lbCache)

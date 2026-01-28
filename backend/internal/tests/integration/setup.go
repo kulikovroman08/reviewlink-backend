@@ -21,6 +21,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller"
+	osm "github.com/kulikovroman08/reviewlink-backend/internal/infra/client/osm"
 	repoAdmin "github.com/kulikovroman08/reviewlink-backend/internal/repository/admin"
 	bonusRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/bonus"
 	repoLeaderboard "github.com/kulikovroman08/reviewlink-backend/internal/repository/leaderboard"
@@ -32,7 +33,7 @@ import (
 	adminService "github.com/kulikovroman08/reviewlink-backend/internal/service/admin"
 	svcBonus "github.com/kulikovroman08/reviewlink-backend/internal/service/bonus"
 	svcLeaderboard "github.com/kulikovroman08/reviewlink-backend/internal/service/leaderboard"
-	placeService "github.com/kulikovroman08/reviewlink-backend/internal/service/place"
+	svcPlace "github.com/kulikovroman08/reviewlink-backend/internal/service/place"
 	reviewService "github.com/kulikovroman08/reviewlink-backend/internal/service/review"
 	svcReply "github.com/kulikovroman08/reviewlink-backend/internal/service/review_reply"
 	tokenService "github.com/kulikovroman08/reviewlink-backend/internal/service/token"
@@ -77,7 +78,8 @@ func NewTestSetup() *TestSetup {
 
 	tokSrv := tokenService.NewTokenService(tokRepo, placeRepo, &cfg)
 	userSrv := userService.NewUserService(userRepo, reviewRepo, bonusRepo)
-	placeSrv := placeService.NewPlaceService(placeRepo, tokSrv, &cfg)
+	osmClient := osm.NewOverpassClient()
+	placeSrv := svcPlace.NewPlaceService(placeRepo, tokSrv, osmClient, &cfg)
 	reviewSrv := reviewService.NewReviewService(reviewRepo, userRepo, placeRepo, restrictionRepo, replyRepo)
 	adminSrv := adminService.NewAdminService(adminRepo)
 	leaderboardSrv := svcLeaderboard.NewService(leaderboardRepo, nil)
@@ -85,7 +87,8 @@ func NewTestSetup() *TestSetup {
 	reviewReplySrv := svcReply.NewReviewReplyService(reviewRepo, placeRepo, replyRepo)
 	reviewVoteService := svcVote.NewReviewVoteService(db, voteRepo, reviewRepo, userRepo)
 
-	app := controller.NewApplication(userSrv,
+	app := controller.NewApplication(
+		userSrv,
 		placeSrv,
 		reviewSrv,
 		tokSrv,

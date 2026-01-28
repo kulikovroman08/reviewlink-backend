@@ -178,3 +178,61 @@ type BonusLeaderboardEntry struct {
 	BonusesCount int    `json:"bonuses_count"`
 	PointsSpent  int    `json:"points_spent"`
 }
+
+type PublicPlacesQuery struct {
+	Search  *string `form:"search"`
+	Amenity *string `form:"amenity"`
+	City    *string `form:"city"`
+	Limit   *int    `form:"limit"`
+	Offset  *int    `form:"offset"`
+}
+
+type PublicPlacesResponse struct {
+	Items []PublicPlaceResponse `json:"items"`
+	Total *int                  `json:"total,omitempty"`
+}
+
+type PublicPlaceResponse struct {
+	Source   string `json:"source"`
+	SourceID string `json:"sourceId"`
+
+	Name    string  `json:"name"`
+	Amenity *string `json:"amenity,omitempty"`
+
+	Address  PublicPlaceAddress `json:"address"`
+	Location PublicLatLon       `json:"location"`
+
+	Reviewlink *PublicPlaceReviewlinkMeta `json:"reviewlink,omitempty"`
+}
+
+type PublicPlaceAddress struct {
+	City        *string `json:"city,omitempty"`
+	Street      *string `json:"street,omitempty"`
+	HouseNumber *string `json:"houseNumber,omitempty"`
+	Postcode    *string `json:"postcode,omitempty"`
+	Country     *string `json:"country,omitempty"`
+	Display     *string `json:"display,omitempty"`
+}
+
+type PublicLatLon struct {
+	Lat float64 `json:"lat"`
+	Lon float64 `json:"lon"`
+}
+
+type PublicPlaceReviewlinkMeta struct {
+	PlaceID      string   `json:"placeId"`
+	Rating       *float64 `json:"rating,omitempty"`
+	ReviewsCount int      `json:"reviewsCount"`
+	HasOwner     bool     `json:"hasOwner"`
+}
+
+type EnsurePlaceFromPublicRequest struct {
+	Source   string `json:"source"`
+	SourceID string `json:"source_id"`
+	SourceId string `json:"sourceId"`
+	Name     string `json:"name"`
+}
+
+type EnsurePlaceFromPublicResponse struct {
+	PlaceID string `json:"place_id"`
+}

@@ -97,6 +97,22 @@ definitions:
       id:
         type: string
     type: object
+  dto.EnsurePlaceFromPublicRequest:
+    properties:
+      name:
+        type: string
+      source:
+        type: string
+      source_id:
+        type: string
+      sourceId:
+        type: string
+    type: object
+  dto.EnsurePlaceFromPublicResponse:
+    properties:
+      place_id:
+        type: string
+    type: object
   dto.ErrorResponse:
     properties:
       error:
@@ -160,6 +176,65 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  dto.PublicLatLon:
+    properties:
+      lat:
+        type: number
+      lon:
+        type: number
+    type: object
+  dto.PublicPlaceAddress:
+    properties:
+      city:
+        type: string
+      country:
+        type: string
+      display:
+        type: string
+      houseNumber:
+        type: string
+      postcode:
+        type: string
+      street:
+        type: string
+    type: object
+  dto.PublicPlaceResponse:
+    properties:
+      address:
+        $ref: '#/definitions/dto.PublicPlaceAddress'
+      amenity:
+        type: string
+      location:
+        $ref: '#/definitions/dto.PublicLatLon'
+      name:
+        type: string
+      reviewlink:
+        $ref: '#/definitions/dto.PublicPlaceReviewlinkMeta'
+      source:
+        type: string
+      sourceId:
+        type: string
+    type: object
+  dto.PublicPlaceReviewlinkMeta:
+    properties:
+      hasOwner:
+        type: boolean
+      placeId:
+        type: string
+      rating:
+        type: number
+      reviewsCount:
+        type: integer
+    type: object
+  dto.PublicPlacesResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.PublicPlaceResponse'
+        type: array
+      total:
+        type: integer
     type: object
   dto.ReplyToReviewRequest:
     properties:
@@ -780,6 +855,83 @@ paths:
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
       summary: Просмотр отзывов по заведению
+      tags:
+      - places
+  /places/ensure_from_public:
+    post:
+      consumes:
+      - application/json
+      description: По (source, source_id) находит place в ReviewLink или создаёт новый
+        (owner_id = NULL) и возвращает place_id
+      parameters:
+      - description: source/source_id/name
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EnsurePlaceFromPublicRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EnsurePlaceFromPublicResponse'
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to ensure place
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Создать/получить place_id по публичному источнику (OSM)
+      tags:
+      - places
+  /places/public:
+    get:
+      description: Возвращает список заведений из OSM (Overpass) и подмешивает мету
+        из ReviewLink (rating, reviewsCount, hasOwner)
+      parameters:
+      - description: Город (обязателен)
+        in: query
+        name: city
+        required: true
+        type: string
+      - description: Поиск по имени (regex)
+        in: query
+        name: search
+        type: string
+      - description: Фильтр по amenity (например cafe|restaurant)
+        in: query
+        name: amenity
+        type: string
+      - description: Лимит (по умолчанию 50, максимум 200)
+        in: query
+        name: limit
+        type: integer
+      - description: Смещение (MVP может игнорироваться)
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PublicPlacesResponse'
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to load public places
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Публичный каталог заведений
       tags:
       - places
   /reviews:

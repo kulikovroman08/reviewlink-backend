@@ -705,6 +705,122 @@
                 }
             }
         },
+        "/places/ensure_from_public": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "По (source, source_id) находит place в ReviewLink или создаёт новый (owner_id = NULL) и возвращает place_id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "places"
+                ],
+                "summary": "Создать/получить place_id по публичному источнику (OSM)",
+                "parameters": [
+                    {
+                        "description": "source/source_id/name",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.EnsurePlaceFromPublicRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.EnsurePlaceFromPublicResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "failed to ensure place",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/places/public": {
+            "get": {
+                "description": "Возвращает список заведений из OSM (Overpass) и подмешивает мету из ReviewLink (rating, reviewsCount, hasOwner)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "places"
+                ],
+                "summary": "Публичный каталог заведений",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Город (обязателен)",
+                        "name": "city",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поиск по имени (regex)",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по amenity (например cafe|restaurant)",
+                        "name": "amenity",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Лимит (по умолчанию 50, максимум 200)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Смещение (MVP может игнорироваться)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PublicPlacesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "failed to load public places",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/places/{id}/reviews": {
             "get": {
                 "description": "Получение списка отзывов по placeID с фильтрацией и сортировкой",
@@ -1461,6 +1577,31 @@
                 }
             }
         },
+        "dto.EnsurePlaceFromPublicRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "sourceId": {
+                    "type": "string"
+                },
+                "source_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.EnsurePlaceFromPublicResponse": {
+            "type": "object",
+            "properties": {
+                "place_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -1555,6 +1696,97 @@
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.PublicLatLon": {
+            "type": "object",
+            "properties": {
+                "lat": {
+                    "type": "number"
+                },
+                "lon": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.PublicPlaceAddress": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "display": {
+                    "type": "string"
+                },
+                "houseNumber": {
+                    "type": "string"
+                },
+                "postcode": {
+                    "type": "string"
+                },
+                "street": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PublicPlaceResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "$ref": "#/definitions/dto.PublicPlaceAddress"
+                },
+                "amenity": {
+                    "type": "string"
+                },
+                "location": {
+                    "$ref": "#/definitions/dto.PublicLatLon"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "reviewlink": {
+                    "$ref": "#/definitions/dto.PublicPlaceReviewlinkMeta"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "sourceId": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PublicPlaceReviewlinkMeta": {
+            "type": "object",
+            "properties": {
+                "hasOwner": {
+                    "type": "boolean"
+                },
+                "placeId": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "reviewsCount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.PublicPlacesResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.PublicPlaceResponse"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

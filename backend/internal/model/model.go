@@ -19,11 +19,21 @@ type User struct {
 
 type Place struct {
 	ID        uuid.UUID
-	OwnerID   uuid.UUID
+	OwnerID   *uuid.UUID
 	Name      string
 	Address   string
+	Source    *string
+	SourceID  *string
 	CreatedAt time.Time
 	IsDeleted bool
+}
+
+type PublicPlaceMeta struct {
+	SourceID     string
+	PlaceID      uuid.UUID
+	Rating       *float64
+	ReviewsCount int
+	HasOwner     bool
 }
 
 type ReviewToken struct {

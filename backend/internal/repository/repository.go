@@ -26,6 +26,8 @@ type PlaceRepository interface {
 	GetByID(ctx context.Context, placeID string) (*model.Place, error)
 	GetPlacesByOwner(ctx context.Context, ownerID string) ([]model.Place, error)
 	IsOwner(ctx context.Context, placeID string, ownerID string) (bool, error)
+	GetPublicMetaBySourceIDs(ctx context.Context, source string, sourceIDs []string) (map[string]model.PublicPlaceMeta, error)
+	EnsureFromPublic(ctx context.Context, source, sourceID, name string) (string, error)
 }
 
 type ReviewRepository interface {
