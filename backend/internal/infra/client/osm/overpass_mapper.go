@@ -1,7 +1,10 @@
 package osm
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
+	"strings"
 )
 
 func mapElementToPlace(el overpassElement) (Place, bool) {
@@ -83,4 +86,34 @@ func fallbackName(amenity string, tags map[string]string) string {
 		return amenity
 	}
 	return "place"
+}
+
+func (c *CachedClient) cacheKey(p SearchParams) string {
+	city := strings.TrimSpace(strings.ToLower(p.City))
+
+	search := ""
+	if p.Search != nil {
+		search = strings.TrimSpace(strings.ToLower(*p.Search))
+	}
+
+	amenity := ""
+	if p.Amenity != nil {
+		amenity = strings.TrimSpace(strings.ToLower(*p.Amenity))
+	}
+
+	limit := p.Limit
+	if limit <= 0 {
+		limit = defaultLimit
+	}
+	if limit > maxLimit {
+		limit = maxLimit
+	}
+
+	base := fmt.Sprintf(
+		"city=%s|search=%s|amenity=%s|limit=%d",
+		city, search, amenity, limit,
+	)
+
+	sum := sha1.Sum([]byte(base))
+	return "osm:places:" + hex.EncodeToString(sum[:])
 }

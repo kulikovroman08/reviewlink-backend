@@ -1,6 +1,10 @@
 package osm
 
-import "fmt"
+import (
+	"fmt"
+	"regexp"
+	"strings"
+)
 
 func buildOverpassQuery(p SearchParams, limit int) string {
 	amenity := `restaurant|cafe`
@@ -10,7 +14,12 @@ func buildOverpassQuery(p SearchParams, limit int) string {
 
 	nameFilter := ""
 	if p.Search != nil && *p.Search != "" {
-		nameFilter = fmt.Sprintf(`["name"~"%s",i]`, *p.Search)
+		safeRegex := regexp.QuoteMeta(*p.Search)
+
+		safeRegex = strings.ReplaceAll(safeRegex, `\`, `\\`)
+		safeRegex = strings.ReplaceAll(safeRegex, `"`, `\"`)
+
+		nameFilter = fmt.Sprintf(`["name"~"%s",i]`, safeRegex)
 	}
 
 	city := p.City // для читаемости

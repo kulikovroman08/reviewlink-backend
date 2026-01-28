@@ -2,6 +2,7 @@ package place
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -90,12 +91,15 @@ func (r *PostgresPlaceRepository) GetByID(ctx context.Context, placeID string) (
 	if err != nil {
 		return nil, fmt.Errorf("build GetByID query: %w", err)
 	}
+
 	row := r.db.QueryRow(ctx, query, args...)
 
 	p := new(model.Place)
 
 	var owner pgtype.UUID
-	if err := row.Scan(&p.ID, &owner, &p.Name, &p.Address, &p.CreatedAt, &p.IsDeleted); err != nil {
+	var addr sql.NullString
+
+	if err := row.Scan(&p.ID, &owner, &p.Name, &addr, &p.CreatedAt, &p.IsDeleted); err != nil {
 		return nil, err
 	}
 
@@ -107,6 +111,12 @@ func (r *PostgresPlaceRepository) GetByID(ctx context.Context, placeID string) (
 		p.OwnerID = &u
 	} else {
 		p.OwnerID = nil
+	}
+
+	if addr.Valid {
+		p.Address = addr.String
+	} else {
+		p.Address = ""
 	}
 
 	return p, nil

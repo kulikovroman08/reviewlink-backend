@@ -122,6 +122,43 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	}
 
+	function clampInt(v, def, min, max) {
+		const n = Number.parseInt(v, 10);
+		if (Number.isNaN(n)) return def;
+		return Math.max(min, Math.min(max, n));
+	}
+
+	function currentReviewsQueryString() {
+		const qs = new URLSearchParams();
+		if (sortSelect && sortSelect.value) qs.set("sort", sortSelect.value);
+		if (ratingSelect && ratingSelect.value) qs.set("rating", ratingSelect.value);
+		return qs.toString();
+	}
+
+	// ====== UI text helpers (каталог попап) ======
+	function formatAmenityRu(amenity) {
+		const a = String(amenity || "").trim();
+		const map = {
+			restaurant: "Ресторан",
+			cafe: "Кафе",
+			fast_food: "Фастфуд",
+			bar: "Бар",
+			pub: "Паб",
+			bakery: "Пекарня",
+			coffee_shop: "Кофейня",
+			ice_cream: "Мороженое",
+		};
+		return map[a] || a || "—";
+	}
+
+	function formatCoords(lat, lon) {
+		if (lat == null || lon == null) return "";
+		const la = Number(lat);
+		const lo = Number(lon);
+		if (Number.isNaN(la) || Number.isNaN(lo)) return "";
+		return `${la.toFixed(6)}, ${lo.toFixed(6)}`;
+	}
+
 	// ===== ensure helper (POST /places/ensure_from_public) =====
 	async function ensurePlaceIdFromPublic({ source, sourceId, name }) {
 		const token = getUserToken();
@@ -147,24 +184,11 @@ document.addEventListener("DOMContentLoaded", () => {
 		return data.place_id || data.placeId || "";
 	}
 
-	function clampInt(v, def, min, max) {
-		const n = Number.parseInt(v, 10);
-		if (Number.isNaN(n)) return def;
-		return Math.max(min, Math.min(max, n));
-	}
-
-	function currentReviewsQueryString() {
-		const qs = new URLSearchParams();
-		if (sortSelect && sortSelect.value) qs.set("sort", sortSelect.value);
-		if (ratingSelect && ratingSelect.value) qs.set("rating", ratingSelect.value);
-		return qs.toString();
-	}
-
 	function setModeHint() {
 		if (!modeHint) return;
 		if (activeTab === "catalog") {
-			modeHint.textContent =
-				"Каталог: можно открыть отзывы или перейти к оставлению отзыва (если место уже создано в ReviewLink).";
+			// Убрали длинную подсказку (п.8)
+			modeHint.textContent = "";
 			return;
 		}
 		if (activeTab === "places") {
@@ -378,7 +402,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			sourceId: p.sourceId || "",
 			name: p.name || "(без названия)",
 			amenity: p.amenity || "",
-			address: p.address?.display || "",
+			address: p.address?.display || "", // строка (частичный адрес)
 			lat: p.location?.lat,
 			lon: p.location?.lon,
 			placeId: rl.placeId || "",
@@ -405,7 +429,13 @@ document.addEventListener("DOMContentLoaded", () => {
 				const p = normalizePublicPlace(p0);
 				const rating = p.rating == null ? "—" : Number(p.rating).toFixed(2);
 				const reviews = p.reviewsCount == null ? "—" : String(p.reviewsCount);
-				const action = p.placeId ? "Отзывы →" : "Оставить отзыв →";
+
+				const hasPlace = Boolean(p.placeId);
+				const actionText = hasPlace ? "Отзывы →" : "Оставить отзыв →";
+				const btnClass = hasPlace ? "btn-primary" : "btn-success";
+
+				const amenityRu = p.amenity ? formatAmenityRu(p.amenity) : "";
+				const line2 = [amenityRu, p.address].filter(Boolean).join(" • ");
 
 				return `
               <tr class="js-public-row"
@@ -419,19 +449,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>
                   <div class="fw-semibold">${escapeHtml(p.name)}</div>
                   <div class="small text-muted">
-                    ${p.amenity ? escapeHtml(p.amenity) : ""}
-                    ${p.address ? " • " + escapeHtml(p.address) : ""}
+                    ${line2 ? escapeHtml(line2) : ""}
                   </div>
                 </td>
                 <td style="text-align:right;">${reviews}</td>
                 <td style="text-align:right;">${rating}</td>
                 <td style="text-align:right;">
-                  <button class="btn btn-sm btn-primary js-public-open" type="button"
+                  <button class="btn btn-sm ${btnClass} js-public-open" type="button"
                     data-place-id="${escapeHtml(p.placeId)}"
                     data-source="${escapeHtml(p.source)}"
                     data-source-id="${escapeHtml(p.sourceId)}"
                     data-place-name="${escapeHtml(p.name)}">
-                    ${action}
+                    ${actionText}
                   </button>
                 </td>
               </tr>
@@ -460,7 +489,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	}
 
-	// ✅ стало async + await ниже
 	async function handleOpenPublicPlaceFromEl(el) {
 		const placeId = el.getAttribute("data-place-id") || "";
 		const name = el.getAttribute("data-place-name") || "";
@@ -468,32 +496,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		const sourceId = el.getAttribute("data-source-id") || "";
 
 		await handleOpenPublicPlaceFromData({ placeId, name, source, sourceId });
-	}
-
-	// ✅ ensure helper
-	async function ensurePlaceIdFromPublic({ source, sourceId, name }) {
-		const token = getUserToken();
-		if (!token) throw new Error("not authorized");
-
-		const res = await fetch(`${API_BASE}/places/ensure_from_public`, {
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-				Accept: "application/json",
-			},
-			body: JSON.stringify({
-				source,
-				source_id: sourceId,
-				name,
-			}),
-		});
-
-		const data = await safeParseJSON(res);
-		if (!res.ok) throw new Error(data.error || `ensure place: ${res.status}`);
-
-		// ожидаем { place_id: "..." }
-		return data.place_id || data.placeId || "";
 	}
 
 	async function handleOpenPublicPlaceFromData({ placeId, name, source, sourceId }) {
@@ -552,25 +554,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
 			const marker = L.marker([p.lat, p.lon]).addTo(markersLayer);
 
-			marker.bindPopup(`
-        <div style="min-width:180px">
-          <b>${escapeHtml(p.name)}</b><br/>
-          <span class="small">${p.address ? escapeHtml(p.address) : ""}</span><br/>
-          <button type="button" class="btn btn-sm btn-primary" style="margin-top:8px"
-            onclick="window.__rlOpenFromMap && window.__rlOpenFromMap(${JSON.stringify({
+			const hasPlace = Boolean(p.placeId);
+			const actionText = hasPlace ? "Открыть отзывы →" : "Оставить отзыв →";
+			const btnClass = hasPlace ? "btn-primary" : "btn-success";
+
+			const amenityRu = formatAmenityRu(p.amenity);
+			const coords = formatCoords(p.lat, p.lon);
+
+			const addressBlock = p.address
+				? `<div class="small" style="opacity:.85; margin-top:4px;">${escapeHtml(p.address)}</div>`
+				: coords
+					? `<div class="small" style="opacity:.65; margin-top:4px;">📍 ${escapeHtml(coords)}</div>`
+					: "";
+
+			const payload = {
 				placeId: p.placeId,
 				name: p.name,
 				source: p.source,
 				sourceId: p.sourceId,
-			}).replaceAll('"', "&quot;")})">
-            ${p.placeId ? "Открыть отзывы →" : "Оставить отзыв →"}
+			};
+
+			const payloadHtml = JSON.stringify(payload).replaceAll('"', "&quot;");
+
+			marker.bindPopup(`
+        <div style="min-width:200px">
+          <div style="font-weight:700; font-size:14px;">${escapeHtml(p.name)}</div>
+          <div class="small" style="opacity:.85; margin-top:4px;">${escapeHtml(amenityRu)}</div>
+          ${addressBlock}
+          <button type="button" class="btn btn-sm ${btnClass}" style="margin-top:10px"
+            onclick="window.__rlOpenFromMap && window.__rlOpenFromMap(${payloadHtml})">
+            ${actionText}
           </button>
         </div>
       `);
-
-			marker.on("click", () => {
-				// просто открыть попап — уже удобно
-			});
 		});
 
 		if (points.length > 1) {
@@ -627,6 +643,14 @@ document.addEventListener("DOMContentLoaded", () => {
 			lastCatalogItems = items;
 
 			topStatus.textContent = `Заведений: ${items.length}`;
+
+			if (items.length === 0) {
+				topContainer.innerHTML = `<div class="muted">Ничего не найдено. Попробуйте изменить поиск или тип заведения.</div>`;
+				initMapOnce();
+				renderPublicMarkers([]);
+				return;
+			}
+
 			topContainer.innerHTML = renderPublicPlaces(items);
 			wirePublicPlaces(items);
 
@@ -634,7 +658,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			renderPublicMarkers(items);
 		} catch (e) {
 			if (e && e.name === "AbortError") return;
-			topStatus.innerHTML = `<span class="text-danger">${escapeHtml(e.message)}</span>`;
+			topStatus.innerHTML = `<span class="text-danger">Не удалось загрузить каталог.</span>`;
+			topContainer.innerHTML = `<div class="muted">Попробуйте позже.</div>`;
 		}
 	}
 

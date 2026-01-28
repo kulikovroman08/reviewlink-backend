@@ -26,5 +26,9 @@ jobs:
             cd ~/reviewlink-backend
             git pull origin main
             cd backend
-            docker compose up -d --build
+
+            docker compose build
+            docker compose run --rm migrator
+
+            docker compose up -d
             docker ps
