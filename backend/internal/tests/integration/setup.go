@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/kulikovroman08/reviewlink-backend/internal/model"
+
 	repoVote "github.com/kulikovroman08/reviewlink-backend/internal/repository/review_vote"
 	svcVote "github.com/kulikovroman08/reviewlink-backend/internal/service/review_vote"
 
@@ -45,6 +47,18 @@ type TestSetup struct {
 	DB  *pgxpool.Pool
 }
 
+type stubOSMClient struct{}
+
+func (s stubOSMClient) SearchPlaces(ctx context.Context, p osm.SearchParams) ([]osm.Place, error) {
+	return []osm.Place{}, nil
+}
+
+type stubPublicNewsService struct{}
+
+func (s stubPublicNewsService) ListNews(ctx context.Context, limit int) ([]model.NewsItem, *time.Time, error) {
+	return []model.NewsItem{}, nil, nil
+}
+
 func NewTestSetup() *TestSetup {
 	gin.SetMode(gin.TestMode)
 
@@ -78,7 +92,7 @@ func NewTestSetup() *TestSetup {
 
 	tokSrv := tokenService.NewTokenService(tokRepo, placeRepo, &cfg)
 	userSrv := userService.NewUserService(userRepo, reviewRepo, bonusRepo)
-	osmClient := osm.NewOverpassClient()
+	osmClient := stubOSMClient{}
 	placeSrv := svcPlace.NewPlaceService(placeRepo, tokSrv, osmClient, &cfg)
 	reviewSrv := reviewService.NewReviewService(reviewRepo, userRepo, placeRepo, restrictionRepo, replyRepo)
 	adminSrv := adminService.NewAdminService(adminRepo)
@@ -86,10 +100,12 @@ func NewTestSetup() *TestSetup {
 	bonusSrv := svcBonus.NewBonusService(userRepo, bonusRepo, &cfg)
 	reviewReplySrv := svcReply.NewReviewReplyService(reviewRepo, placeRepo, replyRepo)
 	reviewVoteService := svcVote.NewReviewVoteService(db, voteRepo, reviewRepo, userRepo)
+	publicNewsService := stubPublicNewsService{}
 
 	app := controller.NewApplication(
 		userSrv,
 		placeSrv,
+		publicNewsService,
 		reviewSrv,
 		tokSrv,
 		adminSrv,

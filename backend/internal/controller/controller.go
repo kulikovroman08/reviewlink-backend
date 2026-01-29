@@ -7,6 +7,7 @@ import (
 type Application struct {
 	UserService        service.UserService
 	PlaceService       service.PlaceService
+	publicNewsService  service.PublicNewsService
 	ReviewService      service.ReviewService
 	TokenService       service.TokenService
 	AdminService       service.AdminService
@@ -19,6 +20,7 @@ type Application struct {
 func NewApplication(
 	user service.UserService,
 	place service.PlaceService,
+	publicNewsService service.PublicNewsService,
 	review service.ReviewService,
 	token service.TokenService,
 	admin service.AdminService,
@@ -30,6 +32,7 @@ func NewApplication(
 	return &Application{
 		UserService:        user,
 		PlaceService:       place,
+		publicNewsService:  publicNewsService,
 		ReviewService:      review,
 		TokenService:       token,
 		AdminService:       admin,
