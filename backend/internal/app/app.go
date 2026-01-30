@@ -12,7 +12,6 @@ import (
 
 	"github.com/kulikovroman08/reviewlink-backend/configs"
 	"github.com/kulikovroman08/reviewlink-backend/internal/controller"
-	osm "github.com/kulikovroman08/reviewlink-backend/internal/infra/client/osm"
 	repoAdmin "github.com/kulikovroman08/reviewlink-backend/internal/repository/admin"
 	bonusRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/bonus"
 	repoLeaderboard "github.com/kulikovroman08/reviewlink-backend/internal/repository/leaderboard"
@@ -26,6 +25,7 @@ import (
 	svcAdmin "github.com/kulikovroman08/reviewlink-backend/internal/service/admin"
 	svcBonus "github.com/kulikovroman08/reviewlink-backend/internal/service/bonus"
 	svcLeaderboard "github.com/kulikovroman08/reviewlink-backend/internal/service/leaderboard"
+	svcNews "github.com/kulikovroman08/reviewlink-backend/internal/service/news"
 	svcPlace "github.com/kulikovroman08/reviewlink-backend/internal/service/place"
 	svcReview "github.com/kulikovroman08/reviewlink-backend/internal/service/review"
 	svcReply "github.com/kulikovroman08/reviewlink-backend/internal/service/review_reply"
@@ -62,8 +62,7 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 
 	tokenService := svcToken.NewTokenService(tokenRepo, placeRepo, cfg)
 	userService := svcUser.NewUserService(userRepo, reviewRepo, bonusRepo)
-	baseOSM := osm.NewOverpassClient()
-	osmClient := osm.NewCachedClient(baseOSM, rdb, 60*time.Minute)
+	osmClient := buildOSMClient(cfg, rdb)
 	placeService := svcPlace.NewPlaceService(placeRepo, tokenService, osmClient, cfg)
 	reviewService := svcReview.NewReviewService(reviewRepo, userRepo, placeRepo, restrictionRepo, replyRepo)
 	adminService := svcAdmin.NewAdminService(adminRepo)
@@ -71,9 +70,13 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 	bonusService := svcBonus.NewBonusService(userRepo, bonusRepo, cfg)
 	reviewReplyService := svcReply.NewReviewReplyService(reviewRepo, placeRepo, replyRepo)
 	reviewVoteService := svcVote.NewReviewVoteService(dbpool, voteRepo, reviewRepo, userRepo)
+	publicNewsClient := buildPublicNewsClient(cfg, rdb)
+	publicNewsService := svcNews.NewNewsService(publicNewsClient)
 
-	app := controller.NewApplication(userService,
+	app := controller.NewApplication(
+		userService,
 		placeService,
+		publicNewsService,
 		reviewService,
 		tokenService,
 		adminService,

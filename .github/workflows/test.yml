@@ -54,6 +54,7 @@ jobs:
           APP_ENV: test
           DB_URL_TEST: postgres://app:secret@localhost:5432/reviewlink_test?sslmode=disable
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          PUBLIC_NEWS_RSS_URL: https://daily.afisha.ru/export/rss/google_newsstand/
         run: |
           go test -v -race \
             -coverpkg=./internal/... \

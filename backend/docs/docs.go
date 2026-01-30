@@ -604,6 +604,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/news": {
+            "get": {
+                "description": "Публичная лента новостей HoReCa (RSS РБК, с кешированием)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "news"
+                ],
+                "summary": "Новости HoReCa",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Количество новостей (по умолчанию 3, максимум 20)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.NewsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/places": {
             "get": {
                 "security": [
@@ -1685,6 +1722,37 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.NewsItemResponse": {
+            "type": "object",
+            "properties": {
+                "link": {
+                    "type": "string"
+                },
+                "published_at": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.NewsResponse": {
+            "type": "object",
+            "properties": {
+                "cached_at": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.NewsItemResponse"
+                    }
                 }
             }
         },

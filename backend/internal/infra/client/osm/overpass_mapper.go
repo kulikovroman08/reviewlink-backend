@@ -101,17 +101,9 @@ func (c *CachedClient) cacheKey(p SearchParams) string {
 		amenity = strings.TrimSpace(strings.ToLower(*p.Amenity))
 	}
 
-	limit := p.Limit
-	if limit <= 0 {
-		limit = defaultLimit
-	}
-	if limit > maxLimit {
-		limit = maxLimit
-	}
-
 	base := fmt.Sprintf(
-		"city=%s|search=%s|amenity=%s|limit=%d",
-		city, search, amenity, limit,
+		"city=%s|search=%s|amenity=%s",
+		city, search, amenity,
 	)
 
 	sum := sha1.Sum([]byte(base))

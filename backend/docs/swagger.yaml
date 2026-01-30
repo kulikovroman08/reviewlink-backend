@@ -166,6 +166,26 @@ definitions:
       message:
         type: string
     type: object
+  dto.NewsItemResponse:
+    properties:
+      link:
+        type: string
+      published_at:
+        type: string
+      source:
+        type: string
+      title:
+        type: string
+    type: object
+  dto.NewsResponse:
+    properties:
+      cached_at:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/dto.NewsItemResponse'
+        type: array
+    type: object
   dto.PlaceResponse:
     properties:
       address:
@@ -746,6 +766,30 @@ paths:
       summary: Авторизация пользователя
       tags:
       - auth
+  /news:
+    get:
+      consumes:
+      - application/json
+      description: Публичная лента новостей HoReCa (RSS РБК, с кешированием)
+      parameters:
+      - description: Количество новостей (по умолчанию 3, максимум 20)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.NewsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Новости HoReCa
+      tags:
+      - news
   /places:
     get:
       description: Возвращает список заведений, принадлежащих текущему администратору

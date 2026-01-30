@@ -8,10 +8,7 @@
     <link rel="stylesheet" href="style.css"/>
 
     <!-- Leaflet -->
-    <link
-            rel="stylesheet"
-            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
 
 <body>
@@ -36,8 +33,87 @@
     </div>
 </div>
 
+<!-- ===== NEWS (TOP STRIP, directly under topbar) ===== -->
+<div class="container" style="margin-top: var(--space-4);">
+    <section id="newsSection" class="card" style="margin-bottom: var(--space-4);">
+        <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;">
+            <div>
+                <div class="section-title">Новости</div>
+                <div class="muted small">Afisha Daily</div>
+            </div>
+            <button id="newsRefreshBtn" class="btn btn-sm" type="button">Обновить</button>
+        </div>
+
+        <div class="card-body" style="padding-top:10px;">
+            <div id="newsRow" class="newsRow">
+                <!-- cards injected -->
+            </div>
+
+            <div id="newsEmpty" class="muted small" style="display:none; padding:8px 0;">
+                Пока нет новостей.
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+    /* top strip row: cards fit within container, never overflow */
+    .newsRow{
+        display:grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap:10px;
+    }
+    @media (max-width: 1200px){
+        .newsRow{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 900px){
+        .newsRow{
+            grid-auto-flow: column;
+            grid-auto-columns: minmax(260px, 1fr);
+            grid-template-columns: none;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scroll-snap-type: x mandatory;
+        }
+        .newsRow::-webkit-scrollbar{ height: 8px; }
+        .newsRow::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.12); border-radius: 8px; }
+        .newsCard{ scroll-snap-align: start; }
+    }
+
+    .newsCard{
+        background: rgba(255,255,255,.03);
+        border: 1px solid rgba(255,255,255,.06);
+        border-radius: 16px;
+        padding: 12px;
+        min-height: 90px;
+        display:flex;
+        flex-direction:column;
+        justify-content:space-between;
+        gap:10px;
+    }
+    .newsTitle{
+        font-size: 13px;
+        line-height: 1.35;
+        font-weight: 600;
+        color: rgba(255,255,255,.92);
+        text-decoration:none;
+        display:-webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow:hidden;
+    }
+    .newsTitle:hover{ text-decoration: underline; }
+    .newsMeta{
+        display:flex;
+        justify-content:space-between;
+        gap:10px;
+        font-size:12px;
+        opacity:.7;
+        white-space: nowrap;
+    }
+</style>
+
 <main class="container">
-    <!-- Убрали "Публичная страница" -->
 
     <!-- ОДНА ПЛАШКА УПРАВЛЕНИЯ -->
     <div class="card" style="margin-bottom: var(--space-4);">
@@ -59,7 +135,6 @@
 
                     <div class="help subtle" id="modeHint"></div>
 
-                    <!-- Оставляем select для совместимости с текущим explore.js -->
                     <select id="modeSelect" class="d-none">
                         <option value="catalog">Каталог заведений</option>
                         <option value="places">Лидеры — Заведения</option>
@@ -112,6 +187,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -189,7 +265,7 @@
         </div>
     </section>
 
-    <!-- Лёгкий inline-скрипт для табов (без правок common.js/style.css) -->
+    <!-- Лёгкий inline-скрипт для табов -->
     <script>
 		document.addEventListener("DOMContentLoaded", () => {
 			const modeSelect = document.getElementById("modeSelect");
@@ -209,7 +285,6 @@
 			}
 
 			function setMainTab(tab) {
-				// tab: "catalog" | "leaders"
 				const isCatalog = tab === "catalog";
 
 				setActiveButton(tabCatalogBtn, isCatalog);
@@ -224,7 +299,6 @@
 			}
 
 			function setLeadersSubTab(val) {
-				// val: "places"|"users"|"bonuses"
 				setActiveButton(leadersPlacesBtn, val === "places");
 				setActiveButton(leadersUsersBtn, val === "users");
 				setActiveButton(leadersBonusesBtn, val === "bonuses");
@@ -241,7 +315,6 @@
 			leadersUsersBtn?.addEventListener("click", () => setLeadersSubTab("users"));
 			leadersBonusesBtn?.addEventListener("click", () => setLeadersSubTab("bonuses"));
 
-			// init from current value
 			const initial = modeSelect?.value || "places";
 			if (initial === "catalog") {
 				setMainTab("catalog");
@@ -251,10 +324,12 @@
 			}
 		});
     </script>
+
 </main>
 
 <script src="common.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="explore.js"></script>
+<script src="news.js"></script>
 </body>
 </html>

@@ -236,3 +236,19 @@ type EnsurePlaceFromPublicRequest struct {
 type EnsurePlaceFromPublicResponse struct {
 	PlaceID string `json:"place_id"`
 }
+
+type NewsQuery struct {
+	Limit *int `form:"limit"`
+}
+
+type NewsItemResponse struct {
+	Title       string    `json:"title"`
+	Link        string    `json:"link"`
+	PublishedAt time.Time `json:"published_at"`
+	Source      string    `json:"source"`
+}
+
+type NewsResponse struct {
+	Items    []NewsItemResponse `json:"items"`
+	CachedAt *time.Time         `json:"cached_at,omitempty"`
+}
