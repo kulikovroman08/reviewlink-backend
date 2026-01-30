@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	newsclient "github.com/kulikovroman08/reviewlink-backend/internal/infra/client/news"
 	"github.com/kulikovroman08/reviewlink-backend/internal/model"
 )
 
@@ -65,7 +64,7 @@ type ReviewVoteService interface {
 }
 
 type PublicNewsClient interface {
-	ListNews(ctx context.Context, limit int) ([]newsclient.Item, *time.Time, error)
+	ListNews(ctx context.Context, limit int) ([]model.NewsItem, *time.Time, error)
 }
 
 type PublicNewsService interface {

@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kulikovroman08/reviewlink-backend/internal/model"
+
 	"github.com/kulikovroman08/reviewlink-backend/internal/infra/client/rss"
 	"github.com/redis/go-redis/v9"
 )
@@ -35,17 +37,16 @@ func NewCachedClient(inner *rss.Client, rdb *redis.Client, ttl time.Duration) *C
 }
 
 type cachedPayload struct {
-	CachedAt time.Time `json:"cached_at"`
-	Items    []Item    `json:"items"`
+	CachedAt time.Time        `json:"cached_at"`
+	Items    []model.NewsItem `json:"items"`
 }
 
-func (c *CachedClient) ListNews(ctx context.Context, limit int) ([]Item, *time.Time, error) {
+func (c *CachedClient) ListNews(ctx context.Context, limit int) ([]model.NewsItem, *time.Time, error) {
 	if limit <= 0 {
 		limit = defaultLimit
 	}
 	limit = clamp(limit, 1, maxLimit)
 
-	// try cache
 	if c.rdb != nil {
 		if raw, err := c.rdb.Get(ctx, cacheKey).Bytes(); err == nil && len(raw) > 0 {
 			var p cachedPayload
@@ -55,13 +56,11 @@ func (c *CachedClient) ListNews(ctx context.Context, limit int) ([]Item, *time.T
 		}
 	}
 
-	// fetch fresh
 	items, cachedAt, err := c.fetchAndMapAll(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// store cache (best-effort)
 	if c.rdb != nil && cachedAt != nil {
 		p := cachedPayload{CachedAt: *cachedAt, Items: items}
 		if b, err := json.Marshal(p); err == nil {
@@ -72,14 +71,14 @@ func (c *CachedClient) ListNews(ctx context.Context, limit int) ([]Item, *time.T
 	return take(items, limit), cachedAt, nil
 }
 
-func (c *CachedClient) fetchAndMapAll(ctx context.Context) ([]Item, *time.Time, error) {
+func (c *CachedClient) fetchAndMapAll(ctx context.Context) ([]model.NewsItem, *time.Time, error) {
 	raw, err := c.inner.Fetch(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 	log.Printf("[news] rss fetched items: %d", len(raw))
 
-	out := make([]Item, 0)
+	out := make([]model.NewsItem, 0)
 	seen := make(map[string]struct{}, len(raw)) // dedupe by link
 
 	for _, it := range raw {
@@ -89,7 +88,6 @@ func (c *CachedClient) fetchAndMapAll(ctx context.Context) ([]Item, *time.Time, 
 			continue
 		}
 
-		// ❌ выкидываем только тяжелое/негатив
 		if matchAny(title, stopKeywords) {
 			continue
 		}
@@ -104,7 +102,7 @@ func (c *CachedClient) fetchAndMapAll(ctx context.Context) ([]Item, *time.Time, 
 		}
 		seen[link] = struct{}{}
 
-		out = append(out, Item{
+		out = append(out, model.NewsItem{
 			Title:       title,
 			Link:        link,
 			PublishedAt: tm,
@@ -157,7 +155,7 @@ func parsePubDate(v string) (time.Time, bool) {
 	return time.Time{}, false
 }
 
-func take(items []Item, limit int) []Item {
+func take(items []model.NewsItem, limit int) []model.NewsItem {
 	if len(items) <= limit {
 		return items
 	}
