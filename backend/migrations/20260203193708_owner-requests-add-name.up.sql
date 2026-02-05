@@ -1,0 +1,1 @@
+ALTER TABLE owner_requests ADD COLUMN name text NULL;

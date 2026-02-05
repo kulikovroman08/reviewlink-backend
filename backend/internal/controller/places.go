@@ -55,10 +55,16 @@ func (h *Application) CreatePlace(c *gin.Context) {
 		return
 	}
 
+	addr := strings.TrimSpace(req.Address)
+	if addr == "" {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: response.ErrInvalidPlaceData})
+		return
+	}
+
 	place := model.Place{
 		OwnerID: &ownerUUID,
 		Name:    req.Name,
-		Address: req.Address,
+		Address: &addr,
 	}
 
 	createdPlace, err := h.PlaceService.CreatePlace(c.Request.Context(), place)
@@ -124,10 +130,15 @@ func (h *Application) GetPlaces(c *gin.Context) {
 
 	resp := make([]dto.PlaceResponse, 0, len(places))
 	for _, p := range places {
+		addr := ""
+		if p.Address != nil {
+			addr = *p.Address
+		}
+
 		resp = append(resp, dto.PlaceResponse{
 			ID:        p.ID.String(),
 			Name:      p.Name,
-			Address:   p.Address,
+			Address:   addr,
 			CreatedAt: p.CreatedAt,
 		})
 	}

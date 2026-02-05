@@ -43,11 +43,11 @@ func (s *placeService) CreatePlace(ctx context.Context, place model.Place) (*mod
 		return nil, fmt.Errorf("owner_id is required")
 	}
 
-	if place.Name == "" {
+	if strings.TrimSpace(place.Name) == "" {
 		return nil, fmt.Errorf("name is required")
 	}
 
-	if place.Address == "" {
+	if place.Address == nil || strings.TrimSpace(*place.Address) == "" {
 		return nil, fmt.Errorf("address is required")
 	}
 

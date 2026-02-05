@@ -21,7 +21,7 @@ type Place struct {
 	ID        uuid.UUID
 	OwnerID   *uuid.UUID
 	Name      string
-	Address   string
+	Address   *string
 	Source    *string
 	SourceID  *string
 	CreatedAt time.Time
@@ -131,4 +131,26 @@ type BonusLeaderboardEntry struct {
 	Name         string
 	BonusesCount int
 	PointsSpent  int
+}
+
+type OwnerRequestStatus string
+
+const (
+	OwnerRequestPending  OwnerRequestStatus = "pending"
+	OwnerRequestApproved OwnerRequestStatus = "approved"
+	OwnerRequestRejected OwnerRequestStatus = "rejected"
+)
+
+type OwnerRequest struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Source    string
+	SourceID  string
+	Name      string
+	Status    OwnerRequestStatus
+	CreatedAt time.Time
+
+	ReviewedAt *time.Time
+	ReviewedBy *uuid.UUID
+	Comment    *string
 }

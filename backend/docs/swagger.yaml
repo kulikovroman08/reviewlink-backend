@@ -11,6 +11,12 @@ definitions:
       total_users:
         type: integer
     type: object
+  dto.ApproveOwnerRequestRequest:
+    properties:
+      comment:
+        maxLength: 500
+        type: string
+    type: object
   dto.AuthResponse:
     properties:
       token:
@@ -82,6 +88,28 @@ definitions:
       status:
         type: string
     type: object
+  dto.CreateOwnerRequest:
+    properties:
+      name:
+        maxLength: 200
+        type: string
+      source:
+        enum:
+        - osm
+        type: string
+      source_id:
+        type: string
+      sourceId:
+        type: string
+    required:
+    - name
+    - source
+    type: object
+  dto.CreateOwnerRequestResponse:
+    properties:
+      id:
+        type: string
+    type: object
   dto.CreatePlaceRequest:
     properties:
       address:
@@ -150,6 +178,13 @@ definitions:
       reviews_count:
         type: integer
     type: object
+  dto.ListOwnerRequestsResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.OwnerRequestItem'
+        type: array
+    type: object
   dto.LoginRequest:
     properties:
       email:
@@ -185,6 +220,29 @@ definitions:
         items:
           $ref: '#/definitions/dto.NewsItemResponse'
         type: array
+    type: object
+  dto.OwnerRequestItem:
+    properties:
+      comment:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      reviewed_at:
+        type: string
+      reviewed_by:
+        type: string
+      source:
+        type: string
+      source_id:
+        type: string
+      status:
+        type: string
+      user_id:
+        type: string
     type: object
   dto.PlaceResponse:
     properties:
@@ -255,6 +313,12 @@ definitions:
         type: array
       total:
         type: integer
+    type: object
+  dto.RejectOwnerRequestRequest:
+    properties:
+      comment:
+        maxLength: 500
+        type: string
     type: object
   dto.ReplyToReviewRequest:
     properties:
@@ -382,6 +446,142 @@ info:
   title: Reviewlink API
   version: "1.0"
 paths:
+  /admin/owner_requests/{id}/approve:
+    post:
+      consumes:
+      - application/json
+      description: Подтверждает заявку, создаёт/находит place по (source, source_id),
+        назначает owner_id
+      parameters:
+      - description: OwnerRequest ID (uuid)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: comment
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/dto.ApproveOwnerRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageResponse'
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: access denied
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: owner request not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: owner request is not pending / place owner already set
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to approve owner request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Подтвердить владельца заведения (platform admin)
+      tags:
+      - platform_admin
+  /admin/owner_requests/{id}/reject:
+    post:
+      consumes:
+      - application/json
+      description: Отклоняет заявку (status=rejected)
+      parameters:
+      - description: OwnerRequest ID (uuid)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: comment
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/dto.RejectOwnerRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageResponse'
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: access denied
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: owner request not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: owner request is not pending
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to reject owner request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Отклонить заявку владельца (platform admin)
+      tags:
+      - platform_admin
+  /admin/owner_requests/pending:
+    get:
+      parameters:
+      - description: limit (default 50)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ListOwnerRequestsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Pending заявки на владельца (platform admin)
+      tags:
+      - platform_admin
   /admin/reviews/{id}/reply:
     post:
       consumes:
@@ -790,6 +990,47 @@ paths:
       summary: Новости HoReCa
       tags:
       - news
+  /owner_requests:
+    post:
+      consumes:
+      - application/json
+      description: Пользователь отправляет заявку стать владельцем заведения из публичного
+        каталога (OSM)
+      parameters:
+      - description: source/source_id(or sourceId)/name
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateOwnerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CreateOwnerRequestResponse'
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: owner request already exists
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: failed to create owner request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Заявка на владельца заведения
+      tags:
+      - owner_requests
   /places:
     get:
       description: Возвращает список заведений, принадлежащих текущему администратору

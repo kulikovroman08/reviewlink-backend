@@ -252,3 +252,40 @@ type NewsResponse struct {
 	Items    []NewsItemResponse `json:"items"`
 	CachedAt *time.Time         `json:"cached_at,omitempty"`
 }
+
+type CreateOwnerRequest struct {
+	Source   string `json:"source" binding:"required,oneof=osm"`
+	SourceID string `json:"source_id"`
+	SourceId string `json:"sourceId"`
+	Name     string `json:"name" binding:"required,max=200"`
+}
+
+type CreateOwnerRequestResponse struct {
+	ID string `json:"id"`
+}
+
+type ApproveOwnerRequestRequest struct {
+	Comment *string `json:"comment,omitempty" binding:"omitempty,max=500"`
+}
+
+type RejectOwnerRequestRequest struct {
+	Comment *string `json:"comment,omitempty" binding:"omitempty,max=500"`
+}
+
+type OwnerRequestItem struct {
+	ID        string `json:"id"`
+	UserID    string `json:"user_id"`
+	Source    string `json:"source"`
+	SourceID  string `json:"source_id"`
+	Name      string `json:"name"`
+	Status    string `json:"status"`
+	CreatedAt string `json:"created_at"`
+
+	ReviewedAt *string `json:"reviewed_at,omitempty"`
+	ReviewedBy *string `json:"reviewed_by,omitempty"`
+	Comment    *string `json:"comment,omitempty"`
+}
+
+type ListOwnerRequestsResponse struct {
+	Items []OwnerRequestItem `json:"items"`
+}

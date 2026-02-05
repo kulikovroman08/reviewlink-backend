@@ -70,3 +70,10 @@ type PublicNewsClient interface {
 type PublicNewsService interface {
 	ListNews(ctx context.Context, limit int) ([]model.NewsItem, *time.Time, error)
 }
+
+type OwnerRequestService interface {
+	Create(ctx context.Context, userID string, source string, sourceID string, name string) (string, error)
+	ListPending(ctx context.Context, limit int) ([]model.OwnerRequest, error)
+	Approve(ctx context.Context, adminID string, requestID string, comment *string) error
+	Reject(ctx context.Context, adminID string, requestID string, comment *string) error
+}

@@ -19,6 +19,7 @@ type UserRepository interface {
 	SoftDeleteUser(ctx context.Context, userID string) error
 	AddPoints(ctx context.Context, userID string, points int) error
 	RedeemPoints(ctx context.Context, userID string, points int) error
+	SetRole(ctx context.Context, userID string, role string) error
 }
 
 type PlaceRepository interface {
@@ -28,6 +29,7 @@ type PlaceRepository interface {
 	IsOwner(ctx context.Context, placeID string, ownerID string) (bool, error)
 	GetPublicMetaBySourceIDs(ctx context.Context, source string, sourceIDs []string) (map[string]model.PublicPlaceMeta, error)
 	EnsureFromPublic(ctx context.Context, source, sourceID, name string) (string, error)
+	SetOwner(ctx context.Context, placeID string, ownerID string) error
 }
 
 type ReviewRepository interface {
@@ -83,4 +85,12 @@ type ReviewVoteRepository interface {
 	UpsertVote(ctx context.Context, tx pgx.Tx, reviewID, userID string, value int16) error
 	DeleteVote(ctx context.Context, tx pgx.Tx, reviewID, userID string) (bool, error)
 	UpdateCounters(ctx context.Context, tx pgx.Tx, reviewID string, deltaHelpful int32, deltaUnhelpful int32) error
+}
+
+type OwnerRequestRepository interface {
+	Create(ctx context.Context, r *model.OwnerRequest) error
+	GetByID(ctx context.Context, id string) (*model.OwnerRequest, error)
+	ListPending(ctx context.Context, limit int) ([]model.OwnerRequest, error)
+	Approve(ctx context.Context, id string, reviewedBy string, comment *string) error
+	Reject(ctx context.Context, id string, reviewedBy string, comment *string) error
 }
