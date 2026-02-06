@@ -114,9 +114,10 @@ func (r *PostgresPlaceRepository) GetByID(ctx context.Context, placeID string) (
 	}
 
 	if addr.Valid {
-		p.Address = addr.String
+		s := addr.String
+		p.Address = &s
 	} else {
-		p.Address = ""
+		p.Address = nil
 	}
 
 	return p, nil
@@ -313,4 +314,37 @@ func (r *PostgresPlaceRepository) EnsureFromPublic(
 	}
 
 	return placeID.String(), nil
+}
+
+func (r *PostgresPlaceRepository) SetOwner(ctx context.Context, placeID string, ownerID string) error {
+	placeUUID, err := uuid.Parse(placeID)
+	if err != nil {
+		return fmt.Errorf("parse placeID: %w", err)
+	}
+	ownerUUID, err := uuid.Parse(ownerID)
+	if err != nil {
+		return fmt.Errorf("parse ownerID: %w", err)
+	}
+
+	query, args, err := r.builder.
+		Update(placeTable).
+		Set(placeOwnerIDColumn, ownerUUID).
+		Where(sq.Eq{placeIDColumn: placeUUID}).
+		Where(sq.Expr(placeOwnerIDColumn + " IS NULL")).
+		Where(sq.Eq{placeIsDeletedColumn: false}).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("build SetOwner query: %w", err)
+	}
+
+	ct, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("exec SetOwner: %w", err)
+	}
+
+	if ct.RowsAffected() == 0 {
+		return fmt.Errorf("set owner: place not found or owner already set")
+	}
+
+	return nil
 }

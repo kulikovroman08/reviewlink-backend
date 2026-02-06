@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ReviewLink - Одобрение заявок Owner</title>
+
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+<!-- topbar -->
+<div class="navbar">
+    <div class="container">
+        <a class="brand" href="explore.html" style="text-decoration:none;">
+            <span>ReviewLink</span>
+        </a>
+
+        <!-- справа оставляем ТОЛЬКО служебные кнопки -->
+        <div class="nav-right">
+            <button class="btn btn-sm" type="button" onclick="RL.toggleTheme()">Тема</button>
+            <!-- кнопка "Выйти" добавляется JS-ом -->
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h1 class="page-title">Одобрение заявок на Owner</h1>
+
+    <div class="stack">
+
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="section-title">Заявки в ожидании</h2>
+                    <div class="subtle">Одобряй или отклоняй заявки на роль owner</div>
+                </div>
+
+                <div class="row" style="gap:10px;">
+                    <button id="refreshBtn" class="btn btn-sm" type="button">Обновить</button>
+                    <span class="badge" id="adminBadge">Проверка...</span>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="form-row">
+                    <div>
+                        <label for="qInput">Поиск</label>
+                        <input id="qInput" type="text" placeholder="email / имя / place_id / комментарий..." />
+                        <div class="help">Фильтр работает локально по загруженному списку.</div>
+                    </div>
+
+                    <div>
+                        <label for="sortSelect">Сортировка</label>
+                        <select id="sortSelect">
+                            <option value="new">Сначала новые</option>
+                            <option value="old">Сначала старые</option>
+                        </select>
+                        <div class="help">Ориентируемся на created_at (если пришёл).</div>
+                    </div>
+                </div>
+
+                <div class="row" style="margin-top: 14px;">
+                    <div id="statusLine" class="muted"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="requestsContainer"></div>
+
+    </div>
+</div>
+
+<script src="common.js"></script>
+<script src="admin-owner-requests.js"></script>
+</body>
+
+</html>

@@ -10,57 +10,67 @@
 </head>
 
 <body>
-    <div class="navbar">
-        <div class="container">
-            <a class="brand" href="explore.html">
-                <span aria-hidden="true">★</span>
-                <span>ReviewLink</span>
-            </a>
+<div class="navbar">
+    <div class="container">
+        <a class="brand" href="explore.html">
+            ReviewLink
+        </a>
 
-            <div class="nav-right">
-                <button class="btn btn-sm" type="button" onclick="RL.toggleTheme()">Тема</button>
-                <a class="btn btn-sm btn-link" href="explore.html">Главная</a>
-            </div>
+        <div class="nav-right">
+            <button class="btn btn-sm" type="button" onclick="RL.toggleTheme()">Тема</button>
+            <a class="btn btn-sm btn-link" href="explore.html">Главная</a>
         </div>
     </div>
+</div>
 
-    <div class="auth-shell">
-        <div class="card auth-card">
-            <div class="auth-title" id="authTitle">Авторизация</div>
+<div class="auth-shell">
+    <div class="card auth-card">
+        <div class="auth-title" id="authTitle">Авторизация</div>
 
-            <!-- mode toggle (Вход / Регистрация) -->
-            <div class="row mb-3" style="gap:10px;">
-                <button id="modeLoginBtn" type="button" class="btn btn-sm btn-primary" aria-pressed="true">Вход</button>
-                <button id="modeSignupBtn" type="button" class="btn btn-sm" aria-pressed="false">Регистрация</button>
+        <!-- mode toggle (Вход / Регистрация) -->
+        <div class="row mb-3" style="gap:10px;">
+            <button id="modeLoginBtn" type="button" class="btn btn-sm btn-primary" aria-pressed="true">Вход</button>
+            <button id="modeSignupBtn" type="button" class="btn btn-sm" aria-pressed="false">Регистрация</button>
+        </div>
+
+        <form id="loginForm" class="stack">
+            <div>
+                <div id="nameWrap" class="mb-3" style="display:none;">
+                    <label for="nameInput">Имя</label>
+                    <input id="nameInput" type="text" placeholder="Ваше имя" autocomplete="name" />
+                </div>
+
+                <label for="emailInput">Email</label>
+                <input type="email" id="emailInput" placeholder="ваш@email.com" required>
             </div>
 
-            <form id="loginForm" class="stack">
-                <div>
-                    <div id="nameWrap" class="mb-3" style="display:none;">
-                        <label for="nameInput">Имя</label>
-                        <input id="nameInput" type="text" placeholder="Ваше имя" autocomplete="name" />
-                    </div>
-                    <label for="emailInput">Email</label>
-                    <input type="email" id="emailInput" placeholder="ваш@email.com" required>
+            <div>
+                <label for="passwordInput">Пароль</label>
+                <input type="password" id="passwordInput" placeholder="Введите пароль" required>
+            </div>
+
+            <!-- Чекбокс владельца: ТОЛЬКО для регистрации -->
+            <div id="ownerWrap" style="display:none;">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+                    <input id="ownerCheckbox" type="checkbox" />
+                    <span style="font-weight:600;">Я владелец заведения</span>
+                </label>
+                <div class="subtle" style="margin-top:6px;">
+                    После регистрации откроется форма заявки на владение.
                 </div>
+            </div>
 
-                <div>
-                    <label for="passwordInput">Пароль</label>
-                    <input type="password" id="passwordInput" placeholder="Введите пароль" required>
-                </div>
+            <button id="submitBtn" type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-box-arrow-in-right"></i>Войти
+            </button>
 
-                <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="bi bi-box-arrow-in-right"></i>Войти
-                </button>
-
-                <div id="loginMessage"></div>
-            </form>
-        </div>
+            <div id="loginMessage"></div>
+        </form>
     </div>
+</div>
 
-
-    <script src="common.js"></script>
-    <script src="login.js"></script>
+<script src="common.js"></script>
+<script src="login.js"></script>
 </body>
 
 </html>

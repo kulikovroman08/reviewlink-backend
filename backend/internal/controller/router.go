@@ -57,6 +57,11 @@ func SetupRouter(app *Application) *gin.Engine {
 		protected.DELETE("/users", app.DeleteUser)
 		protected.GET("/users/stats", app.GetUserStats)
 
+		protected.POST("/owner_requests", app.CreateOwnerRequest)
+		protected.POST("/admin/owner_requests/:id/approve", app.ApproveOwnerRequest)
+		protected.POST("/admin/owner_requests/:id/reject", app.RejectOwnerRequest)
+		protected.GET("/admin/owner_requests/pending", app.ListPendingOwnerRequests)
+
 		protected.POST("/places", app.CreatePlace)
 		protected.GET("/places", app.GetPlaces)
 

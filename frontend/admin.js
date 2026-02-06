@@ -12,14 +12,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function isAdminToken(token) {
         if (!token) return false;
-        // Используем глобальный parseJwt из window.AppCommon
         const payload = window.AppCommon ? window.AppCommon.parseJwt(token) : null;
         return payload && payload.role === "admin";
     }
 
     function authHeaders(extra = {}) {
         const token = getToken();
-        // бек ожидает просто токен (НЕ Bearer)
         return token ? { ...extra, Authorization: token } : { ...extra };
     }
 
@@ -54,7 +52,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return out;
     }
 
-    // Генерация QR (для отзывов)
     function generateQRCode(token, placeId) {
         const publicBase = window.location.origin;
         const reviewUrl = `${publicBase}/frontend/review-form.html?token=${token}&place_id=${placeId}`;
@@ -63,17 +60,15 @@ document.addEventListener("DOMContentLoaded", () => {
         )}`;
     }
 
-    // ===== Guard: если токен есть, но не админ — уводим в dashboard =====
+    // ===== Guard =====
     (function guardAdminPage() {
         const token = getToken();
 
-        // Если нет токена или токен не админский - редирект на логин
         if (!token) {
             window.location.href = "login.html";
             return;
         }
 
-        // Используем window.AppCommon.parseJwt напрямую
         const payload = window.AppCommon ? window.AppCommon.parseJwt(token) : null;
 
         if (!payload || payload.role !== "admin") {
@@ -81,7 +76,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Если авторизован как админ - показываем статус
         const dbg = document.getElementById("loginStatus");
         if (dbg) {
             dbg.textContent = "Токен admin OK ✅";
@@ -96,6 +90,68 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const generateBtn = document.getElementById("generateBtn");
     const loadReviewsBtn = document.getElementById("loadReviewsBtn");
+
+    // ===== NEW: Owner request refs =====
+    const ownerReqSendBtn = document.getElementById("ownerReqSendBtn");
+    const ownerSource = document.getElementById("ownerSource");
+    const ownerSourceId = document.getElementById("ownerSourceId");
+    const ownerPlaceName = document.getElementById("ownerPlaceName");
+    const ownerReqStatus = document.getElementById("ownerReqStatus");
+    const ownerReqBadge = document.getElementById("ownerReqBadge");
+
+    function setOwnerReqUI(enabled) {
+        if (ownerReqSendBtn) ownerReqSendBtn.disabled = !enabled;
+        if (ownerReqBadge) {
+            ownerReqBadge.className = enabled ? "badge ok" : "badge";
+            ownerReqBadge.textContent = enabled ? "Admin OK" : "Нужен вход";
+        }
+    }
+
+    async function submitOwnerRequest() {
+        if (!ownerReqSendBtn) return;
+
+        const source = (ownerSource?.value || "osm").trim();
+        const sourceId = (ownerSourceId?.value || "").trim();
+        const name = (ownerPlaceName?.value || "").trim();
+
+        if (ownerReqStatus) ownerReqStatus.innerHTML = "";
+
+        if (!sourceId || !name) {
+            if (ownerReqStatus) ownerReqStatus.innerHTML = `<span class="text-danger">Заполните sourceId и название</span>`;
+            return;
+        }
+
+        ownerReqSendBtn.disabled = true;
+        if (ownerReqStatus) ownerReqStatus.innerHTML = `<span class="text-info">Отправка...</span>`;
+
+        try {
+            const res = await fetch(`${ADMIN_API_BASE}/owner_requests`, {
+                method: "POST",
+                headers: authHeaders({ "Content-Type": "application/json" }),
+                body: JSON.stringify({ source, sourceId, name }),
+            });
+
+            const data = await safeParseJSON(res);
+            if (!res.ok) throw new Error(data.error || `Ошибка отправки: ${res.status}`);
+
+            if (ownerReqStatus) ownerReqStatus.innerHTML = `<span class="text-success">Заявка отправлена ✅ ${data.id ? `ID: ${escapeHtml(data.id)}` : ""}</span>`;
+
+            // очистим поля
+            if (ownerSourceId) ownerSourceId.value = "";
+            if (ownerPlaceName) ownerPlaceName.value = "";
+        } catch (e) {
+            if (ownerReqStatus) ownerReqStatus.innerHTML = `<span class="text-danger">${escapeHtml(e.message)}</span>`;
+        } finally {
+            ownerReqSendBtn.disabled = false;
+        }
+    }
+
+    if (ownerReqSendBtn) {
+        ownerReqSendBtn.addEventListener("click", submitOwnerRequest);
+    }
+
+    // по умолчанию — выключено, включим после автологина/логина
+    setOwnerReqUI(false);
 
     // ===== Авторизация =====
     if (loginBtn) {
@@ -126,23 +182,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 const token = data.token || "";
                 if (!token) throw new Error("Не пришёл token от /login");
 
-                // проверяем роль
                 const payload = window.AppCommon ? window.AppCommon.parseJwt(token) : null;
                 if (!payload || payload.role !== "admin") {
                     statusDiv.innerHTML = `<div class="text-danger">У вас нет прав администратора. Роль: ${payload ? payload.role : 'нет роли'}</div>`;
-                    loginBtn.disabled = false;  // <-- ВОССТАНАВЛИВАЕМ
+                    loginBtn.disabled = false;
                     return;
                 }
 
-                // сохраняем как ОБЩИЙ токен
                 localStorage.setItem("adminToken", token);
                 localStorage.setItem("adminEmail", email);
 
                 statusDiv.innerHTML = '<div class="text-success">Успешный вход!</div>';
 
-                // включаем кнопки
                 if (generateBtn) generateBtn.disabled = false;
                 if (loadReviewsBtn) loadReviewsBtn.disabled = false;
+
+                setOwnerReqUI(true);
 
                 addLogoutButton();
 
@@ -150,12 +205,12 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (e) {
                 statusDiv.innerHTML = `<div class="text-danger">${escapeHtml(e.message)}</div>`;
             } finally {
-                loginBtn.disabled = false;  // <-- ВОССТАНАВЛИВАЕМ В ЛЮБОМ СЛУЧАЕ
+                loginBtn.disabled = false;
             }
         };
     }
 
-    // ===== Автологин (если уже есть userToken и он админ) =====
+    // ===== Автологин =====
     (async function autoLogin() {
         const token = getToken();
         const email = localStorage.getItem("adminEmail") || localStorage.getItem("userEmail") || "";
@@ -170,7 +225,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (generateBtn) generateBtn.disabled = false;
         if (loadReviewsBtn) loadReviewsBtn.disabled = false;
 
-        // Добавляем кнопку выхода
+        setOwnerReqUI(true);
+
         addLogoutButton();
 
         await loadPlaces();
@@ -199,7 +255,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 select.appendChild(option);
             });
 
-            // при смене place — подгружаем отзывы
             select.addEventListener("change", () => {
                 if (select.value) loadReviews(select.value);
             });
@@ -279,7 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
         container.innerHTML = html;
     }
 
-    // ===== Reviews (business replies only) =====
+    // ===== Reviews =====
     if (loadReviewsBtn) {
         loadReviewsBtn.addEventListener("click", () => {
             const placeId = document.getElementById("placeSelect")?.value;
@@ -468,22 +523,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 card.getAttribute("data-has-reply") === "1" ? "Обновить ответ" : "Ответить";
         }
     }
-    // ===== Кнопка выхода (как в dashboard) =====
+
+    // ===== Logout button =====
     function addLogoutButton() {
         const navRight = document.querySelector(".nav-right");
         if (!navRight) return;
 
-        // уже есть
         if (document.querySelector("#adminLogoutBtn")) return;
 
         const logoutBtn = document.createElement("button");
         logoutBtn.id = "adminLogoutBtn";
-
-        // стиль как у "Тема" / dashboard (не danger)
         logoutBtn.className = "btn btn-sm";
         logoutBtn.type = "button";
 
-        // иконка + текст (inline svg — без библиотек)
         logoutBtn.innerHTML = `
       <span style="display:inline-flex;align-items:center;gap:8px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -503,7 +555,6 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.href = "login.html";
         };
 
-        // вставляем сразу после кнопки "Тема" (как на dashboard)
         const themeBtn = navRight.querySelector('button[onclick*="toggleTheme"]');
         if (themeBtn && themeBtn.nextSibling) {
             navRight.insertBefore(logoutBtn, themeBtn.nextSibling);
@@ -513,5 +564,4 @@ document.addEventListener("DOMContentLoaded", () => {
             navRight.insertBefore(logoutBtn, navRight.firstChild);
         }
     }
-
 });

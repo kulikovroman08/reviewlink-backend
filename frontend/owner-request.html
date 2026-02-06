@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ReviewLink - Заявка владельца</title>
+
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+<div class="navbar">
+    <div class="container">
+        <a class="brand" href="explore.html" style="text-decoration:none;">
+            <span>ReviewLink</span>
+        </a>
+
+        <div class="nav-right">
+            <button class="btn btn-sm" type="button" onclick="RL.toggleTheme()">Тема</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h1 class="page-title">Заявка на владельца заведения</h1>
+
+    <div class="stack">
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="section-title">Данные заведения</h2>
+                    <div class="subtle">Укажи объект из публичного каталога (OSM)</div>
+                </div>
+                <span class="badge" id="authBadge">Проверка...</span>
+            </div>
+
+            <div class="card-body">
+                <div class="form-row">
+                    <div>
+                        <label for="sourceSelect">Источник</label>
+                        <select id="sourceSelect">
+                            <option value="osm" selected>osm</option>
+                        </select>
+                        <div class="help">Пока поддерживаем OSM.</div>
+                    </div>
+
+                    <div>
+                        <label for="sourceIdInput">sourceId</label>
+                        <input id="sourceIdInput" type="text" placeholder='например: way/100029129' />
+                        <div class="help">Как в swagger: way/...</div>
+                    </div>
+                </div>
+
+                <div style="margin-top:14px;">
+                    <label for="nameInputPlace">Название</label>
+                    <input id="nameInputPlace" type="text" placeholder='например: День&Ночь' />
+                </div>
+
+                <div class="row" style="margin-top:14px;">
+                    <button id="sendBtn" class="btn btn-success btn-lg" type="button">Отправить заявку</button>
+                    <div id="status" class="muted"></div>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                    После отправки заявку рассмотрит платформа. После одобрения войдите ещё раз — откроется админ-панель.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="common.js"></script>
+<script src="owner-request.js"></script>
+</body>
+
+</html>

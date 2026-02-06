@@ -2,11 +2,12 @@ package response
 
 // Общие ошибки
 const (
-	ErrInvalidInput       = "invalid input"
-	ErrUnauthorized       = "authentication required"
-	ErrAtLeastOneField    = "at least one field must be provided"
-	ErrInvalidCredentials = "invalid credentials"
-	ErrInternalError      = "internal error"
+	ErrInvalidInput        = "invalid input"
+	ErrUnauthorized        = "authentication required"
+	ErrAtLeastOneField     = "at least one field must be provided"
+	ErrInvalidCredentials  = "invalid credentials"
+	ErrInternalError       = "internal error"
+	ErrInternalServerError = "internal server error"
 )
 
 // Users
@@ -68,4 +69,17 @@ const (
 const (
 	ErrReplyAlreadyExists = "reply already exists"
 	ErrReplyNotFound      = "reply not found"
+)
+
+// Owner requests
+const (
+	ErrOwnerRequestAlreadyExists = "owner request already exists"
+	ErrOwnerRequestNotFound      = "owner request not found"
+	ErrOwnerRequestNotPending    = "owner request is not pending"
+	ErrPlaceOwnerAlreadySet      = "place owner already set"
+
+	ErrFailedCreateOwnerRequest  = "failed to create owner request"
+	ErrFailedListOwnerRequests   = "failed to list owner requests"
+	ErrFailedApproveOwnerRequest = "failed to approve owner request"
+	ErrFailedRejectOwnerRequest  = "failed to reject owner request"
 )

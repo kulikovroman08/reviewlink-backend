@@ -1,0 +1,1 @@
+ALTER TABLE owner_requests DROP COLUMN IF EXISTS name;

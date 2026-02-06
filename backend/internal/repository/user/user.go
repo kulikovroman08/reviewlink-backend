@@ -297,3 +297,30 @@ func (r *PostgresUserRepository) RedeemPoints(ctx context.Context, userID string
 
 	return nil
 }
+
+func (r *PostgresUserRepository) SetRole(ctx context.Context, userID string, role string) error {
+	uuidID, err := uuid.Parse(userID)
+	if err != nil {
+		return fmt.Errorf("invalid user ID: %w", err)
+	}
+
+	query, args, err := r.builder.
+		Update(userTable).
+		Set(userRoleColumn, role).
+		Where(sq.Eq{userIDColumn: uuidID}).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("build SetRole query: %w", err)
+	}
+
+	result, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("exec SetRole: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("user not found")
+	}
+
+	return nil
+}

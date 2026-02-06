@@ -15,6 +15,7 @@ import (
 	repoAdmin "github.com/kulikovroman08/reviewlink-backend/internal/repository/admin"
 	bonusRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/bonus"
 	repoLeaderboard "github.com/kulikovroman08/reviewlink-backend/internal/repository/leaderboard"
+	repoOwnerRequest "github.com/kulikovroman08/reviewlink-backend/internal/repository/owner_request"
 	repoPlace "github.com/kulikovroman08/reviewlink-backend/internal/repository/place"
 	restrictionRepo "github.com/kulikovroman08/reviewlink-backend/internal/repository/restriction"
 	repoReview "github.com/kulikovroman08/reviewlink-backend/internal/repository/review"
@@ -26,6 +27,7 @@ import (
 	svcBonus "github.com/kulikovroman08/reviewlink-backend/internal/service/bonus"
 	svcLeaderboard "github.com/kulikovroman08/reviewlink-backend/internal/service/leaderboard"
 	svcNews "github.com/kulikovroman08/reviewlink-backend/internal/service/news"
+	svcOwnerRequest "github.com/kulikovroman08/reviewlink-backend/internal/service/owner_request"
 	svcPlace "github.com/kulikovroman08/reviewlink-backend/internal/service/place"
 	svcReview "github.com/kulikovroman08/reviewlink-backend/internal/service/review"
 	svcReply "github.com/kulikovroman08/reviewlink-backend/internal/service/review_reply"
@@ -59,6 +61,7 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 	restrictionRepo := restrictionRepo.NewPostgresUserRestrictionRepository(dbpool)
 	replyRepo := repoReply.NewPostgresReviewReplyRepository(dbpool)
 	voteRepo := repoVote.NewPostgresReviewVoteRepository()
+	ownerRequestRepo := repoOwnerRequest.NewPostgresOwnerRequestRepository(dbpool)
 
 	tokenService := svcToken.NewTokenService(tokenRepo, placeRepo, cfg)
 	userService := svcUser.NewUserService(userRepo, reviewRepo, bonusRepo)
@@ -72,10 +75,12 @@ func InitApp(cfg *configs.Config) *gin.Engine {
 	reviewVoteService := svcVote.NewReviewVoteService(dbpool, voteRepo, reviewRepo, userRepo)
 	publicNewsClient := buildPublicNewsClient(cfg, rdb)
 	publicNewsService := svcNews.NewNewsService(publicNewsClient)
+	ownerRequestService := svcOwnerRequest.NewOwnerRequestService(ownerRequestRepo, placeRepo, userRepo)
 
 	app := controller.NewApplication(
 		userService,
 		placeService,
+		ownerRequestService,
 		publicNewsService,
 		reviewService,
 		tokenService,
